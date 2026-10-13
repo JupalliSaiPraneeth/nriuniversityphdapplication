@@ -1,5 +1,4 @@
 import React from 'react';
-import { Plus, Trash2, Users } from 'lucide-react';
 
 export default function Step5ConferencesReferences({ formData, setFormData }) {
   const conferences = formData.conferencesWorkshops;
@@ -60,92 +59,91 @@ export default function Step5ConferencesReferences({ formData, setFormData }) {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-2">
       {/* SECTION 10 */}
       <div className="card-section">
-        <div className="border-b border-slate-200 pb-3 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="border-b border-slate-200 pb-1.5 mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
           <div>
-            <h2 className="text-lg font-bold text-brand-950 flex items-center gap-2">
-              <span className="w-7 h-7 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-xs font-bold">
+            <h2 className="text-base font-bold text-brand-950 flex items-center gap-1.5">
+              <span className="w-6 h-6 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-xs font-bold">
                 10
               </span>
               10. CONFERENCES / WORKSHOPS / FDPs (Organized / Attended - Optional)
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-[11px] text-slate-500">
               Faculty Development Programmes, national/international workshops and symposia
             </p>
           </div>
           <button
             type="button"
             onClick={addConfRow}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-800 text-xs font-semibold rounded-md border border-brand-200 transition"
+            className="inline-flex items-center px-2.5 py-1 bg-brand-50 hover:bg-brand-100 text-brand-800 text-xs font-semibold rounded border border-brand-200 transition"
           >
-            <Plus className="w-3.5 h-3.5" />
-            Add Programme Row
+            + Add Row
           </button>
         </div>
 
-        <div className="overflow-x-auto -mx-6 px-6">
+        <div className="overflow-x-auto -mx-4 px-4">
           <table className="w-full min-w-[700px] border-collapse text-left text-xs">
             <thead>
-              <tr className="bg-slate-100 border-y border-slate-200 text-slate-700 font-semibold uppercase tracking-wider">
-                <th className="py-2.5 px-3 w-12 text-center">S.No.</th>
-                <th className="py-2.5 px-3">Programme Title</th>
-                <th className="py-2.5 px-3 w-56">Organizer / Host Institution</th>
-                <th className="py-2.5 px-3 w-24 text-center">Year</th>
-                <th className="py-2.5 px-3 w-48">Role / Participation</th>
-                <th className="py-2.5 px-2 w-12 text-center">Action</th>
+              <tr className="bg-slate-100 border-y border-slate-200 text-slate-700 font-semibold uppercase tracking-wider text-[11px]">
+                <th className="py-1.5 px-2 w-10 text-center">S.No.</th>
+                <th className="py-1.5 px-2">Programme Title</th>
+                <th className="py-1.5 px-2 w-56">Organizer / Host Institution</th>
+                <th className="py-1.5 px-2 w-20 text-center">Year</th>
+                <th className="py-1.5 px-2 w-48">Role / Participation</th>
+                <th className="py-1.5 px-1 w-10 text-center">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
               {conferences.map((item, idx) => (
                 <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
-                  <td className="py-2.5 px-3 text-center font-bold text-slate-500">{idx + 1}</td>
-                  <td className="py-2 px-2">
+                  <td className="py-1.5 px-2 text-center font-bold text-slate-500">{idx + 1}</td>
+                  <td className="py-1 px-1">
                     <input
                       type="text"
                       placeholder="e.g. 5-Day FDP on Generative AI"
                       value={item.programme}
                       onChange={(e) => handleConfChange(idx, 'programme', e.target.value)}
-                      className="form-input text-xs py-1.5"
+                      className="form-input text-xs py-1"
                     />
                   </td>
-                  <td className="py-2 px-2">
+                  <td className="py-1 px-1">
                     <input
                       type="text"
                       placeholder="e.g. IIT Madras / NRIIT"
                       value={item.organizer}
                       onChange={(e) => handleConfChange(idx, 'organizer', e.target.value)}
-                      className="form-input text-xs py-1.5"
+                      className="form-input text-xs py-1"
                     />
                   </td>
-                  <td className="py-2 px-2">
+                  <td className="py-1 px-1">
                     <input
                       type="text"
                       maxLength={4}
                       placeholder="YYYY"
                       value={item.year}
                       onChange={(e) => handleConfChange(idx, 'year', e.target.value)}
-                      className="form-input text-xs py-1.5 text-center"
+                      className="form-input text-xs py-1 text-center"
                     />
                   </td>
-                  <td className="py-2 px-2">
+                  <td className="py-1 px-1">
                     <input
                       type="text"
                       placeholder="Attended / Coordinator / Speaker"
                       value={item.roleParticipation}
                       onChange={(e) => handleConfChange(idx, 'roleParticipation', e.target.value)}
-                      className="form-input text-xs py-1.5"
+                      className="form-input text-xs py-1"
                     />
                   </td>
-                  <td className="py-2 px-2 text-center">
+                  <td className="py-1 px-1 text-center">
                     <button
                       type="button"
                       onClick={() => removeConfRow(idx)}
                       disabled={conferences.length <= 1}
-                      className="p-1.5 text-slate-400 hover:text-red-600 rounded hover:bg-red-50 transition disabled:opacity-30 disabled:pointer-events-none"
+                      className="w-5 h-5 inline-flex items-center justify-center text-slate-400 hover:text-red-600 rounded hover:bg-red-50 transition text-sm font-bold disabled:opacity-20 disabled:pointer-events-none"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      ×
                     </button>
                   </td>
                 </tr>
@@ -157,81 +155,80 @@ export default function Step5ConferencesReferences({ formData, setFormData }) {
 
       {/* SECTION 11 */}
       <div className="card-section">
-        <div className="border-b border-slate-200 pb-3 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="border-b border-slate-200 pb-1.5 mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
           <div>
-            <h2 className="text-lg font-bold text-brand-950 flex items-center gap-2">
-              <span className="w-7 h-7 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-xs font-bold">
+            <h2 className="text-base font-bold text-brand-950 flex items-center gap-1.5">
+              <span className="w-6 h-6 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-xs font-bold">
                 11
               </span>
               11. REFERENCES
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-[11px] text-slate-500">
               Names and contact details of two academic or professional referees who know your work
             </p>
           </div>
           <button
             type="button"
             onClick={addRefRow}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-800 text-xs font-semibold rounded-md border border-brand-200 transition"
+            className="inline-flex items-center px-2.5 py-1 bg-brand-50 hover:bg-brand-100 text-brand-800 text-xs font-semibold rounded border border-brand-200 transition"
           >
-            <Plus className="w-3.5 h-3.5" />
-            Add Reference Row
+            + Add Row
           </button>
         </div>
 
-        <div className="overflow-x-auto -mx-6 px-6">
+        <div className="overflow-x-auto -mx-4 px-4">
           <table className="w-full min-w-[700px] border-collapse text-left text-xs">
             <thead>
-              <tr className="bg-slate-100 border-y border-slate-200 text-slate-700 font-semibold uppercase tracking-wider">
-                <th className="py-2.5 px-3 w-12 text-center">S.No.</th>
-                <th className="py-2.5 px-3 w-64">Name & Designation *</th>
-                <th className="py-2.5 px-3">Institution / Organization *</th>
-                <th className="py-2.5 px-3 w-64">Contact (Phone / Official Email) *</th>
-                <th className="py-2.5 px-2 w-12 text-center">Action</th>
+              <tr className="bg-slate-100 border-y border-slate-200 text-slate-700 font-semibold uppercase tracking-wider text-[11px]">
+                <th className="py-1.5 px-2 w-10 text-center">S.No.</th>
+                <th className="py-1.5 px-2 w-64">Name & Designation *</th>
+                <th className="py-1.5 px-2">Institution / Organization *</th>
+                <th className="py-1.5 px-2 w-64">Contact (Phone / Official Email) *</th>
+                <th className="py-1.5 px-1 w-10 text-center">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
               {references.map((item, idx) => (
                 <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
-                  <td className="py-2.5 px-3 text-center font-bold text-slate-500">{idx + 1}</td>
-                  <td className="py-2 px-2">
+                  <td className="py-1.5 px-2 text-center font-bold text-slate-500">{idx + 1}</td>
+                  <td className="py-1 px-1">
                     <input
                       type="text"
                       placeholder="Dr. ... / Professor & HOD"
                       value={item.nameDesignation}
                       onChange={(e) => handleRefChange(idx, 'nameDesignation', e.target.value)}
-                      className="form-input text-xs py-1.5"
+                      className="form-input text-xs py-1"
                       required={idx < 2}
                     />
                   </td>
-                  <td className="py-2 px-2">
+                  <td className="py-1 px-1">
                     <input
                       type="text"
                       placeholder="University / Organization Name"
                       value={item.institution}
                       onChange={(e) => handleRefChange(idx, 'institution', e.target.value)}
-                      className="form-input text-xs py-1.5"
+                      className="form-input text-xs py-1"
                       required={idx < 2}
                     />
                   </td>
-                  <td className="py-2 px-2">
+                  <td className="py-1 px-1">
                     <input
                       type="text"
                       placeholder="Email and/or Phone Number"
                       value={item.contactEmail}
                       onChange={(e) => handleRefChange(idx, 'contactEmail', e.target.value)}
-                      className="form-input text-xs py-1.5"
+                      className="form-input text-xs py-1"
                       required={idx < 2}
                     />
                   </td>
-                  <td className="py-2 px-2 text-center">
+                  <td className="py-1 px-1 text-center">
                     <button
                       type="button"
                       onClick={() => removeRefRow(idx)}
                       disabled={references.length <= 1}
-                      className="p-1.5 text-slate-400 hover:text-red-600 rounded hover:bg-red-50 transition disabled:opacity-30 disabled:pointer-events-none"
+                      className="w-5 h-5 inline-flex items-center justify-center text-slate-400 hover:text-red-600 rounded hover:bg-red-50 transition text-sm font-bold disabled:opacity-20 disabled:pointer-events-none"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      ×
                     </button>
                   </td>
                 </tr>

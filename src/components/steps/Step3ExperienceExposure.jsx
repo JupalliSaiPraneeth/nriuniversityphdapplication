@@ -1,5 +1,4 @@
 import React from 'react';
-import { Plus, Trash2, Briefcase, Lightbulb } from 'lucide-react';
 
 export default function Step3ExperienceExposure({ formData, setFormData }) {
   const experience = formData.professionalExperience;
@@ -41,102 +40,101 @@ export default function Step3ExperienceExposure({ formData, setFormData }) {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-2">
       {/* SECTION 5 */}
       <div className="card-section">
-        <div className="border-b border-slate-200 pb-3 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="border-b border-slate-200 pb-1.5 mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
           <div>
-            <h2 className="text-lg font-bold text-brand-950 flex items-center gap-2">
-              <span className="w-7 h-7 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-xs font-bold">
+            <h2 className="text-base font-bold text-brand-950 flex items-center gap-1.5">
+              <span className="w-6 h-6 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-xs font-bold">
                 5
               </span>
               5. PROFESSIONAL / TEACHING EXPERIENCE
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-[11px] text-slate-500">
               List teaching, industry, or research experience in chronological order
             </p>
           </div>
           <button
             type="button"
             onClick={addExpRow}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-800 text-xs font-semibold rounded-md border border-brand-200 transition"
+            className="inline-flex items-center px-2.5 py-1 bg-brand-50 hover:bg-brand-100 text-brand-800 text-xs font-semibold rounded border border-brand-200 transition"
           >
-            <Plus className="w-3.5 h-3.5" />
-            Add Experience Row
+            + Add Row
           </button>
         </div>
 
-        <div className="overflow-x-auto -mx-6 px-6">
+        <div className="overflow-x-auto -mx-4 px-4">
           <table className="w-full min-w-[750px] border-collapse text-left text-xs">
             <thead>
-              <tr className="bg-slate-100 border-y border-slate-200 text-slate-700 font-semibold uppercase tracking-wider">
-                <th className="py-2.5 px-3 w-12 text-center">S.No.</th>
-                <th className="py-2.5 px-3">Institution / Organization</th>
-                <th className="py-2.5 px-3 w-44">Designation</th>
-                <th className="py-2.5 px-3 w-40">From–To</th>
-                <th className="py-2.5 px-3 w-48">Nature of Work</th>
-                <th className="py-2.5 px-3 w-32">Total Experience</th>
-                <th className="py-2.5 px-2 w-12 text-center">Action</th>
+              <tr className="bg-slate-100 border-y border-slate-200 text-slate-700 font-semibold uppercase tracking-wider text-[11px]">
+                <th className="py-1.5 px-2 w-10 text-center">S.No.</th>
+                <th className="py-1.5 px-2">Institution / Organization</th>
+                <th className="py-1.5 px-2 w-44">Designation</th>
+                <th className="py-1.5 px-2 w-36 text-center">From–To</th>
+                <th className="py-1.5 px-2 w-44">Nature of Work</th>
+                <th className="py-1.5 px-2 w-28 text-center">Total Experience</th>
+                <th className="py-1.5 px-1 w-10 text-center">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
               {experience.map((item, idx) => (
                 <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
-                  <td className="py-2.5 px-3 text-center font-bold text-slate-500">{idx + 1}</td>
-                  <td className="py-2 px-2">
+                  <td className="py-1.5 px-2 text-center font-bold text-slate-500">{idx + 1}</td>
+                  <td className="py-1 px-1">
                     <input
                       type="text"
                       placeholder="Organization Name"
                       value={item.institution}
                       onChange={(e) => handleExpChange(idx, 'institution', e.target.value)}
-                      className="form-input text-xs py-1.5"
+                      className="form-input text-xs py-1"
                     />
                   </td>
-                  <td className="py-2 px-2">
+                  <td className="py-1 px-1">
                     <input
                       type="text"
                       placeholder="e.g. Assistant Professor / Software Eng"
                       value={item.designation}
                       onChange={(e) => handleExpChange(idx, 'designation', e.target.value)}
-                      className="form-input text-xs py-1.5"
+                      className="form-input text-xs py-1"
                     />
                   </td>
-                  <td className="py-2 px-2">
+                  <td className="py-1 px-1">
                     <input
                       type="text"
                       placeholder="MM/YYYY – MM/YYYY"
                       value={item.fromTo}
                       onChange={(e) => handleExpChange(idx, 'fromTo', e.target.value)}
-                      className="form-input text-xs py-1.5 text-center"
+                      className="form-input text-xs py-1 text-center"
                     />
                   </td>
-                  <td className="py-2 px-2">
+                  <td className="py-1 px-1">
                     <input
                       type="text"
                       placeholder="Teaching / R&D / Industry"
                       value={item.natureOfWork}
                       onChange={(e) => handleExpChange(idx, 'natureOfWork', e.target.value)}
-                      className="form-input text-xs py-1.5"
+                      className="form-input text-xs py-1"
                     />
                   </td>
-                  <td className="py-2 px-2">
+                  <td className="py-1 px-1">
                     <input
                       type="text"
                       placeholder="e.g. 3 Yrs 4 Mos"
                       value={item.totalExperience}
                       onChange={(e) => handleExpChange(idx, 'totalExperience', e.target.value)}
-                      className="form-input text-xs py-1.5 text-center font-medium"
+                      className="form-input text-xs py-1 text-center font-medium"
                     />
                   </td>
-                  <td className="py-2 px-2 text-center">
+                  <td className="py-1 px-1 text-center">
                     <button
                       type="button"
                       onClick={() => removeExpRow(idx)}
                       disabled={experience.length <= 1}
-                      className="p-1.5 text-slate-400 hover:text-red-600 rounded hover:bg-red-50 transition disabled:opacity-30 disabled:pointer-events-none"
+                      className="w-5 h-5 inline-flex items-center justify-center text-slate-400 hover:text-red-600 rounded hover:bg-red-50 transition text-sm font-bold disabled:opacity-20 disabled:pointer-events-none"
                       title="Remove row"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      ×
                     </button>
                   </td>
                 </tr>
@@ -148,32 +146,32 @@ export default function Step3ExperienceExposure({ formData, setFormData }) {
 
       {/* SECTION 6 */}
       <div className="card-section">
-        <div className="border-b border-slate-200 pb-3 mb-6">
-          <h2 className="text-lg font-bold text-brand-950 flex items-center gap-2">
-            <span className="w-7 h-7 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-xs font-bold">
+        <div className="border-b border-slate-200 pb-1.5 mb-2">
+          <h2 className="text-base font-bold text-brand-950 flex items-center gap-1.5">
+            <span className="w-6 h-6 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-xs font-bold">
               6
             </span>
             6. RESEARCH EXPOSURE / AREA OF INTEREST (IF ANY)
           </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-[11px] text-slate-500">
             Describe your research exposure, motivation, prospective problem domain, or previous projects
           </p>
         </div>
 
         <div>
-          <label htmlFor="researchExposure" className="form-label mb-2">
+          <label htmlFor="researchExposure" className="form-label mb-1 text-xs">
             Detailed Statement of Research Exposure / Proposed Area of Interest
           </label>
           <textarea
             id="researchExposure"
-            rows={6}
+            rows={4}
             placeholder="Outline your prospective research topic, technical exposure, laboratory tools/simulators used (e.g., MATLAB, NS3, PyTorch, ANSYS), key research questions you aim to pursue at NRIIT..."
             value={formData.researchExposure}
             onChange={(e) => handleExposureChange(e.target.value)}
-            className="form-textarea font-sans leading-relaxed text-sm"
+            className="form-textarea text-xs leading-relaxed"
           />
-          <div className="flex justify-between items-center mt-2 text-xs text-slate-400">
-            <span>Minimum 50 words recommended for clear review by the Department Research Committee</span>
+          <div className="flex justify-between items-center mt-1 text-[11px] text-slate-400">
+            <span>Minimum 50 words recommended for clear review by DRC</span>
             <span>{formData.researchExposure ? formData.researchExposure.trim().split(/\s+/).filter(Boolean).length : 0} words</span>
           </div>
         </div>

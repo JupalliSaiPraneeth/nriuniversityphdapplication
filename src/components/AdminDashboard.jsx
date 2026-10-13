@@ -1,28 +1,4 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import {
-  ShieldCheck,
-  Search,
-  Filter,
-  Download,
-  FileSpreadsheet,
-  FileText,
-  Eye,
-  CheckCircle,
-  Clock,
-  XCircle,
-  AlertCircle,
-  RefreshCw,
-  LogOut,
-  ExternalLink,
-  ChevronLeft,
-  ChevronRight,
-  UserCheck,
-  Calendar,
-  Layers,
-  Lock,
-  FileEdit,
-  Trash2,
-} from 'lucide-react';
 import { dbService } from '../lib/supabase';
 import { generateApplicationPDF } from '../lib/pdfGenerator';
 import { exportSingleApplicationCsv, exportApplicationsListCsv } from '../lib/csvExporter';
@@ -262,21 +238,21 @@ export default function AdminDashboard({ onBackToForm }) {
   // LOGIN SCREEN
   if (!isAuthenticated) {
     return (
-      <div className="min-h-[75vh] flex items-center justify-center px-4 py-12">
-        <div className="max-w-md w-full bg-white rounded-2xl border border-slate-200/90 shadow-xl p-8">
-          <div className="w-14 h-14 bg-brand-950 text-white rounded-2xl mx-auto flex items-center justify-center mb-4 shadow">
-            <Lock className="w-7 h-7 text-gold-400" />
+      <div className="min-h-[70vh] flex items-center justify-center px-3 py-6">
+        <div className="max-w-sm w-full bg-white rounded-xl border border-slate-200/90 shadow-md p-4">
+          <div className="w-10 h-10 bg-brand-950 text-white rounded-lg mx-auto flex items-center justify-center mb-2 font-bold text-sm shadow">
+            ADMIN
           </div>
-          <h2 className="text-xl font-bold text-center text-brand-950">
+          <h2 className="text-base font-bold text-center text-brand-950">
             NRIIT Ph.D. Admin Console
           </h2>
-          <p className="text-xs text-center text-slate-500 mt-1 mb-6">
+          <p className="text-[11px] text-center text-slate-500 mt-0.5 mb-3">
             Authorized access only. Enter administrative passkey to proceed.
           </p>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-2.5">
             <div>
-              <label htmlFor="admin-code" className="form-label">
+              <label htmlFor="admin-code" className="form-label text-xs">
                 Administrator Access Code
               </label>
               <input
@@ -285,25 +261,24 @@ export default function AdminDashboard({ onBackToForm }) {
                 placeholder="Enter access code (e.g. NRIIT_PHD_ADMIN_2025)"
                 value={passcode}
                 onChange={(e) => setPasscode(e.target.value)}
-                className="form-input"
+                className="form-input text-xs py-1.5"
                 autoFocus
                 required
               />
             </div>
 
             {authError && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{authError}</span>
+              <div className="p-2 bg-red-50 border border-red-200 rounded text-[11px] text-red-700">
+                {authError}
               </div>
             )}
 
-            <button type="submit" className="w-full btn-primary py-2.5">
+            <button type="submit" className="w-full btn-primary py-2 text-xs font-semibold">
               Verify & Enter Dashboard
             </button>
           </form>
 
-          <div className="mt-6 pt-4 border-t border-slate-100 text-center">
+          <div className="mt-3 pt-2 border-t border-slate-100 text-center">
             <button
               type="button"
               onClick={onBackToForm}
@@ -322,215 +297,192 @@ export default function AdminDashboard({ onBackToForm }) {
     switch (status) {
       case 'draft':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
-            <FileEdit className="w-3 h-3 text-indigo-500" /> Draft / In-Progress
+          <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+            Draft (In-Progress)
           </span>
         );
       case 'approved':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
-            <CheckCircle className="w-3 h-3" /> Approved
+          <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+            Approved
           </span>
         );
       case 'under_review':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
-            <Clock className="w-3 h-3" /> Under Review
+          <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+            Under Review
           </span>
         );
       case 'rejected':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-200">
-            <XCircle className="w-3 h-3" /> Rejected
+          <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-800 border border-red-200">
+            Rejected
           </span>
         );
       case 'submitted':
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
-            <AlertCircle className="w-3 h-3" /> Submitted
+          <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+            Submitted
           </span>
         );
     }
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2 space-y-2">
       {/* Top Admin Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-white p-2.5 rounded-lg border border-slate-200/80 shadow-sm">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold text-brand-950">Ph.D. Admissions Review Portal</h1>
-            <span className="px-2 py-0.5 bg-brand-50 text-brand-800 border border-brand-200 rounded text-[11px] font-semibold">
+          <div className="flex items-center gap-1.5">
+            <h1 className="text-base font-bold text-brand-950">Ph.D. Admissions Review Portal</h1>
+            <span className="px-1.5 py-0.5 bg-brand-50 text-brand-800 border border-brand-200 rounded text-[10px] font-bold">
               R&D Cell
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-[11px] text-slate-500">
             Dr RVR NRI Institute of Technology — Dean R&D Administration & Scrutiny
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-1.5">
           <button
             type="button"
             onClick={fetchApplications}
             disabled={loading}
-            className="btn-secondary text-xs px-3 py-2 flex items-center gap-1.5"
+            className="btn-secondary text-xs px-2.5 py-1"
             title="Refresh application records"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
+            {loading ? 'Refreshing...' : 'Refresh'}
           </button>
 
           <button
             type="button"
             onClick={() => exportApplicationsListCsv(filteredApps, 'phd_applications_filtered')}
-            className="btn-secondary text-xs px-3 py-2 flex items-center gap-1.5 text-emerald-700 hover:text-emerald-800"
+            className="btn-secondary text-xs px-2.5 py-1 text-emerald-700 hover:text-emerald-800"
           >
-            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
             Export Filtered CSV ({filteredApps.length})
           </button>
 
           <button
             type="button"
             onClick={() => exportApplicationsListCsv(applications, 'phd_applications_all')}
-            className="btn-primary text-xs px-3.5 py-2 flex items-center gap-1.5"
+            className="btn-primary text-xs px-2.5 py-1"
           >
-            <Download className="w-3.5 h-3.5" />
             Export All CSV ({applications.length})
           </button>
 
           <button
             type="button"
             onClick={handleLogout}
-            className="btn-secondary text-xs px-3 py-2 text-red-600 hover:bg-red-50 flex items-center gap-1"
+            className="btn-secondary text-xs px-2.5 py-1 text-red-600 hover:bg-red-50"
             title="Log out"
           >
-            <LogOut className="w-3.5 h-3.5" />
             Exit
           </button>
         </div>
       </div>
 
       {/* METRIC STATS CARDS */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1.5">
         <div
           onClick={() => setStatusFilter('all')}
-          className={`p-4 rounded-xl border cursor-pointer transition ${
+          className={`p-2 rounded-lg border cursor-pointer transition ${
             statusFilter === 'all'
-              ? 'bg-slate-900 text-white border-slate-900 shadow-md'
+              ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
               : 'bg-white border-slate-200 hover:border-slate-300'
           }`}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wider opacity-80">
-              Total
-            </span>
-            <Layers className="w-4 h-4 opacity-70" />
-          </div>
-          <p className="text-2xl font-black mt-2">{stats.total}</p>
+          <span className="text-[10px] font-semibold uppercase tracking-wider block opacity-80">
+            Total
+          </span>
+          <p className="text-xl font-black mt-0.5">{stats.total}</p>
         </div>
 
         <div
           onClick={() => setStatusFilter('draft')}
-          className={`p-4 rounded-xl border cursor-pointer transition ${
+          className={`p-2 rounded-lg border cursor-pointer transition ${
             statusFilter === 'draft'
-              ? 'bg-indigo-700 text-white border-indigo-700 shadow-md'
+              ? 'bg-indigo-700 text-white border-indigo-700 shadow-sm'
               : 'bg-white border-slate-200 hover:border-slate-300'
           }`}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wider opacity-80">
-              Drafts (In-Progress)
-            </span>
-            <FileEdit className="w-4 h-4 text-indigo-400" />
-          </div>
-          <p className="text-2xl font-black mt-2 text-indigo-600">{stats.drafts}</p>
+          <span className="text-[10px] font-semibold uppercase tracking-wider block opacity-80">
+            Drafts
+          </span>
+          <p className="text-xl font-black mt-0.5 text-indigo-600">{stats.drafts}</p>
         </div>
 
         <div
           onClick={() => setStatusFilter('submitted')}
-          className={`p-4 rounded-xl border cursor-pointer transition ${
+          className={`p-2 rounded-lg border cursor-pointer transition ${
             statusFilter === 'submitted'
-              ? 'bg-amber-600 text-white border-amber-600 shadow-md'
+              ? 'bg-amber-600 text-white border-amber-600 shadow-sm'
               : 'bg-white border-slate-200 hover:border-slate-300'
           }`}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wider opacity-80">
-              Submitted
-            </span>
-            <AlertCircle className="w-4 h-4 text-amber-500" />
-          </div>
-          <p className="text-2xl font-black mt-2 text-amber-600 group-hover:text-amber-700">
+          <span className="text-[10px] font-semibold uppercase tracking-wider block opacity-80">
+            Submitted
+          </span>
+          <p className="text-xl font-black mt-0.5 text-amber-600">
             {stats.submitted}
           </p>
         </div>
 
         <div
           onClick={() => setStatusFilter('under_review')}
-          className={`p-4 rounded-xl border cursor-pointer transition ${
+          className={`p-2 rounded-lg border cursor-pointer transition ${
             statusFilter === 'under_review'
-              ? 'bg-blue-600 text-white border-blue-600 shadow-md'
+              ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
               : 'bg-white border-slate-200 hover:border-slate-300'
           }`}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wider opacity-80">
-              Under Review
-            </span>
-            <Clock className="w-4 h-4 text-blue-500" />
-          </div>
-          <p className="text-2xl font-black mt-2 text-blue-600">{stats.underReview}</p>
+          <span className="text-[10px] font-semibold uppercase tracking-wider block opacity-80">
+            Under Review
+          </span>
+          <p className="text-xl font-black mt-0.5 text-blue-600">{stats.underReview}</p>
         </div>
 
         <div
           onClick={() => setStatusFilter('approved')}
-          className={`p-4 rounded-xl border cursor-pointer transition ${
+          className={`p-2 rounded-lg border cursor-pointer transition ${
             statusFilter === 'approved'
-              ? 'bg-emerald-700 text-white border-emerald-700 shadow-md'
+              ? 'bg-emerald-700 text-white border-emerald-700 shadow-sm'
               : 'bg-white border-slate-200 hover:border-slate-300'
           }`}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wider opacity-80">
-              Approved
-            </span>
-            <CheckCircle className="w-4 h-4 text-emerald-500" />
-          </div>
-          <p className="text-2xl font-black mt-2 text-emerald-600">{stats.approved}</p>
+          <span className="text-[10px] font-semibold uppercase tracking-wider block opacity-80">
+            Approved
+          </span>
+          <p className="text-xl font-black mt-0.5 text-emerald-600">{stats.approved}</p>
         </div>
 
         <div
           onClick={() => setStatusFilter('rejected')}
-          className={`p-4 rounded-xl border cursor-pointer transition ${
+          className={`p-2 rounded-lg border cursor-pointer transition ${
             statusFilter === 'rejected'
-              ? 'bg-red-700 text-white border-red-700 shadow-md'
+              ? 'bg-red-700 text-white border-red-700 shadow-sm'
               : 'bg-white border-slate-200 hover:border-slate-300'
           }`}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wider opacity-80">
-              Rejected
-            </span>
-            <XCircle className="w-4 h-4 text-red-500" />
-          </div>
-          <p className="text-2xl font-black mt-2 text-red-600">{stats.rejected}</p>
+          <span className="text-[10px] font-semibold uppercase tracking-wider block opacity-80">
+            Rejected
+          </span>
+          <p className="text-xl font-black mt-0.5 text-red-600">{stats.rejected}</p>
         </div>
       </div>
 
       {/* SEARCH AND FILTERS TOOLBAR */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+      <div className="bg-white p-2 rounded-lg border border-slate-200/80 shadow-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-1.5">
           {/* Search bar */}
-          <div className="relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+          <div>
             <input
               type="text"
               placeholder="Search App No, Name, Email, Phone..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none"
+              className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded focus:ring-1 focus:ring-brand-500 focus:outline-none"
             />
           </div>
 
@@ -539,9 +491,9 @@ export default function AdminDashboard({ onBackToForm }) {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none font-medium"
+              className="w-full px-2 py-1.5 text-xs border border-slate-300 rounded focus:ring-1 focus:ring-brand-500 focus:outline-none font-medium"
             >
-              <option value="all">All Application Statuses</option>
+              <option value="all">All Statuses</option>
               <option value="draft">Drafts / In-Progress</option>
               <option value="submitted">Submitted</option>
               <option value="under_review">Under Review</option>
@@ -555,7 +507,7 @@ export default function AdminDashboard({ onBackToForm }) {
             <select
               value={programmeFilter}
               onChange={(e) => setProgrammeFilter(e.target.value)}
-              className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none"
+              className="w-full px-2 py-1.5 text-xs border border-slate-300 rounded focus:ring-1 focus:ring-brand-500 focus:outline-none"
             >
               <option value="all">All Departments / Programmes</option>
               {PROGRAMME_OPTIONS.map((prog) => (
@@ -571,7 +523,7 @@ export default function AdminDashboard({ onBackToForm }) {
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none"
+              className="w-full px-2 py-1.5 text-xs border border-slate-300 rounded focus:ring-1 focus:ring-brand-500 focus:outline-none"
             >
               <option value="all">All Admission Categories</option>
               {ADMISSION_CATEGORIES.map((cat) => (
@@ -583,12 +535,12 @@ export default function AdminDashboard({ onBackToForm }) {
           </div>
 
           {/* Date range filters */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             <input
               type="date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
-              className="w-1/2 px-2 py-2 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none"
+              className="w-1/2 px-1.5 py-1 text-[11px] border border-slate-300 rounded focus:ring-1 focus:ring-brand-500 focus:outline-none"
               title="From date"
             />
             <span className="text-slate-400 text-xs">to</span>
@@ -596,7 +548,7 @@ export default function AdminDashboard({ onBackToForm }) {
               type="date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
-              className="w-1/2 px-2 py-2 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none"
+              className="w-1/2 px-1.5 py-1 text-[11px] border border-slate-300 rounded focus:ring-1 focus:ring-brand-500 focus:outline-none"
               title="To date"
             />
           </div>
@@ -604,31 +556,30 @@ export default function AdminDashboard({ onBackToForm }) {
       </div>
 
       {/* APPLICATIONS TABLE */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-lg border border-slate-200/80 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px] border-collapse text-left text-xs">
             <thead>
-              <tr className="bg-slate-100 border-b border-slate-200 text-slate-700 font-semibold uppercase tracking-wider">
-                <th className="py-3 px-4">Application No.</th>
-                <th className="py-3 px-4">Applicant Name</th>
-                <th className="py-3 px-4">Programme & Specialization</th>
-                <th className="py-3 px-4">Category</th>
-                <th className="py-3 px-4">Submission Date</th>
-                <th className="py-3 px-4 text-center">Status</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+              <tr className="bg-slate-100 border-b border-slate-200 text-slate-700 font-semibold uppercase tracking-wider text-[11px]">
+                <th className="py-2 px-3">Application No.</th>
+                <th className="py-2 px-3">Applicant Name</th>
+                <th className="py-2 px-3">Programme & Specialization</th>
+                <th className="py-2 px-3">Category</th>
+                <th className="py-2 px-3">Submission Date</th>
+                <th className="py-2 px-3 text-center">Status</th>
+                <th className="py-2 px-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-brand-600" />
+                  <td colSpan={7} className="py-8 text-center text-slate-400">
                     Loading application records...
                   </td>
                 </tr>
               ) : paginatedApps.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
+                  <td colSpan={7} className="py-8 text-center text-slate-400">
                     No applications match the selected criteria.
                   </td>
                 </tr>
@@ -637,32 +588,32 @@ export default function AdminDashboard({ onBackToForm }) {
                   const p = app.personal_details || {};
                   return (
                     <tr key={app.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-3 px-4 font-mono font-bold text-brand-900">
+                      <td className="py-2 px-3 font-mono font-bold text-brand-900">
                         {app.application_number}
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-2 px-3">
                         <div className="font-semibold text-slate-900">
                           {p.fullName || app.applicant_name || '—'}
                         </div>
-                        <div className="text-[11px] text-slate-500">
+                        <div className="text-[10px] text-slate-500">
                           {p.email || app.applicant_email} | {p.mobileNumber || app.applicant_phone}
                         </div>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-2 px-3">
                         <div className="font-medium text-slate-800">
                           {p.programme || app.programme || '—'}
                         </div>
-                        <div className="text-[11px] text-slate-500">
+                        <div className="text-[10px] text-slate-500">
                           {p.specialization || app.specialization || '—'}
                         </div>
                       </td>
-                      <td className="py-3 px-4 text-slate-700">
+                      <td className="py-2 px-3 text-slate-700">
                         {p.admissionCategory || app.admission_category || '—'}
                       </td>
-                      <td className="py-3 px-4 text-slate-500">
+                      <td className="py-2 px-3 text-slate-500">
                         {app.status === 'draft' ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
-                            <FileEdit className="w-3 h-3 text-slate-400" /> In Progress (Draft)
+                          <span className="inline-block px-1.5 py-0.2 rounded text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                            In Progress (Draft)
                           </span>
                         ) : app.submitted_at ? (
                           new Date(app.submitted_at).toLocaleDateString('en-IN', {
@@ -674,41 +625,41 @@ export default function AdminDashboard({ onBackToForm }) {
                           '—'
                         )}
                       </td>
-                      <td className="py-3 px-4 text-center">
+                      <td className="py-2 px-3 text-center">
                         {renderStatusBadge(app.status)}
                       </td>
-                      <td className="py-3 px-4 text-right space-x-1 whitespace-nowrap">
+                      <td className="py-2 px-3 text-right space-x-1 whitespace-nowrap">
                         <button
                           type="button"
                           onClick={() => handleOpenDetail(app)}
-                          className="px-2.5 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-800 rounded font-semibold transition"
+                          className="px-2 py-0.5 bg-brand-50 hover:bg-brand-100 text-brand-800 rounded font-semibold text-xs transition"
                           title="View Full Application Details"
                         >
-                          <Eye className="w-3.5 h-3.5 inline mr-1" /> View
+                          View
                         </button>
                         <button
                           type="button"
                           onClick={() => handleDownloadAppPdf(app)}
-                          className="px-2 py-1.5 text-slate-600 hover:text-brand-900 rounded hover:bg-slate-100 transition"
+                          className="px-2 py-0.5 text-slate-700 hover:text-brand-900 rounded hover:bg-slate-100 text-xs font-semibold transition"
                           title="Download Application PDF"
                         >
-                          <FileText className="w-3.5 h-3.5 inline" />
+                          PDF
                         </button>
                         <button
                           type="button"
                           onClick={() => exportSingleApplicationCsv(app)}
-                          className="px-2 py-1.5 text-slate-600 hover:text-emerald-700 rounded hover:bg-emerald-50 transition"
+                          className="px-2 py-0.5 text-slate-700 hover:text-emerald-700 rounded hover:bg-emerald-50 text-xs font-semibold transition"
                           title="Export Application CSV"
                         >
-                          <FileSpreadsheet className="w-3.5 h-3.5 inline" />
+                          CSV
                         </button>
                         <button
                           type="button"
                           onClick={() => setAppToDelete(app)}
-                          className="px-2 py-1.5 text-slate-400 hover:text-red-700 rounded hover:bg-red-50 transition"
+                          className="px-2 py-0.5 text-red-600 hover:text-red-800 rounded hover:bg-red-50 text-xs font-semibold transition"
                           title="Delete Application"
                         >
-                          <Trash2 className="w-3.5 h-3.5 inline text-red-500" />
+                          Delete
                         </button>
                       </td>
                     </tr>
@@ -720,30 +671,30 @@ export default function AdminDashboard({ onBackToForm }) {
         </div>
 
         {/* Pagination Controls */}
-        <div className="p-4 border-t border-slate-200 flex items-center justify-between text-xs text-slate-600">
+        <div className="p-2 border-t border-slate-200 flex items-center justify-between text-xs text-slate-600">
           <div>
             Showing {(currentPage - 1) * pageSize + 1} to{' '}
             {Math.min(currentPage * pageSize, filteredApps.length)} of {filteredApps.length} entries
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <button
               type="button"
               disabled={currentPage <= 1}
               onClick={() => setCurrentPage((p) => p - 1)}
-              className="p-1.5 rounded border border-slate-200 disabled:opacity-30 disabled:pointer-events-none hover:bg-slate-50"
+              className="px-2 py-0.5 rounded border border-slate-200 disabled:opacity-30 disabled:pointer-events-none hover:bg-slate-50 text-xs"
             >
-              <ChevronLeft className="w-4 h-4" />
+              ← Prev
             </button>
-            <span className="font-semibold">
+            <span className="font-semibold text-xs">
               Page {currentPage} of {totalPages}
             </span>
             <button
               type="button"
               disabled={currentPage >= totalPages}
               onClick={() => setCurrentPage((p) => p + 1)}
-              className="p-1.5 rounded border border-slate-200 disabled:opacity-30 disabled:pointer-events-none hover:bg-slate-50"
+              className="px-2 py-0.5 rounded border border-slate-200 disabled:opacity-30 disabled:pointer-events-none hover:bg-slate-50 text-xs"
             >
-              <ChevronRight className="w-4 h-4" />
+              Next →
             </button>
           </div>
         </div>
@@ -751,49 +702,49 @@ export default function AdminDashboard({ onBackToForm }) {
 
       {/* APPLICATION DETAIL MODAL */}
       {selectedApp && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 overflow-y-auto">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden my-auto">
             {/* Modal Header */}
-            <div className="bg-brand-950 text-white p-5 flex items-center justify-between border-b border-brand-900">
+            <div className="bg-brand-950 text-white p-3 flex items-center justify-between border-b border-brand-900">
               <div>
-                <div className="flex items-center gap-2.5">
-                  <h2 className="text-lg font-bold">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base font-bold">
                     Application Scrutiny: {selectedApp.application_number}
                   </h2>
                   {renderStatusBadge(selectedApp.status)}
                 </div>
-                <p className="text-xs text-brand-200 mt-0.5">
+                <p className="text-[11px] text-brand-200">
                   Applicant: {selectedApp.applicant_name || selectedApp.personal_details?.fullName} | {selectedApp.applicant_email}
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={() => handleDownloadAppPdf(selectedApp)}
-                  className="px-3 py-1.5 bg-brand-800 hover:bg-brand-700 text-white text-xs font-semibold rounded-lg transition flex items-center gap-1.5"
+                  className="px-2.5 py-1 bg-brand-800 hover:bg-brand-700 text-white text-xs font-semibold rounded transition"
                 >
-                  <FileText className="w-3.5 h-3.5" /> PDF
+                  PDF
                 </button>
                 <button
                   type="button"
                   onClick={() => exportSingleApplicationCsv(selectedApp)}
-                  className="px-3 py-1.5 bg-emerald-800 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition flex items-center gap-1.5"
+                  className="px-2.5 py-1 bg-emerald-800 hover:bg-emerald-700 text-white text-xs font-semibold rounded transition"
                 >
-                  <FileSpreadsheet className="w-3.5 h-3.5" /> CSV
+                  CSV
                 </button>
                 <button
                   type="button"
                   onClick={() => setAppToDelete(selectedApp)}
-                  className="px-2.5 py-1.5 bg-red-900/80 hover:bg-red-800 text-white text-xs font-semibold rounded-lg transition flex items-center gap-1.5 border border-red-700/60"
+                  className="px-2.5 py-1 bg-red-900/80 hover:bg-red-800 text-white text-xs font-semibold rounded transition border border-red-700/60"
                   title="Delete this application record"
                 >
-                  <Trash2 className="w-3.5 h-3.5" /> Delete
+                  Delete
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedApp(null)}
-                  className="p-1.5 text-slate-300 hover:text-white rounded-lg hover:bg-brand-900 transition ml-2"
+                  className="px-2 py-1 text-slate-300 hover:text-white rounded hover:bg-brand-900 text-xs font-bold transition ml-1"
                 >
                   ✕
                 </button>
@@ -801,7 +752,7 @@ export default function AdminDashboard({ onBackToForm }) {
             </div>
 
             {/* Modal Navigation Tabs */}
-            <div className="flex border-b border-slate-200 bg-slate-50 px-5 text-xs font-semibold overflow-x-auto">
+            <div className="flex border-b border-slate-200 bg-slate-50 px-3 text-xs font-semibold overflow-x-auto">
               {[
                 { id: 'personal', label: '1 & 2. Personal/Address' },
                 { id: 'academics', label: '3 & 4. Academics/Exams' },
@@ -812,7 +763,7 @@ export default function AdminDashboard({ onBackToForm }) {
                 <button
                   key={tab.id}
                   onClick={() => setActiveDetailTab(tab.id)}
-                  className={`py-3 px-4 border-b-2 transition whitespace-nowrap ${
+                  className={`py-2 px-3 border-b-2 transition whitespace-nowrap text-xs ${
                     activeDetailTab === tab.id
                       ? 'border-brand-700 text-brand-900 bg-white font-bold'
                       : 'border-transparent text-slate-600 hover:text-slate-900'
@@ -824,58 +775,55 @@ export default function AdminDashboard({ onBackToForm }) {
             </div>
 
             {/* Modal Content Body */}
-            <div className="p-6 overflow-y-auto space-y-5 text-xs flex-1">
+            <div className="p-3 overflow-y-auto space-y-3 text-xs flex-1">
               {selectedApp.status === 'draft' && (
-                <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-lg text-indigo-900 flex items-center gap-2.5">
-                  <FileEdit className="w-4 h-4 text-indigo-600 shrink-0" />
-                  <div>
-                    <span className="font-bold">In-Progress Auto-Saved Draft:</span>
-                    <p className="text-[11px] text-indigo-800">
-                      This candidate is currently filling out the application. The details below reflect their auto-saved form data till now. Final submission declaration has not yet been executed.
-                    </p>
-                  </div>
+                <div className="p-2 bg-indigo-50 border border-indigo-200 rounded text-indigo-900">
+                  <span className="font-bold">In-Progress Auto-Saved Draft: </span>
+                  <span className="text-[11px] text-indigo-800">
+                    This candidate is currently filling out the application. The details below reflect their auto-saved form data till now. Final submission declaration has not yet been executed.
+                  </span>
                 </div>
               )}
               {activeDetailTab === 'personal' && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  <div className="p-3 bg-slate-50 rounded-lg">
-                    <span className="text-slate-400 block font-medium">Candidate Name:</span>
-                    <span className="font-bold text-slate-900 text-sm">{selectedApp.personal_details?.fullName || '—'}</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                  <div className="p-2 bg-slate-50 rounded">
+                    <span className="text-slate-400 block font-medium text-[10px]">Candidate Name:</span>
+                    <span className="font-bold text-slate-900">{selectedApp.personal_details?.fullName || '—'}</span>
                   </div>
-                  <div className="p-3 bg-slate-50 rounded-lg">
-                    <span className="text-slate-400 block font-medium">Programme / Subject:</span>
-                    <span className="font-bold text-slate-900 text-sm">{selectedApp.personal_details?.programme || '—'}</span>
+                  <div className="p-2 bg-slate-50 rounded">
+                    <span className="text-slate-400 block font-medium text-[10px]">Programme / Subject:</span>
+                    <span className="font-bold text-slate-900">{selectedApp.personal_details?.programme || '—'}</span>
                   </div>
-                  <div className="p-3 bg-slate-50 rounded-lg">
-                    <span className="text-slate-400 block font-medium">Specialization:</span>
-                    <span className="font-bold text-slate-900 text-sm">{selectedApp.personal_details?.specialization || '—'}</span>
+                  <div className="p-2 bg-slate-50 rounded">
+                    <span className="text-slate-400 block font-medium text-[10px]">Specialization:</span>
+                    <span className="font-bold text-slate-900">{selectedApp.personal_details?.specialization || '—'}</span>
                   </div>
-                  <div className="p-3 bg-slate-50 rounded-lg">
-                    <span className="text-slate-400 block font-medium">Admission Category:</span>
+                  <div className="p-2 bg-slate-50 rounded">
+                    <span className="text-slate-400 block font-medium text-[10px]">Admission Category:</span>
                     <span className="font-semibold text-slate-800">{selectedApp.personal_details?.admissionCategory || '—'}</span>
                   </div>
-                  <div className="p-3 bg-slate-50 rounded-lg">
-                    <span className="text-slate-400 block font-medium">Mode of Admission:</span>
+                  <div className="p-2 bg-slate-50 rounded">
+                    <span className="text-slate-400 block font-medium text-[10px]">Mode of Admission:</span>
                     <span className="font-semibold text-slate-800">{selectedApp.personal_details?.modeOfAdmission || '—'}</span>
                   </div>
-                  <div className="p-3 bg-slate-50 rounded-lg">
-                    <span className="text-slate-400 block font-medium">Guardian Name:</span>
+                  <div className="p-2 bg-slate-50 rounded">
+                    <span className="text-slate-400 block font-medium text-[10px]">Guardian Name:</span>
                     <span className="font-semibold text-slate-800">{selectedApp.personal_details?.guardianName || '—'}</span>
                   </div>
-                  <div className="p-3 bg-slate-50 rounded-lg">
-                    <span className="text-slate-400 block font-medium">Date of Birth & Gender:</span>
+                  <div className="p-2 bg-slate-50 rounded">
+                    <span className="text-slate-400 block font-medium text-[10px]">Date of Birth & Gender:</span>
                     <span className="font-semibold text-slate-800">{selectedApp.personal_details?.dateOfBirth} ({selectedApp.personal_details?.gender})</span>
                   </div>
-                  <div className="p-3 bg-slate-50 rounded-lg">
-                    <span className="text-slate-400 block font-medium">Category:</span>
+                  <div className="p-2 bg-slate-50 rounded">
+                    <span className="text-slate-400 block font-medium text-[10px]">Category:</span>
                     <span className="font-semibold text-slate-800">{selectedApp.personal_details?.category || '—'}</span>
                   </div>
-                  <div className="p-3 bg-slate-50 rounded-lg">
-                    <span className="text-slate-400 block font-medium">Emergency Contact:</span>
+                  <div className="p-2 bg-slate-50 rounded">
+                    <span className="text-slate-400 block font-medium text-[10px]">Emergency Contact:</span>
                     <span className="font-semibold text-slate-800">{selectedApp.personal_details?.emergencyContact || '—'}</span>
                   </div>
-                  <div className="sm:col-span-2 md:col-span-3 p-3 bg-slate-50 rounded-lg">
-                    <span className="text-slate-400 block font-medium">Permanent Address:</span>
+                  <div className="sm:col-span-2 md:col-span-3 p-2 bg-slate-50 rounded">
+                    <span className="text-slate-400 block font-medium text-[10px]">Permanent Address:</span>
                     <span className="font-semibold text-slate-800">
                       {selectedApp.address_details?.permanentAddress}, {selectedApp.address_details?.district}, {selectedApp.address_details?.state} – {selectedApp.address_details?.pinCode}
                     </span>
@@ -884,53 +832,53 @@ export default function AdminDashboard({ onBackToForm }) {
               )}
 
               {activeDetailTab === 'academics' && (
-                <div className="space-y-4">
-                  <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-1">3. Educational Qualifications</h3>
+                <div className="space-y-2">
+                  <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-0.5">3. Educational Qualifications</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full border-collapse border border-slate-200">
-                      <thead className="bg-slate-100 font-semibold">
+                      <thead className="bg-slate-100 font-semibold text-[11px]">
                         <tr>
-                          <th className="p-2 border">Qualification</th>
-                          <th className="p-2 border">Specialization</th>
-                          <th className="p-2 border">Institution / University</th>
-                          <th className="p-2 border text-center">Year</th>
-                          <th className="p-2 border text-center">% / CGPA</th>
+                          <th className="p-1.5 border">Qualification</th>
+                          <th className="p-1.5 border">Specialization</th>
+                          <th className="p-1.5 border">Institution / University</th>
+                          <th className="p-1.5 border text-center">Year</th>
+                          <th className="p-1.5 border text-center">% / CGPA</th>
                         </tr>
                       </thead>
                       <tbody>
                         {(selectedApp.educational_qualifications || []).map((q, i) => (
                           <tr key={i} className="border-b">
-                            <td className="p-2 border font-medium">{q.qualification || '—'}</td>
-                            <td className="p-2 border">{q.specialization || '—'}</td>
-                            <td className="p-2 border">{q.institution || '—'}</td>
-                            <td className="p-2 border text-center">{q.year || '—'}</td>
-                            <td className="p-2 border text-center font-bold">{q.percentage || '—'}</td>
+                            <td className="p-1.5 border font-medium">{q.qualification || '—'}</td>
+                            <td className="p-1.5 border">{q.specialization || '—'}</td>
+                            <td className="p-1.5 border">{q.institution || '—'}</td>
+                            <td className="p-1.5 border text-center">{q.year || '—'}</td>
+                            <td className="p-1.5 border text-center font-bold">{q.percentage || '—'}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
 
-                  <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-1 pt-3">4. Qualifying / Eligibility Examinations</h3>
+                  <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-0.5 pt-2">4. Qualifying / Eligibility Examinations</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full border-collapse border border-slate-200">
-                      <thead className="bg-slate-100 font-semibold">
+                      <thead className="bg-slate-100 font-semibold text-[11px]">
                         <tr>
-                          <th className="p-2 border">Examination</th>
-                          <th className="p-2 border">Subject</th>
-                          <th className="p-2 border text-center">Year</th>
-                          <th className="p-2 border text-center">Score / Percentile</th>
-                          <th className="p-2 border text-center">Status</th>
+                          <th className="p-1.5 border">Examination</th>
+                          <th className="p-1.5 border">Subject</th>
+                          <th className="p-1.5 border text-center">Year</th>
+                          <th className="p-1.5 border text-center">Score / Percentile</th>
+                          <th className="p-1.5 border text-center">Status</th>
                         </tr>
                       </thead>
                       <tbody>
                         {(selectedApp.eligibility_examinations || []).map((ex, i) => (
                           <tr key={i} className="border-b">
-                            <td className="p-2 border font-medium">{ex.examination || '—'}</td>
-                            <td className="p-2 border">{ex.subject || '—'}</td>
-                            <td className="p-2 border text-center">{ex.year || '—'}</td>
-                            <td className="p-2 border text-center">{ex.score || '—'}</td>
-                            <td className="p-2 border text-center font-semibold text-emerald-700">{ex.qualification || '—'}</td>
+                            <td className="p-1.5 border font-medium">{ex.examination || '—'}</td>
+                            <td className="p-1.5 border">{ex.subject || '—'}</td>
+                            <td className="p-1.5 border text-center">{ex.year || '—'}</td>
+                            <td className="p-1.5 border text-center">{ex.score || '—'}</td>
+                            <td className="p-1.5 border text-center font-semibold text-emerald-700">{ex.qualification || '—'}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -940,72 +888,72 @@ export default function AdminDashboard({ onBackToForm }) {
               )}
 
               {activeDetailTab === 'experience' && (
-                <div className="space-y-4">
-                  <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-1">5. Professional / Teaching Experience</h3>
+                <div className="space-y-2">
+                  <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-0.5">5. Professional / Teaching Experience</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full border-collapse border border-slate-200">
-                      <thead className="bg-slate-100 font-semibold">
+                      <thead className="bg-slate-100 font-semibold text-[11px]">
                         <tr>
-                          <th className="p-2 border">Institution</th>
-                          <th className="p-2 border">Designation</th>
-                          <th className="p-2 border text-center">Period</th>
-                          <th className="p-2 border">Nature of Work</th>
-                          <th className="p-2 border text-center">Total Experience</th>
+                          <th className="p-1.5 border">Institution</th>
+                          <th className="p-1.5 border">Designation</th>
+                          <th className="p-1.5 border text-center">Period</th>
+                          <th className="p-1.5 border">Nature of Work</th>
+                          <th className="p-1.5 border text-center">Total Experience</th>
                         </tr>
                       </thead>
                       <tbody>
                         {(selectedApp.professional_experience || []).map((exp, i) => (
                           <tr key={i} className="border-b">
-                            <td className="p-2 border font-medium">{exp.institution || '—'}</td>
-                            <td className="p-2 border">{exp.designation || '—'}</td>
-                            <td className="p-2 border text-center">{exp.fromTo || '—'}</td>
-                            <td className="p-2 border">{exp.natureOfWork || '—'}</td>
-                            <td className="p-2 border text-center font-bold">{exp.totalExperience || '—'}</td>
+                            <td className="p-1.5 border font-medium">{exp.institution || '—'}</td>
+                            <td className="p-1.5 border">{exp.designation || '—'}</td>
+                            <td className="p-1.5 border text-center">{exp.fromTo || '—'}</td>
+                            <td className="p-1.5 border">{exp.natureOfWork || '—'}</td>
+                            <td className="p-1.5 border text-center font-bold">{exp.totalExperience || '—'}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
 
-                  <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-1 pt-3">6. Research Exposure / Area of Interest</h3>
-                  <div className="p-3 bg-slate-50 rounded-lg text-slate-800 leading-relaxed whitespace-pre-line border border-slate-200">
+                  <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-0.5 pt-2">6. Research Exposure / Area of Interest</h3>
+                  <div className="p-2.5 bg-slate-50 rounded text-slate-800 leading-relaxed whitespace-pre-line border border-slate-200 text-xs">
                     {selectedApp.research_exposure || 'No specific statement provided.'}
                   </div>
                 </div>
               )}
 
               {activeDetailTab === 'research' && (
-                <div className="space-y-4">
-                  <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-1">7. Research Publications</h3>
+                <div className="space-y-2">
+                  <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-0.5">7. Research Publications</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full border-collapse border border-slate-200">
-                      <thead className="bg-slate-100 font-semibold">
+                      <thead className="bg-slate-100 font-semibold text-[11px]">
                         <tr>
-                          <th className="p-2 border">Title / Authors</th>
-                          <th className="p-2 border">Journal / Conference</th>
-                          <th className="p-2 border text-center">Year</th>
-                          <th className="p-2 border">Indexing / Quartile</th>
-                          <th className="p-2 border">DOI</th>
+                          <th className="p-1.5 border">Title / Authors</th>
+                          <th className="p-1.5 border">Journal / Conference</th>
+                          <th className="p-1.5 border text-center">Year</th>
+                          <th className="p-1.5 border">Indexing / Quartile</th>
+                          <th className="p-1.5 border">DOI</th>
                         </tr>
                       </thead>
                       <tbody>
                         {(selectedApp.research_publications || []).map((pub, i) => (
                           <tr key={i} className="border-b">
-                            <td className="p-2 border font-medium">{pub.titleAuthor || '—'}</td>
-                            <td className="p-2 border">{pub.journalConference || '—'}</td>
-                            <td className="p-2 border text-center">{pub.year || '—'}</td>
-                            <td className="p-2 border">{pub.indexingQuartile || '—'}</td>
-                            <td className="p-2 border font-mono">{pub.doi || '—'}</td>
+                            <td className="p-1.5 border font-medium">{pub.titleAuthor || '—'}</td>
+                            <td className="p-1.5 border">{pub.journalConference || '—'}</td>
+                            <td className="p-1.5 border text-center">{pub.year || '—'}</td>
+                            <td className="p-1.5 border">{pub.indexingQuartile || '—'}</td>
+                            <td className="p-1.5 border font-mono">{pub.doi || '—'}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
 
-                  <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-1 pt-3">8. Books / Patents / Outputs</h3>
+                  <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-0.5 pt-2">8. Books / Patents / Outputs</h3>
                   <div className="space-y-1">
                     {(selectedApp.books_patents_outputs || []).filter((b) => b.titleDetails).map((b, i) => (
-                      <div key={i} className="p-2 bg-slate-50 border rounded flex justify-between">
+                      <div key={i} className="p-1.5 bg-slate-50 border rounded flex justify-between">
                         <span><strong>{b.type || 'Output'}:</strong> {b.titleDetails}</span>
                         <span className="text-slate-500 font-mono">{b.year} | {b.isbnPatentNo}</span>
                       </div>
@@ -1015,11 +963,11 @@ export default function AdminDashboard({ onBackToForm }) {
               )}
 
               {activeDetailTab === 'documents' && (
-                <div className="space-y-4">
-                  <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-1">12. Enclosed Document Verification</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-0.5">12. Enclosed Document Verification</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {Object.entries(selectedApp.document_metadata || {}).map(([key, info]) => (
-                      <div key={key} className="p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between">
+                      <div key={key} className="p-2 bg-slate-50 border border-slate-200 rounded flex items-center justify-between">
                         <div className="truncate pr-2">
                           <p className="font-semibold text-slate-900 truncate">{info.fileName || key}</p>
                           <p className="text-[10px] text-slate-400 capitalize">{key.replace(/([A-Z])/g, ' $1')}</p>
@@ -1028,9 +976,9 @@ export default function AdminDashboard({ onBackToForm }) {
                           <button
                             type="button"
                             onClick={() => handleViewDocument(info.storagePath)}
-                            className="px-2 py-1 bg-white hover:bg-slate-100 border text-brand-700 font-semibold rounded text-[11px] flex items-center gap-1 shrink-0"
+                            className="px-2 py-0.5 bg-white hover:bg-slate-100 border text-brand-700 font-semibold rounded text-[11px] shrink-0"
                           >
-                            <ExternalLink className="w-3 h-3" /> View Doc
+                            View Doc
                           </button>
                         )}
                       </div>
@@ -1044,15 +992,15 @@ export default function AdminDashboard({ onBackToForm }) {
             </div>
 
             {/* Modal Reviewer Status Action Footer */}
-            <div className="bg-slate-100 p-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-              <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="bg-slate-100 p-2.5 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
                 <label className="text-xs font-bold text-slate-700 whitespace-nowrap">
-                  Update Status:
+                  Status:
                 </label>
                 <select
                   value={newStatus}
                   onChange={(e) => setNewStatus(e.target.value)}
-                  className="px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg font-semibold"
+                  className="px-2 py-1 text-xs bg-white border border-slate-300 rounded font-semibold"
                 >
                   <option value="submitted">Submitted</option>
                   <option value="under_review">Under Review</option>
@@ -1061,19 +1009,19 @@ export default function AdminDashboard({ onBackToForm }) {
                 </select>
               </div>
 
-              <div className="flex items-center gap-2 w-full sm:w-1/2">
+              <div className="flex items-center gap-1.5 w-full sm:w-1/2">
                 <input
                   type="text"
                   placeholder="Reviewer remarks / DRC committee notes..."
                   value={reviewerNotes}
                   onChange={(e) => setReviewerNotes(e.target.value)}
-                  className="w-full px-3 py-1.5 text-xs border border-slate-300 rounded-lg bg-white"
+                  className="w-full px-2 py-1 text-xs border border-slate-300 rounded bg-white"
                 />
                 <button
                   type="button"
                   onClick={handleSaveStatusUpdate}
                   disabled={isUpdatingStatus}
-                  className="btn-primary text-xs py-1.5 px-4 shrink-0"
+                  className="btn-primary text-xs py-1 px-3 shrink-0"
                 >
                   {isUpdatingStatus ? 'Saving...' : 'Save Decision'}
                 </button>
@@ -1085,22 +1033,22 @@ export default function AdminDashboard({ onBackToForm }) {
 
       {/* DELETE CONFIRMATION DIALOG MODAL */}
       {appToDelete && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 space-y-4 animate-in zoom-in-95">
-            <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 mx-auto flex items-center justify-center">
-              <Trash2 className="w-6 h-6" />
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 animate-in fade-in">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-xl max-w-sm w-full p-4 space-y-3">
+            <div className="w-10 h-10 rounded-full bg-red-100 text-red-600 mx-auto flex items-center justify-center font-bold text-sm">
+              DEL
             </div>
 
             <div className="text-center">
-              <h3 className="text-lg font-bold text-slate-900">
+              <h3 className="text-base font-bold text-slate-900">
                 Permanently Delete Application?
               </h3>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-[11px] text-slate-500 mt-0.5">
                 Are you sure you want to delete this record? This action will permanently remove all applicant biodata and attached references from the portal.
               </p>
             </div>
 
-            <div className="bg-red-50/60 border border-red-200/80 rounded-xl p-3.5 text-xs text-slate-800 space-y-1.5">
+            <div className="bg-red-50/60 border border-red-200/80 rounded p-2.5 text-xs text-slate-800 space-y-1">
               <div className="flex justify-between">
                 <span className="text-slate-500">Application No:</span>
                 <span className="font-mono font-bold text-brand-950">
@@ -1121,12 +1069,12 @@ export default function AdminDashboard({ onBackToForm }) {
               </div>
             </div>
 
-            <div className="flex gap-2.5 pt-2">
+            <div className="flex gap-2 pt-1">
               <button
                 type="button"
                 onClick={() => setAppToDelete(null)}
                 disabled={isDeleting}
-                className="btn-secondary flex-1 py-2.5 text-xs font-semibold"
+                className="btn-secondary flex-1 py-1.5 text-xs font-semibold"
               >
                 Cancel
               </button>
@@ -1134,7 +1082,7 @@ export default function AdminDashboard({ onBackToForm }) {
                 type="button"
                 onClick={handleConfirmDelete}
                 disabled={isDeleting}
-                className="btn-primary bg-red-600 hover:bg-red-700 flex-1 py-2.5 text-xs font-semibold shadow-sm"
+                className="btn-primary bg-red-600 hover:bg-red-700 flex-1 py-1.5 text-xs font-semibold shadow-sm"
               >
                 {isDeleting ? 'Deleting...' : 'Yes, Delete Record'}
               </button>

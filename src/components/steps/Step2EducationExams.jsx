@@ -1,5 +1,4 @@
 import React from 'react';
-import { Plus, Trash2, HelpCircle } from 'lucide-react';
 import { EXAMINATION_OPTIONS } from '../../data/initialFormState';
 
 export default function Step2EducationExams({ formData, setFormData }) {
@@ -67,42 +66,41 @@ export default function Step2EducationExams({ formData, setFormData }) {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-2">
       {/* SECTION 3 */}
       <div className="card-section">
-        <div className="border-b border-slate-200 pb-3 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="border-b border-slate-200 pb-1.5 mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
           <div>
-            <h2 className="text-lg font-bold text-brand-950 flex items-center gap-2">
-              <span className="w-7 h-7 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-xs font-bold">
+            <h2 className="text-base font-bold text-brand-950 flex items-center gap-1.5">
+              <span className="w-6 h-6 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-xs font-bold">
                 3
               </span>
               3. EDUCATIONAL QUALIFICATIONS
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-[11px] text-slate-500">
               Chronological academic history from 10th / SSC to Postgraduate Degree
             </p>
           </div>
           <button
             type="button"
             onClick={addEduRow}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-800 text-xs font-semibold rounded-md border border-brand-200 transition"
+            className="inline-flex items-center px-2.5 py-1 bg-brand-50 hover:bg-brand-100 text-brand-800 text-xs font-semibold rounded border border-brand-200 transition"
           >
-            <Plus className="w-3.5 h-3.5" />
-            Add Qualification Row
+            + Add Row
           </button>
         </div>
 
-        <div className="overflow-x-auto -mx-6 px-6">
+        <div className="overflow-x-auto -mx-4 px-4">
           <table className="w-full min-w-[700px] border-collapse text-left text-xs">
             <thead>
-              <tr className="bg-slate-100 border-y border-slate-200 text-slate-700 font-semibold uppercase tracking-wider">
-                <th className="py-2.5 px-3 w-12 text-center">S.No.</th>
-                <th className="py-2.5 px-3 w-40">Qualification *</th>
-                <th className="py-2.5 px-3 w-40">Specialization *</th>
-                <th className="py-2.5 px-3">University / Institution *</th>
-                <th className="py-2.5 px-3 w-24">Year *</th>
-                <th className="py-2.5 px-3 w-28">% / CGPA *</th>
-                <th className="py-2.5 px-2 w-12 text-center">Action</th>
+              <tr className="bg-slate-100 border-y border-slate-200 text-slate-700 font-semibold uppercase tracking-wider text-[11px]">
+                <th className="py-1.5 px-2 w-10 text-center">S.No.</th>
+                <th className="py-1.5 px-2 w-40">Qualification *</th>
+                <th className="py-1.5 px-2 w-40">Specialization *</th>
+                <th className="py-1.5 px-2">University / Institution *</th>
+                <th className="py-1.5 px-2 w-20 text-center">Year *</th>
+                <th className="py-1.5 px-2 w-24 text-center">% / CGPA *</th>
+                <th className="py-1.5 px-1 w-10 text-center">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
@@ -160,15 +158,15 @@ export default function Step2EducationExams({ formData, setFormData }) {
                       required
                     />
                   </td>
-                  <td className="py-2 px-2 text-center">
+                  <td className="py-1 px-1 text-center">
                     <button
                       type="button"
                       onClick={() => removeEduRow(idx)}
                       disabled={education.length <= 1}
-                      className="p-1.5 text-slate-400 hover:text-red-600 rounded hover:bg-red-50 transition disabled:opacity-30 disabled:pointer-events-none"
+                      className="w-5 h-5 inline-flex items-center justify-center text-slate-400 hover:text-red-600 rounded hover:bg-red-50 transition text-sm font-bold disabled:opacity-20 disabled:pointer-events-none"
                       title="Remove row"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      ×
                     </button>
                   </td>
                 </tr>
@@ -180,60 +178,56 @@ export default function Step2EducationExams({ formData, setFormData }) {
 
       {/* SECTION 4 */}
       <div className="card-section">
-        <div className="border-b border-slate-200 pb-3 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="border-b border-slate-200 pb-1.5 mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
           <div>
-            <h2 className="text-lg font-bold text-brand-950 flex items-center gap-2">
-              <span className="w-7 h-7 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-xs font-bold">
+            <h2 className="text-base font-bold text-brand-950 flex items-center gap-1.5">
+              <span className="w-6 h-6 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-xs font-bold">
                 4
               </span>
               4. QUALIFYING / ELIGIBILITY EXAMINATIONS
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-[11px] text-slate-500">
               Examples: UGC-NET, UGC-JRF, CSIR-NET/JRF, GATE, SLET/SET, JEST, GPAT, etc.
             </p>
           </div>
           <button
             type="button"
             onClick={addExamRow}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-800 text-xs font-semibold rounded-md border border-brand-200 transition"
+            className="inline-flex items-center px-2.5 py-1 bg-brand-50 hover:bg-brand-100 text-brand-800 text-xs font-semibold rounded border border-brand-200 transition"
           >
-            <Plus className="w-3.5 h-3.5" />
-            Add Examination Row
+            + Add Row
           </button>
         </div>
 
-        <div className="p-3 bg-blue-50/70 border border-blue-200/60 rounded-lg mb-4 text-xs text-blue-900 flex items-start gap-2">
-          <HelpCircle className="w-4 h-4 text-brand-600 mt-0.5 shrink-0" />
-          <span>
-            If you have appeared or qualified in national or state examinations (such as GATE, UGC-NET, SLET, SET, GPAT), please mention the details below. Leave blank if not applicable.
-          </span>
+        <div className="p-2 bg-blue-50/70 border border-blue-200/60 rounded mb-2 text-[11px] text-blue-900 leading-tight">
+          If you have appeared or qualified in national or state examinations (such as GATE, UGC-NET, SLET, SET, GPAT), please mention the details below. Leave blank if not applicable.
         </div>
 
-        <div className="overflow-x-auto -mx-6 px-6">
+        <div className="overflow-x-auto -mx-4 px-4">
           <table className="w-full min-w-[700px] border-collapse text-left text-xs">
             <thead>
-              <tr className="bg-slate-100 border-y border-slate-200 text-slate-700 font-semibold uppercase tracking-wider">
-                <th className="py-2.5 px-3 w-12 text-center">S.No.</th>
-                <th className="py-2.5 px-3 w-48">Examination</th>
-                <th className="py-2.5 px-3">Subject</th>
-                <th className="py-2.5 px-3 w-24">Year</th>
-                <th className="py-2.5 px-3 w-32">Score / Percentile</th>
-                <th className="py-2.5 px-3 w-36">Qualification Status</th>
-                <th className="py-2.5 px-2 w-12 text-center">Action</th>
+              <tr className="bg-slate-100 border-y border-slate-200 text-slate-700 font-semibold uppercase tracking-wider text-[11px]">
+                <th className="py-1.5 px-2 w-10 text-center">S.No.</th>
+                <th className="py-1.5 px-2 w-48">Examination</th>
+                <th className="py-1.5 px-2">Subject</th>
+                <th className="py-1.5 px-2 w-20 text-center">Year</th>
+                <th className="py-1.5 px-2 w-28 text-center">Score / Percentile</th>
+                <th className="py-1.5 px-2 w-32">Qualification Status</th>
+                <th className="py-1.5 px-1 w-10 text-center">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
               {exams.map((item, idx) => (
                 <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
-                  <td className="py-2.5 px-3 text-center font-bold text-slate-500">{idx + 1}</td>
-                  <td className="py-2 px-2">
+                  <td className="py-1.5 px-2 text-center font-bold text-slate-500">{idx + 1}</td>
+                  <td className="py-1 px-1">
                     <input
                       type="text"
                       list={`exam-suggestions-${idx}`}
                       placeholder="e.g. GATE / UGC-NET"
                       value={item.examination}
                       onChange={(e) => handleExamChange(idx, 'examination', e.target.value)}
-                      className="form-input text-xs py-1.5"
+                      className="form-input text-xs py-1"
                     />
                     <datalist id={`exam-suggestions-${idx}`}>
                       {EXAMINATION_OPTIONS.map((opt) => (
@@ -241,39 +235,39 @@ export default function Step2EducationExams({ formData, setFormData }) {
                       ))}
                     </datalist>
                   </td>
-                  <td className="py-2 px-2">
+                  <td className="py-1 px-1">
                     <input
                       type="text"
                       placeholder="Subject / Paper Code"
                       value={item.subject}
                       onChange={(e) => handleExamChange(idx, 'subject', e.target.value)}
-                      className="form-input text-xs py-1.5"
+                      className="form-input text-xs py-1"
                     />
                   </td>
-                  <td className="py-2 px-2">
+                  <td className="py-1 px-1">
                     <input
                       type="text"
                       maxLength={4}
                       placeholder="YYYY"
                       value={item.year}
                       onChange={(e) => handleExamChange(idx, 'year', e.target.value)}
-                      className="form-input text-xs py-1.5 text-center"
+                      className="form-input text-xs py-1 text-center"
                     />
                   </td>
-                  <td className="py-2 px-2">
+                  <td className="py-1 px-1">
                     <input
                       type="text"
                       placeholder="Marks / Rank"
                       value={item.score}
                       onChange={(e) => handleExamChange(idx, 'score', e.target.value)}
-                      className="form-input text-xs py-1.5 text-center"
+                      className="form-input text-xs py-1 text-center"
                     />
                   </td>
-                  <td className="py-2 px-2">
+                  <td className="py-1 px-1">
                     <select
                       value={item.qualification}
                       onChange={(e) => handleExamChange(idx, 'qualification', e.target.value)}
-                      className="form-select text-xs py-1.5"
+                      className="form-select text-xs py-1"
                     >
                       <option value="">-- Status --</option>
                       <option value="Qualified">Qualified</option>
@@ -282,15 +276,15 @@ export default function Step2EducationExams({ formData, setFormData }) {
                       <option value="Appeared / Awaited">Appeared / Awaited</option>
                     </select>
                   </td>
-                  <td className="py-2 px-2 text-center">
+                  <td className="py-1 px-1 text-center">
                     <button
                       type="button"
                       onClick={() => removeExamRow(idx)}
                       disabled={exams.length <= 1}
-                      className="p-1.5 text-slate-400 hover:text-red-600 rounded hover:bg-red-50 transition disabled:opacity-30 disabled:pointer-events-none"
+                      className="w-5 h-5 inline-flex items-center justify-center text-slate-400 hover:text-red-600 rounded hover:bg-red-50 transition text-sm font-bold disabled:opacity-20 disabled:pointer-events-none"
                       title="Remove row"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      ×
                     </button>
                   </td>
                 </tr>

@@ -1,5 +1,4 @@
 import React, { useRef } from 'react';
-import { Upload, X, Camera, Check } from 'lucide-react';
 import {
   PROGRAMME_OPTIONS,
   ADMISSION_CATEGORIES,
@@ -25,16 +24,16 @@ export default function Step1PersonalAddress({ formData, setFormData, fileObject
 
   const handleAddressChange = (field, value) => {
     setFormData((prev) => {
-      const updatedAddress = {
+      const updated = {
         ...prev.addressDetails,
         [field]: value,
       };
-      if (field === 'permanentAddress' && updatedAddress.sameAsPermanent) {
-        updatedAddress.presentAddress = value;
+      if (field === 'permanentAddress' && updated.sameAsPermanent) {
+        updated.presentAddress = value;
       }
       return {
         ...prev,
-        addressDetails: updatedAddress,
+        addressDetails: updated,
       };
     });
   };
@@ -89,39 +88,39 @@ export default function Step1PersonalAddress({ formData, setFormData, fileObject
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-2">
       {/* SECTION 1 */}
       <div className="card-section">
-        <div className="border-b border-slate-200 pb-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="border-b border-slate-200 pb-1.5 mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
           <div>
-            <h2 className="text-lg font-bold text-brand-950 flex items-center gap-2">
-              <span className="w-7 h-7 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-xs font-bold">
+            <h2 className="text-base font-bold text-brand-950 flex items-center gap-1.5">
+              <span className="w-6 h-6 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-xs font-bold">
                 1
               </span>
               1. APPLICATION & PERSONAL DETAILS
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-[11px] text-slate-500">
               Enter candidate details and research subject as per official records
             </p>
           </div>
           <div className="text-right">
-            <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider block">
+            <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
               Application Identifier
             </span>
-            <span className="inline-block px-2.5 py-1 bg-slate-100 text-slate-700 text-xs font-mono font-semibold rounded border border-slate-200">
+            <span className="inline-block px-2 py-0.5 bg-slate-100 text-slate-700 text-xs font-mono font-semibold rounded border border-slate-200">
               {formData.applicationNumber || 'Generated upon submission'}
             </span>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
           {/* Photograph Upload Area */}
-          <div className="md:col-span-1 flex flex-col items-center p-4 bg-slate-50 rounded-xl border border-dashed border-slate-300">
-            <span className="form-label form-label-required mb-3 text-center">
+          <div className="md:col-span-1 flex flex-col items-center p-2.5 bg-slate-50 rounded-lg border border-dashed border-slate-300">
+            <span className="form-label form-label-required mb-1.5 text-center text-xs">
               Recent Passport Size Photo
             </span>
 
-            <div className="w-36 h-44 bg-white border-2 border-slate-200 rounded-lg overflow-hidden flex flex-col items-center justify-center relative shadow-inner group">
+            <div className="w-32 h-40 bg-white border-2 border-slate-200 rounded-lg overflow-hidden flex flex-col items-center justify-center relative shadow-inner">
               {p.photoDataUrl ? (
                 <>
                   <img
@@ -132,19 +131,19 @@ export default function Step1PersonalAddress({ formData, setFormData, fileObject
                   <button
                     type="button"
                     onClick={handleRemovePhoto}
-                    className="absolute top-1.5 right-1.5 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 transition shadow"
+                    className="absolute top-1 right-1 w-5 h-5 bg-red-600 text-white rounded-full hover:bg-red-700 transition flex items-center justify-center text-xs font-bold shadow"
                     title="Remove photograph"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    ×
                   </button>
                 </>
               ) : (
-                <div className="text-center p-3 text-slate-400">
-                  <Camera className="w-10 h-10 mx-auto mb-2 text-slate-300 group-hover:text-brand-500 transition-colors" />
-                  <p className="text-[11px] font-medium leading-tight">
+                <div className="text-center p-2 text-slate-400">
+                  <div className="text-xs font-bold text-slate-500 mb-1">[PHOTO]</div>
+                  <p className="text-[10px] font-medium leading-tight text-slate-600">
                     Affix Passport Size Photo
                   </p>
-                  <p className="text-[10px] text-slate-400 mt-1">JPEG/PNG, Max 3MB</p>
+                  <p className="text-[9px] text-slate-400 mt-0.5">JPEG/PNG, Max 3MB</p>
                 </div>
               )}
             </div>
@@ -161,15 +160,14 @@ export default function Step1PersonalAddress({ formData, setFormData, fileObject
             <button
               type="button"
               onClick={() => photoInputRef.current?.click()}
-              className="mt-3.5 inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-md border border-slate-300 shadow-sm transition"
+              className="mt-2 inline-flex items-center px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded border border-slate-300 shadow-sm transition"
             >
-              <Upload className="w-3.5 h-3.5 text-brand-600" />
               {p.photoDataUrl ? 'Change Photo' : 'Upload Photograph'}
             </button>
           </div>
 
           {/* Core Personal Fields */}
-          <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
               <label htmlFor="programme" className="form-label form-label-required">
                 Ph.D. Programme / Subject
@@ -178,7 +176,7 @@ export default function Step1PersonalAddress({ formData, setFormData, fileObject
                 id="programme"
                 value={p.programme}
                 onChange={(e) => handlePersonalChange('programme', e.target.value)}
-                className="form-select"
+                className="form-select text-xs py-1.5"
                 required
               >
                 <option value="">-- Select Programme / Department --</option>
@@ -376,41 +374,41 @@ export default function Step1PersonalAddress({ formData, setFormData, fileObject
 
       {/* SECTION 2 */}
       <div className="card-section">
-        <div className="border-b border-slate-200 pb-3 mb-6">
-          <h2 className="text-lg font-bold text-brand-950 flex items-center gap-2">
-            <span className="w-7 h-7 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-xs font-bold">
+        <div className="border-b border-slate-200 pb-1.5 mb-2">
+          <h2 className="text-base font-bold text-brand-950 flex items-center gap-1.5">
+            <span className="w-6 h-6 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-xs font-bold">
               2
             </span>
             2. ADDRESS DETAILS
           </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-[11px] text-slate-500">
             Provide permanent and present correspondence addresses
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div className="sm:col-span-2">
             <label htmlFor="permanentAddress" className="form-label form-label-required">
               Permanent Address
             </label>
             <textarea
               id="permanentAddress"
-              rows={3}
+              rows={2}
               placeholder="Door No, Street, Landmark, Village / Town, Mandal"
               value={a.permanentAddress}
               onChange={(e) => handleAddressChange('permanentAddress', e.target.value)}
-              className="form-textarea"
+              className="form-textarea text-xs py-1.5"
               required
             />
           </div>
 
           <div className="sm:col-span-2">
-            <label className="flex items-center gap-2 text-xs font-semibold text-brand-800 cursor-pointer mb-2">
+            <label className="flex items-center gap-1.5 text-xs font-semibold text-brand-800 cursor-pointer mb-1">
               <input
                 type="checkbox"
                 checked={a.sameAsPermanent}
                 onChange={(e) => handleSameAsPermanentToggle(e.target.checked)}
-                className="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300"
+                className="w-3.5 h-3.5 rounded text-brand-600 focus:ring-brand-500 border-slate-300"
               />
               <span>Present / Correspondence Address is the same as Permanent Address</span>
             </label>
@@ -419,12 +417,12 @@ export default function Step1PersonalAddress({ formData, setFormData, fileObject
             </label>
             <textarea
               id="presentAddress"
-              rows={3}
+              rows={2}
               disabled={a.sameAsPermanent}
               placeholder="Present address for courier and interview communication"
               value={a.presentAddress}
               onChange={(e) => handleAddressChange('presentAddress', e.target.value)}
-              className="form-textarea"
+              className="form-textarea text-xs py-1.5"
               required
             />
           </div>

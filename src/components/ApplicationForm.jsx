@@ -1,15 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import {
-  ChevronLeft,
-  ChevronRight,
-  Save,
-  CheckCircle2,
-  AlertCircle,
-  FileCheck,
-  Send,
-  Loader2,
-  HelpCircle,
-} from 'lucide-react';
 import { getInitialFormData } from '../data/initialFormState';
 import { dbService } from '../lib/supabase';
 import Step1PersonalAddress from './steps/Step1PersonalAddress';
@@ -39,7 +28,7 @@ export default function ApplicationForm({ onSubmissionComplete }) {
   const [draftToast, setDraftToast] = useState(null);
   const [validationError, setValidationError] = useState('');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [autoSaveStatus, setAutoSaveStatus] = useState('saved'); // 'saving' | 'saved'
+  const [autoSaveStatus, setAutoSaveStatus] = useState('saved');
   const [lastSavedTime, setLastSavedTime] = useState(null);
 
   // Restore draft from localStorage on initial load and assign draft number
@@ -92,7 +81,7 @@ export default function ApplicationForm({ onSubmissionComplete }) {
         console.warn('Background auto-save warning:', err);
         setAutoSaveStatus('saved');
       }
-    }, 1200);
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, [formData]);
@@ -109,12 +98,12 @@ export default function ApplicationForm({ onSubmissionComplete }) {
       const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       setLastSavedTime(timeStr);
       setAutoSaveStatus('saved');
-      setDraftToast('Draft auto-saved to Admin Portal! You can resume anytime.');
-      setTimeout(() => setDraftToast(null), 4000);
+      setDraftToast('Draft saved successfully to Admin Portal.');
+      setTimeout(() => setDraftToast(null), 3000);
     } catch (err) {
       console.error('Failed to save draft:', err);
       setDraftToast('Saved locally in browser.');
-      setTimeout(() => setDraftToast(null), 4000);
+      setTimeout(() => setDraftToast(null), 3000);
     } finally {
       setIsSavingDraft(false);
     }
@@ -195,25 +184,23 @@ export default function ApplicationForm({ onSubmissionComplete }) {
     const error = validateCurrentStep();
     if (error) {
       setValidationError(error);
-      window.scrollTo({ top: 120, behavior: 'smooth' });
+      window.scrollTo({ top: 80, behavior: 'smooth' });
       return;
     }
     setValidationError('');
-    // Save draft immediately on step progression
     dbService.saveDraft(formData).catch(console.warn);
     if (currentStep < FORM_STEPS.length - 1) {
       setCurrentStep((prev) => prev + 1);
-      window.scrollTo({ top: 100, behavior: 'smooth' });
+      window.scrollTo({ top: 80, behavior: 'smooth' });
     }
   };
 
   const handlePrevStep = () => {
     setValidationError('');
-    // Save draft immediately on step regression
     dbService.saveDraft(formData).catch(console.warn);
     if (currentStep > 0) {
       setCurrentStep((prev) => prev - 1);
-      window.scrollTo({ top: 100, behavior: 'smooth' });
+      window.scrollTo({ top: 80, behavior: 'smooth' });
     }
   };
 
@@ -221,7 +208,7 @@ export default function ApplicationForm({ onSubmissionComplete }) {
     const error = validateCurrentStep();
     if (error) {
       setValidationError(error);
-      window.scrollTo({ top: 120, behavior: 'smooth' });
+      window.scrollTo({ top: 80, behavior: 'smooth' });
       return;
     }
     setShowConfirmModal(true);
@@ -234,7 +221,6 @@ export default function ApplicationForm({ onSubmissionComplete }) {
 
     try {
       const record = await dbService.submitApplication(formData, fileObjects);
-      // Clear draft from localStorage
       localStorage.removeItem('nriit_phd_applicant_draft');
       onSubmissionComplete(record);
     } catch (err) {
@@ -243,72 +229,54 @@ export default function ApplicationForm({ onSubmissionComplete }) {
         err.message || 'Submission failed. Please check network connection and try again.'
       );
       setIsSubmitting(false);
-      window.scrollTo({ top: 120, behavior: 'smooth' });
+      window.scrollTo({ top: 80, behavior: 'smooth' });
     }
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
+    <div className="max-w-5xl mx-auto px-3 sm:px-4 py-2.5">
       {/* Toast message */}
       {draftToast && (
-        <div className="fixed top-20 right-6 z-50 bg-brand-950 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-2.5 text-xs animate-in slide-in-from-right-4">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+        <div className="fixed top-16 right-4 z-50 bg-brand-950 text-white px-3 py-2 rounded shadow-md text-xs">
           <span>{draftToast}</span>
         </div>
       )}
 
-      {/* Title & Instructions Banner */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-6 mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+      {/* Header Banner */}
+      <div className="bg-white rounded-lg border border-slate-200/90 shadow-sm p-3.5 mb-2.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
           <div>
-            <span className="text-[11px] font-bold tracking-wider text-brand-700 uppercase">
+            <span className="text-[10px] font-bold tracking-wider text-brand-700 uppercase">
               Official Application Form
             </span>
-            <h1 className="text-xl sm:text-2xl font-bold text-brand-950 tracking-tight mt-0.5">
+            <h1 className="text-base sm:text-lg font-bold text-brand-950 tracking-tight">
               Biodata of the Candidate for Ph.D. Admission
             </h1>
-            <p className="text-xs text-slate-500 mt-1">
-              Dr RVR NRI Institute of Technology (Deemed to be University) · Directorate of R&D
-            </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2.5">
-            <div className="flex items-center gap-1.5 text-xs">
-              {autoSaveStatus === 'saving' ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-50 text-brand-700 font-semibold border border-brand-200 text-xs">
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-600" />
-                  Auto-saving to portal...
-                </span>
-              ) : lastSavedTime ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 font-semibold border border-emerald-200 text-xs shadow-xs">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  Auto-saved to Portal ({lastSavedTime})
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 text-slate-600 font-medium border border-slate-200 text-xs">
-                  <Save className="w-3.5 h-3.5 text-slate-400" />
-                  Auto-save Active
-                </span>
-              )}
-            </div>
-
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-semibold text-slate-500">
+              {autoSaveStatus === 'saving'
+                ? 'Saving draft...'
+                : lastSavedTime
+                ? `Saved as Draft (${lastSavedTime})`
+                : 'Auto-save Active'}
+            </span>
             <button
               type="button"
               onClick={handleSaveDraft}
               disabled={isSavingDraft}
-              className="btn-secondary text-xs px-3.5 py-2 flex items-center gap-1.5 self-start sm:self-center shrink-0"
-              title="Save draft to continue later"
+              className="btn-secondary text-xs px-2.5 py-1"
             >
-              {isSavingDraft ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5 text-brand-600" />}
-              Save Draft Now
+              {isSavingDraft ? 'Saving...' : 'Save Draft'}
             </button>
           </div>
         </div>
 
         {/* Stepper Progress Bar */}
-        <div className="mt-6">
-          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
-            {FORM_STEPS.map((step, idx) => {
+        <div className="mt-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-1">
+            {FORM_STEPS.map((step) => {
               const isCurrent = currentStep === step.id;
               const isDone = currentStep > step.id;
 
@@ -320,28 +288,24 @@ export default function ApplicationForm({ onSubmissionComplete }) {
                     if (isDone || isCurrent) {
                       setValidationError('');
                       setCurrentStep(step.id);
-                      window.scrollTo({ top: 100, behavior: 'smooth' });
+                      window.scrollTo({ top: 80, behavior: 'smooth' });
                     }
                   }}
                   disabled={!isDone && !isCurrent}
-                  className={`text-left p-2.5 rounded-lg border transition-all ${
+                  className={`text-left p-1.5 sm:p-2 rounded border transition-all ${
                     isCurrent
-                      ? 'bg-brand-950 text-white border-brand-950 shadow-sm'
+                      ? 'bg-brand-950 text-white border-brand-950 font-bold'
                       : isDone
-                      ? 'bg-brand-50/70 border-brand-200 text-brand-900 hover:bg-brand-100/70'
+                      ? 'bg-brand-50 border-brand-200 text-brand-900 font-medium'
                       : 'bg-slate-50 border-slate-200 text-slate-400 opacity-60 cursor-not-allowed'
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] font-mono font-bold">
-                      0{step.id + 1}
-                    </span>
-                    {isDone && <CheckCircle2 className="w-3 h-3 text-emerald-600" />}
+                  <div className="text-[10px] font-mono leading-none mb-0.5">
+                    0{step.id + 1} {isDone ? '✓' : ''}
                   </div>
-                  <div className="text-xs font-bold truncate leading-tight">
+                  <div className="text-xs truncate leading-tight">
                     {step.title}
                   </div>
-                  <div className="text-[10px] opacity-75 truncate">{step.subtitle}</div>
                 </button>
               );
             })}
@@ -351,12 +315,8 @@ export default function ApplicationForm({ onSubmissionComplete }) {
 
       {/* Validation alert banner */}
       {validationError && (
-        <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-600 rounded-r-lg text-red-800 text-xs flex items-start gap-3 shadow-xs animate-in shake">
-          <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
-          <div className="space-y-0.5">
-            <span className="font-bold">Required Information Missing:</span>
-            <p>{validationError}</p>
-          </div>
+        <div className="mb-2.5 p-2.5 bg-red-50 border-l-4 border-red-600 rounded-r text-red-800 text-xs">
+          <strong>Missing required field:</strong> {validationError}
         </div>
       )}
 
@@ -400,26 +360,25 @@ export default function ApplicationForm({ onSubmissionComplete }) {
       </div>
 
       {/* Navigation Controls Bar */}
-      <div className="mt-8 bg-white p-4 sm:p-5 rounded-xl border border-slate-200/90 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="mt-2.5 bg-white p-3 rounded-lg border border-slate-200/90 shadow-sm flex items-center justify-between gap-2">
         <div>
           {currentStep > 0 && (
             <button
               type="button"
               onClick={handlePrevStep}
-              className="btn-secondary w-full sm:w-auto"
+              className="btn-secondary text-xs px-3 py-1.5"
             >
-              <ChevronLeft className="w-4 h-4" />
               Previous Section
             </button>
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-end">
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={handleSaveDraft}
             disabled={isSavingDraft}
-            className="btn-secondary text-xs py-2.5"
+            className="btn-secondary text-xs px-2.5 py-1.5"
           >
             {isSavingDraft ? 'Saving...' : 'Save Draft'}
           </button>
@@ -428,29 +387,18 @@ export default function ApplicationForm({ onSubmissionComplete }) {
             <button
               type="button"
               onClick={handleNextStep}
-              className="btn-primary w-full sm:w-auto"
+              className="btn-primary text-xs px-4 py-1.5"
             >
               Save & Continue
-              <ChevronRight className="w-4 h-4" />
             </button>
           ) : (
             <button
               type="button"
               onClick={handleFinalSubmitClick}
               disabled={isSubmitting}
-              className="btn-primary bg-emerald-700 hover:bg-emerald-800 w-full sm:w-auto px-6 py-2.5 text-sm font-bold shadow-md"
+              className="btn-primary bg-emerald-700 hover:bg-emerald-800 text-xs px-5 py-1.5 font-bold"
             >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Submitting Application...
-                </>
-              ) : (
-                <>
-                  <Send className="w-4 h-4" />
-                  Submit Application Final
-                </>
-              )}
+              {isSubmitting ? 'Submitting Application...' : 'Submit Application Final'}
             </button>
           )}
         </div>
@@ -459,21 +407,15 @@ export default function ApplicationForm({ onSubmissionComplete }) {
       {/* Final Submission Confirmation Dialog */}
       {showConfirmModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 space-y-4 animate-in zoom-in-95">
-            <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-700 mx-auto flex items-center justify-center">
-              <AlertCircle className="w-6 h-6" />
-            </div>
+          <div className="bg-white rounded-xl border border-slate-200 shadow-xl max-w-md w-full p-5 space-y-3">
+            <h3 className="text-base font-bold text-slate-900 text-center">
+              Confirm Final Ph.D. Application Submission
+            </h3>
+            <p className="text-xs text-slate-500 text-center leading-normal">
+              Once submitted, your application will receive a permanent Application Number and cannot be modified by the applicant as per University regulations.
+            </p>
 
-            <div className="text-center">
-              <h3 className="text-lg font-bold text-slate-900">
-                Confirm Ph.D. Application Submission
-              </h3>
-              <p className="text-xs text-slate-500 mt-1">
-                Once submitted, your application will be assigned a permanent Application Number and cannot be modified by the applicant as per University regulations.
-              </p>
-            </div>
-
-            <div className="bg-slate-50 p-3 rounded-lg text-xs space-y-1.5 border border-slate-200 text-slate-700">
+            <div className="bg-slate-50 p-2.5 rounded text-xs space-y-1 border border-slate-200 text-slate-700">
               <div className="flex justify-between">
                 <span className="text-slate-400">Candidate:</span>
                 <span className="font-semibold">{formData.personalDetails.fullName}</span>
@@ -483,23 +425,23 @@ export default function ApplicationForm({ onSubmissionComplete }) {
                 <span className="font-semibold">{formData.personalDetails.programme}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Admission Mode:</span>
+                <span className="text-slate-400">Category:</span>
                 <span className="font-semibold">{formData.personalDetails.admissionCategory}</span>
               </div>
             </div>
 
-            <div className="flex gap-2.5 pt-2">
+            <div className="flex gap-2 pt-1">
               <button
                 type="button"
                 onClick={() => setShowConfirmModal(false)}
-                className="btn-secondary flex-1 py-2.5 text-xs font-semibold"
+                className="btn-secondary flex-1 py-1.5 text-xs font-semibold"
               >
                 Go Back & Review
               </button>
               <button
                 type="button"
                 onClick={handleExecuteSubmission}
-                className="btn-primary bg-brand-900 hover:bg-brand-950 flex-1 py-2.5 text-xs font-semibold"
+                className="btn-primary bg-brand-900 hover:bg-brand-950 flex-1 py-1.5 text-xs font-semibold"
               >
                 Yes, Submit Now
               </button>

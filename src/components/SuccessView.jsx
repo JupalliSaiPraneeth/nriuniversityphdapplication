@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import confetti from 'canvas-confetti';
-import { CheckCircle2, Download, Printer, Copy, Check, Calendar, Mail, FileText, ArrowLeft } from 'lucide-react';
 import { generateApplicationPDF } from '../lib/pdfGenerator';
 
 export default function SuccessView({ submittedRecord, onStartNew }) {
@@ -8,7 +7,6 @@ export default function SuccessView({ submittedRecord, onStartNew }) {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    // Launch celebratory confetti
     try {
       confetti({
         particleCount: 80,
@@ -16,7 +14,7 @@ export default function SuccessView({ submittedRecord, onStartNew }) {
         origin: { y: 0.6 },
       });
     } catch (e) {
-      // Ignore if canvas-confetti is not loaded
+      // Ignore if confetti not loaded
     }
   }, []);
 
@@ -67,31 +65,30 @@ export default function SuccessView({ submittedRecord, onStartNew }) {
   const p = submittedRecord?.personal_details || {};
 
   return (
-    <div className="max-w-3xl mx-auto py-8 px-4">
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xl overflow-hidden">
+    <div className="max-w-3xl mx-auto py-3 px-4">
+      <div className="bg-white rounded-xl border border-slate-200/90 shadow-md overflow-hidden">
         {/* Top Header Banner */}
-        <div className="bg-gradient-to-r from-brand-950 via-brand-900 to-brand-800 text-white p-8 text-center relative">
-          <div className="w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-400 text-emerald-300 inline-flex items-center justify-center mb-4 shadow-lg">
-            <CheckCircle2 className="w-9 h-9" />
+        <div className="bg-brand-950 text-white p-4 text-center">
+          <div className="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-300 font-bold text-xs rounded-full border border-emerald-400 mb-1.5">
+            SUBMISSION RECORDED
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">Application Successfully Submitted</h1>
-          <p className="text-brand-200 text-xs sm:text-sm mt-1 max-w-md mx-auto">
+          <h1 className="text-xl font-bold tracking-tight">Application Successfully Submitted</h1>
+          <p className="text-brand-200 text-xs mt-0.5 max-w-md mx-auto">
             Your application for Ph.D. Admission at Dr RVR NRI Institute of Technology has been officially recorded.
           </p>
         </div>
 
         {/* Application details strip */}
-        <div className="p-6 sm:p-8 space-y-6">
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="p-4 space-y-3">
+          <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div>
-              <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
+              <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">
                 Official Application Number
               </span>
-              <span className="text-xl sm:text-2xl font-extrabold text-brand-950 font-mono tracking-tight mt-0.5 block">
+              <span className="text-xl font-extrabold text-brand-950 font-mono tracking-tight block">
                 {appNumber}
               </span>
-              <span className="text-xs text-slate-500 flex items-center gap-1.5 mt-1">
-                <Calendar className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-xs text-slate-500 mt-0.5 block">
                 Submitted on: {submittedDate}
               </span>
             </div>
@@ -99,84 +96,71 @@ export default function SuccessView({ submittedRecord, onStartNew }) {
             <button
               type="button"
               onClick={handleCopyAppNumber}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg border border-slate-300 shadow-xs transition"
+              className="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded border border-slate-300 shadow-sm transition"
             >
-              {copied ? (
-                <>
-                  <Check className="w-4 h-4 text-emerald-600" />
-                  <span>Copied to Clipboard</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-4 h-4 text-slate-500" />
-                  <span>Copy Application No.</span>
-                </>
-              )}
+              {copied ? 'Copied to Clipboard' : 'Copy Application No.'}
             </button>
           </div>
 
           {/* Candidate Summary */}
-          <div className="border border-slate-200 rounded-xl p-5 text-xs text-slate-700 space-y-2.5">
-            <h3 className="font-bold text-slate-900 uppercase text-[11px] tracking-wider mb-2 border-b border-slate-100 pb-2">
+          <div className="border border-slate-200 rounded-lg p-3 text-xs text-slate-700 space-y-2">
+            <h3 className="font-bold text-slate-900 uppercase text-[11px] tracking-wider border-b border-slate-100 pb-1">
               Submission Summary
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div>
-                <span className="text-slate-400 block">Candidate Name:</span>
+                <span className="text-slate-400 block text-[11px]">Candidate Name:</span>
                 <span className="font-semibold text-slate-900">{p.fullName || '—'}</span>
               </div>
               <div>
-                <span className="text-slate-400 block">Ph.D. Programme:</span>
+                <span className="text-slate-400 block text-[11px]">Ph.D. Programme:</span>
                 <span className="font-semibold text-slate-900">{p.programme || '—'}</span>
               </div>
               <div>
-                <span className="text-slate-400 block">Specialization:</span>
+                <span className="text-slate-400 block text-[11px]">Specialization:</span>
                 <span className="font-semibold text-slate-900">{p.specialization || '—'}</span>
               </div>
               <div>
-                <span className="text-slate-400 block">Admission Category:</span>
+                <span className="text-slate-400 block text-[11px]">Admission Category:</span>
                 <span className="font-semibold text-slate-900">{p.admissionCategory || '—'}</span>
               </div>
               <div>
-                <span className="text-slate-400 block">Registered Email:</span>
+                <span className="text-slate-400 block text-[11px]">Registered Email:</span>
                 <span className="font-semibold text-slate-900">{p.email || '—'}</span>
               </div>
               <div>
-                <span className="text-slate-400 block">Mobile:</span>
+                <span className="text-slate-400 block text-[11px]">Mobile:</span>
                 <span className="font-semibold text-slate-900">{p.mobileNumber || '—'}</span>
               </div>
             </div>
           </div>
 
           {/* Action Buttons: PDF and Print */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row gap-2 pt-1">
             <button
               type="button"
               onClick={handleDownloadPDF}
               disabled={isGeneratingPdf}
-              className="flex-1 btn-primary py-3 text-sm flex items-center justify-center gap-2"
+              className="flex-1 btn-primary py-2 text-xs flex items-center justify-center font-semibold"
             >
-              <Download className="w-4 h-4" />
               {isGeneratingPdf ? 'Generating PDF...' : 'Download Completed Application PDF'}
             </button>
 
             <button
               type="button"
               onClick={handlePrint}
-              className="btn-secondary py-3 text-sm flex items-center justify-center gap-2"
+              className="btn-secondary py-2 text-xs flex items-center justify-center font-semibold"
             >
-              <Printer className="w-4 h-4" />
               Print Preview
             </button>
           </div>
 
           {/* Instructions & Next steps */}
-          <div className="bg-blue-50/60 border border-blue-200/80 rounded-xl p-4 text-xs text-blue-900 space-y-2">
-            <p className="font-bold flex items-center gap-1.5 text-blue-950">
-              <Mail className="w-4 h-4 text-brand-700" />
+          <div className="bg-blue-50/60 border border-blue-200/80 rounded-lg p-3 text-xs text-blue-900 space-y-1">
+            <p className="font-bold text-blue-950">
               What Happens Next:
             </p>
-            <ul className="list-disc list-inside space-y-1 text-slate-700 pl-1">
+            <ul className="list-disc list-inside space-y-0.5 text-slate-700 text-[11px]">
               <li>Keep your Application Number safe for all future correspondence.</li>
               <li>Your application will be reviewed by the Department Research Committee (DRC).</li>
               <li>Shortlisted candidates will be invited for research interview / presentation.</li>
@@ -184,14 +168,13 @@ export default function SuccessView({ submittedRecord, onStartNew }) {
             </ul>
           </div>
 
-          <div className="text-center pt-2">
+          <div className="text-center pt-1">
             <button
               type="button"
               onClick={onStartNew}
-              className="text-xs font-semibold text-slate-500 hover:text-brand-700 inline-flex items-center gap-1 transition"
+              className="text-xs font-semibold text-slate-500 hover:text-brand-700 transition"
             >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              Submit another application
+              ← Submit another application
             </button>
           </div>
         </div>

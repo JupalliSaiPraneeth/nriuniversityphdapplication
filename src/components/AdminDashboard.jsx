@@ -27,11 +27,23 @@ export default function AdminDashboard({ onBackToForm }) {
   const [reviewerNotes, setReviewerNotes] = useState('');
   const [newStatus, setNewStatus] = useState('');
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
-  const [activeDetailTab, setActiveDetailTab] = useState('personal');
+  const [activeDetailTab, setActiveDetailTab] = useState('pdf');
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState(null);
+  const [isGeneratingPreviewPdf, setIsGeneratingPreviewPdf] = useState(false);
+  const [pdfPreviewError, setPdfPreviewError] = useState(null);
 
   // Deletion state
   const [appToDelete, setAppToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Clean up object URL when component unmounts
+  useEffect(() => {
+    return () => {
+      if (pdfPreviewUrl) {
+        URL.revokeObjectURL(pdfPreviewUrl);
+      }
+    };
+  }, [pdfPreviewUrl]);
 
   // Check persisted admin session
   useEffect(() => {
@@ -150,12 +162,45 @@ export default function AdminDashboard({ onBackToForm }) {
     };
   }, [applications]);
 
-  // Open detail modal
+  // Generate PDF Preview blob URL for selected application
+  const generatePreviewPdfBlob = async (app) => {
+    if (!app) return;
+    setIsGeneratingPreviewPdf(true);
+    setPdfPreviewError(null);
+    if (pdfPreviewUrl) {
+      URL.revokeObjectURL(pdfPreviewUrl);
+      setPdfPreviewUrl(null);
+    }
+    try {
+      const photoDataUrl = app.personal_details?.photoDataUrl || null;
+      const doc = await generateApplicationPDF(app, photoDataUrl);
+      const blob = doc.output('blob');
+      const blobUrl = URL.createObjectURL(blob);
+      setPdfPreviewUrl(blobUrl);
+    } catch (err) {
+      console.error('Error generating PDF preview:', err);
+      setPdfPreviewError('Could not generate PDF preview. Please check applicant details or download directly.');
+    } finally {
+      setIsGeneratingPreviewPdf(false);
+    }
+  };
+
+  // Open detail / PDF preview modal
   const handleOpenDetail = (app) => {
     setSelectedApp(app);
     setNewStatus(app.status || 'submitted');
     setReviewerNotes(app.reviewer_notes || '');
-    setActiveDetailTab('personal');
+    setActiveDetailTab('pdf');
+    generatePreviewPdfBlob(app);
+  };
+
+  // Close modal and revoke PDF blob
+  const handleCloseDetail = () => {
+    if (pdfPreviewUrl) {
+      URL.revokeObjectURL(pdfPreviewUrl);
+      setPdfPreviewUrl(null);
+    }
+    setSelectedApp(null);
   };
 
   // Update status handler
@@ -173,6 +218,8 @@ export default function AdminDashboard({ onBackToForm }) {
       setApplications((prev) =>
         prev.map((item) => (item.id === updated.id ? { ...item, ...updated } : item))
       );
+      // Re-generate preview to reflect status update
+      generatePreviewPdfBlob(updated);
       alert('Application status & reviewer remarks saved successfully.');
     } catch (err) {
       console.error('Error updating status:', err);
@@ -197,7 +244,7 @@ export default function AdminDashboard({ onBackToForm }) {
         selectedApp?.id === appToDelete.id ||
         selectedApp?.application_number === appToDelete.application_number
       ) {
-        setSelectedApp(null);
+        handleCloseDetail();
       }
       setAppToDelete(null);
     } catch (err) {
@@ -479,7 +526,7 @@ export default function AdminDashboard({ onBackToForm }) {
           <div>
             <input
               type="text"
-              placeholder="Search App No, Name, Email, Phone..."
+              placeholder="Search Name, Email, Phone, Subject..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded focus:ring-1 focus:ring-brand-500 focus:outline-none"
@@ -555,13 +602,110 @@ export default function AdminDashboard({ onBackToForm }) {
         </div>
       </div>
 
-      {/* APPLICATIONS TABLE */}
-      <div className="bg-white rounded-lg border border-slate-200/80 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px] border-collapse text-left text-xs">
+      {/* APPLICATIONS SECTION */}
+      <div className="bg-white rounded-xl sm:rounded-lg border border-slate-200/80 shadow-sm overflow-hidden">
+        {/* Mobile / Tablet Cards View (< lg) */}
+        <div className="lg:hidden p-3 space-y-3">
+          {loading ? (
+            <div className="py-8 text-center text-slate-400 text-xs">
+              Loading application records...
+            </div>
+          ) : paginatedApps.length === 0 ? (
+            <div className="py-8 text-center text-slate-400 text-xs">
+              No applications match the selected criteria.
+            </div>
+          ) : (
+            paginatedApps.map((app) => {
+              const p = app.personal_details || {};
+              return (
+                <div key={app.id} className="bg-slate-50/80 border border-slate-200 rounded-xl p-3 text-xs space-y-2">
+                  <div className="flex items-start justify-between gap-2 border-b border-slate-200 pb-2">
+                    <div>
+                      <span className="text-slate-900 font-bold text-sm block">
+                        {p.fullName || app.applicant_name || '—'}
+                      </span>
+                      <span className="text-[10px] text-slate-500 block mt-0.5">
+                        {p.email || app.applicant_email} | {p.mobileNumber || app.applicant_phone}
+                      </span>
+                    </div>
+                    <div>{renderStatusBadge(app.status)}</div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-1.5 text-[11px] text-slate-600">
+                    <div>
+                      <span className="text-slate-400 block text-[10px]">Programme:</span>
+                      <span className="font-medium text-slate-800">{p.programme || app.programme || '—'}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[10px]">Category:</span>
+                      <span className="font-medium text-slate-800">{p.admissionCategory || app.admission_category || '—'}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[10px]">Specialization:</span>
+                      <span className="font-medium text-slate-800">{p.specialization || app.specialization || '—'}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[10px]">Date:</span>
+                      <span className="font-medium text-slate-800">
+                        {app.status === 'draft' ? (
+                          'Draft (In-Progress)'
+                        ) : app.submitted_at ? (
+                          new Date(app.submitted_at).toLocaleDateString('en-IN', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                          })
+                        ) : (
+                          '—'
+                        )}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 pt-2 border-t border-slate-200">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenDetail(app)}
+                      className="flex-1 py-1.5 bg-brand-800 hover:bg-brand-900 text-white rounded font-semibold text-xs text-center transition"
+                    >
+                      View PDF Preview
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadAppPdf(app)}
+                      className="px-2.5 py-1.5 bg-white border border-slate-200 text-slate-700 hover:text-brand-900 rounded text-xs font-semibold transition"
+                      title="PDF"
+                    >
+                      PDF
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => exportSingleApplicationCsv(app)}
+                      className="px-2.5 py-1.5 bg-white border border-slate-200 text-slate-700 hover:text-emerald-700 rounded text-xs font-semibold transition"
+                      title="CSV"
+                    >
+                      CSV
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAppToDelete(app)}
+                      className="px-2.5 py-1.5 bg-red-50 border border-red-200 text-red-600 hover:text-red-800 rounded text-xs font-semibold transition"
+                      title="Delete"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop Table View (>= lg) */}
+        <div className="hidden lg:block overflow-x-auto">
+          <table className="w-full min-w-[850px] border-collapse text-left text-xs">
             <thead>
               <tr className="bg-slate-100 border-b border-slate-200 text-slate-700 font-semibold uppercase tracking-wider text-[11px]">
-                <th className="py-2 px-3">Application No.</th>
                 <th className="py-2 px-3">Applicant Name</th>
                 <th className="py-2 px-3">Programme & Specialization</th>
                 <th className="py-2 px-3">Category</th>
@@ -573,13 +717,13 @@ export default function AdminDashboard({ onBackToForm }) {
             <tbody className="divide-y divide-slate-200">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-slate-400">
+                  <td colSpan={6} className="py-8 text-center text-slate-400">
                     Loading application records...
                   </td>
                 </tr>
               ) : paginatedApps.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-slate-400">
+                  <td colSpan={6} className="py-8 text-center text-slate-400">
                     No applications match the selected criteria.
                   </td>
                 </tr>
@@ -588,9 +732,6 @@ export default function AdminDashboard({ onBackToForm }) {
                   const p = app.personal_details || {};
                   return (
                     <tr key={app.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-2 px-3 font-mono font-bold text-brand-900">
-                        {app.application_number}
-                      </td>
                       <td className="py-2 px-3">
                         <div className="font-semibold text-slate-900">
                           {p.fullName || app.applicant_name || '—'}
@@ -633,7 +774,7 @@ export default function AdminDashboard({ onBackToForm }) {
                           type="button"
                           onClick={() => handleOpenDetail(app)}
                           className="px-2 py-0.5 bg-brand-50 hover:bg-brand-100 text-brand-800 rounded font-semibold text-xs transition"
-                          title="View Full Application Details"
+                          title="View PDF Preview"
                         >
                           View
                         </button>
@@ -671,8 +812,8 @@ export default function AdminDashboard({ onBackToForm }) {
         </div>
 
         {/* Pagination Controls */}
-        <div className="p-2 border-t border-slate-200 flex items-center justify-between text-xs text-slate-600">
-          <div>
+        <div className="p-2.5 sm:p-2 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-600">
+          <div className="text-center sm:text-left">
             Showing {(currentPage - 1) * pageSize + 1} to{' '}
             {Math.min(currentPage * pageSize, filteredApps.length)} of {filteredApps.length} entries
           </div>
@@ -681,18 +822,18 @@ export default function AdminDashboard({ onBackToForm }) {
               type="button"
               disabled={currentPage <= 1}
               onClick={() => setCurrentPage((p) => p - 1)}
-              className="px-2 py-0.5 rounded border border-slate-200 disabled:opacity-30 disabled:pointer-events-none hover:bg-slate-50 text-xs"
+              className="px-2.5 py-1 rounded border border-slate-200 disabled:opacity-30 disabled:pointer-events-none hover:bg-slate-50 text-xs"
             >
               ← Prev
             </button>
-            <span className="font-semibold text-xs">
+            <span className="font-semibold text-xs px-1">
               Page {currentPage} of {totalPages}
             </span>
             <button
               type="button"
               disabled={currentPage >= totalPages}
               onClick={() => setCurrentPage((p) => p + 1)}
-              className="px-2 py-0.5 rounded border border-slate-200 disabled:opacity-30 disabled:pointer-events-none hover:bg-slate-50 text-xs"
+              className="px-2.5 py-1 rounded border border-slate-200 disabled:opacity-30 disabled:pointer-events-none hover:bg-slate-50 text-xs"
             >
               Next →
             </button>
@@ -702,29 +843,40 @@ export default function AdminDashboard({ onBackToForm }) {
 
       {/* APPLICATION DETAIL MODAL */}
       {selectedApp && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 overflow-y-auto">
-          <div className="bg-white rounded-xl border border-slate-200 shadow-xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden my-auto">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto">
+          <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 shadow-xl max-w-5xl w-full h-[92vh] flex flex-col overflow-hidden my-auto">
             {/* Modal Header */}
-            <div className="bg-brand-950 text-white p-3 flex items-center justify-between border-b border-brand-900">
+            <div className="bg-brand-950 text-white p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-brand-900 shrink-0">
               <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-base font-bold">
-                    Application Scrutiny: {selectedApp.application_number}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-sm sm:text-base font-bold">
+                    Application Preview: {selectedApp.personal_details?.fullName || selectedApp.applicant_name || 'Applicant'}
                   </h2>
                   {renderStatusBadge(selectedApp.status)}
                 </div>
-                <p className="text-[11px] text-brand-200">
-                  Applicant: {selectedApp.applicant_name || selectedApp.personal_details?.fullName} | {selectedApp.applicant_email}
+                <p className="text-[11px] text-brand-200 mt-0.5 truncate max-w-md">
+                  Applicant: {selectedApp.applicant_name || selectedApp.personal_details?.fullName} | {selectedApp.applicant_email || selectedApp.personal_details?.email}
                 </p>
               </div>
 
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 self-end sm:self-auto shrink-0">
+                {pdfPreviewUrl && (
+                  <button
+                    type="button"
+                    onClick={() => window.open(pdfPreviewUrl, '_blank')}
+                    className="px-2.5 py-1 bg-brand-800 hover:bg-brand-700 text-white text-xs font-semibold rounded transition"
+                    title="Open PDF in Full Window / Print"
+                  >
+                    Full Window ↗
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => handleDownloadAppPdf(selectedApp)}
                   className="px-2.5 py-1 bg-brand-800 hover:bg-brand-700 text-white text-xs font-semibold rounded transition"
+                  title="Download Application PDF"
                 >
-                  PDF
+                  Download PDF
                 </button>
                 <button
                   type="button"
@@ -743,7 +895,7 @@ export default function AdminDashboard({ onBackToForm }) {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setSelectedApp(null)}
+                  onClick={handleCloseDetail}
                   className="px-2 py-1 text-slate-300 hover:text-white rounded hover:bg-brand-900 text-xs font-bold transition ml-1"
                 >
                   ✕
@@ -752,17 +904,23 @@ export default function AdminDashboard({ onBackToForm }) {
             </div>
 
             {/* Modal Navigation Tabs */}
-            <div className="flex border-b border-slate-200 bg-slate-50 px-3 text-xs font-semibold overflow-x-auto">
+            <div className="flex border-b border-slate-200 bg-slate-50 px-2 sm:px-3 text-xs font-semibold overflow-x-auto no-scrollbar whitespace-nowrap shrink-0">
               {[
+                { id: 'pdf', label: '📄 PDF Application Preview' },
+                { id: 'documents', label: '📁 Attached Documents' },
                 { id: 'personal', label: '1 & 2. Personal/Address' },
                 { id: 'academics', label: '3 & 4. Academics/Exams' },
                 { id: 'experience', label: '5 & 6. Experience/Exposure' },
                 { id: 'research', label: '7-9. Research Outputs' },
-                { id: 'documents', label: '12. Enclosures & Review' },
               ].map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveDetailTab(tab.id)}
+                  onClick={() => {
+                    setActiveDetailTab(tab.id);
+                    if (tab.id === 'pdf' && !pdfPreviewUrl && !isGeneratingPreviewPdf) {
+                      generatePreviewPdfBlob(selectedApp);
+                    }
+                  }}
                   className={`py-2 px-3 border-b-2 transition whitespace-nowrap text-xs ${
                     activeDetailTab === tab.id
                       ? 'border-brand-700 text-brand-900 bg-white font-bold'
@@ -775,15 +933,83 @@ export default function AdminDashboard({ onBackToForm }) {
             </div>
 
             {/* Modal Content Body */}
-            <div className="p-3 overflow-y-auto space-y-3 text-xs flex-1">
-              {selectedApp.status === 'draft' && (
-                <div className="p-2 bg-indigo-50 border border-indigo-200 rounded text-indigo-900">
-                  <span className="font-bold">In-Progress Auto-Saved Draft: </span>
-                  <span className="text-[11px] text-indigo-800">
-                    This candidate is currently filling out the application. The details below reflect their auto-saved form data till now. Final submission declaration has not yet been executed.
-                  </span>
-                </div>
-              )}
+            {activeDetailTab === 'pdf' ? (
+              <div className="flex-1 flex flex-col w-full h-full bg-slate-100 min-h-0 overflow-hidden">
+                {selectedApp.status === 'draft' && (
+                  <div className="p-2 px-3 bg-amber-50 border-b border-amber-200 text-amber-900 text-[11px] flex items-center justify-between shrink-0">
+                    <div>
+                      <span className="font-bold">In-Progress Auto-Saved Draft: </span>
+                      <span>This PDF preview reflects current auto-saved applicant details.</span>
+                    </div>
+                    <span className="text-amber-800 font-semibold text-[10px] bg-amber-100 px-2 py-0.5 rounded border border-amber-300">
+                      Draft Preview
+                    </span>
+                  </div>
+                )}
+
+                {isGeneratingPreviewPdf ? (
+                  <div className="flex-1 flex flex-col items-center justify-center p-8 text-slate-500">
+                    <div className="w-10 h-10 border-4 border-brand-800 border-t-transparent rounded-full animate-spin mb-3"></div>
+                    <p className="font-bold text-sm text-slate-700">Generating PDF preview...</p>
+                    <p className="text-xs text-slate-400 mt-1">
+                      Formatting official admission application from candidate details
+                    </p>
+                  </div>
+                ) : pdfPreviewError ? (
+                  <div className="flex-1 flex flex-col items-center justify-center p-8 text-slate-600 space-y-3">
+                    <div className="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-bold">!</div>
+                    <p className="font-semibold text-red-600 text-xs">{pdfPreviewError}</p>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => generatePreviewPdfBlob(selectedApp)}
+                        className="px-3 py-1.5 bg-brand-800 text-white rounded text-xs font-semibold hover:bg-brand-900 transition"
+                      >
+                        Retry Generating Preview
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadAppPdf(selectedApp)}
+                        className="px-3 py-1.5 bg-white border border-slate-300 text-slate-700 rounded text-xs font-semibold hover:bg-slate-50 transition"
+                      >
+                        Download Directly
+                      </button>
+                    </div>
+                  </div>
+                ) : pdfPreviewUrl ? (
+                  <div className="flex-1 w-full h-full flex flex-col min-h-0">
+                    <div className="bg-slate-200/80 px-3 py-1.5 border-b border-slate-300 flex items-center justify-between text-[11px] text-slate-700 shrink-0">
+                      <span className="font-medium">
+                        Application PDF Preview: <span className="font-semibold text-brand-950">{selectedApp.personal_details?.fullName || selectedApp.applicant_name}</span>
+                      </span>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => window.open(pdfPreviewUrl, '_blank')}
+                          className="text-brand-900 hover:text-brand-700 font-bold hover:underline flex items-center gap-1"
+                        >
+                          Open in Full Window ↗
+                        </button>
+                      </div>
+                    </div>
+                    <iframe
+                      src={`${pdfPreviewUrl}#toolbar=1&navpanes=0`}
+                      className="w-full flex-1 border-0 bg-white"
+                      title={`Ph.D. Application PDF - ${selectedApp.personal_details?.fullName || selectedApp.applicant_name || 'Preview'}`}
+                    />
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <div className="p-3 overflow-y-auto space-y-3 text-xs flex-1">
+                {selectedApp.status === 'draft' && (
+                  <div className="p-2 bg-indigo-50 border border-indigo-200 rounded text-indigo-900">
+                    <span className="font-bold">In-Progress Auto-Saved Draft: </span>
+                    <span className="text-[11px] text-indigo-800">
+                      This candidate is currently filling out the application. The details below reflect their auto-saved form data till now. Final submission declaration has not yet been executed.
+                    </span>
+                  </div>
+                )}
               {activeDetailTab === 'personal' && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                   <div className="p-2 bg-slate-50 rounded">
@@ -990,6 +1216,7 @@ export default function AdminDashboard({ onBackToForm }) {
                 </div>
               )}
             </div>
+            )}
 
             {/* Modal Reviewer Status Action Footer */}
             <div className="bg-slate-100 p-2.5 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2">
@@ -1050,15 +1277,15 @@ export default function AdminDashboard({ onBackToForm }) {
 
             <div className="bg-red-50/60 border border-red-200/80 rounded p-2.5 text-xs text-slate-800 space-y-1">
               <div className="flex justify-between">
-                <span className="text-slate-500">Application No:</span>
-                <span className="font-mono font-bold text-brand-950">
-                  {appToDelete.application_number}
-                </span>
-              </div>
-              <div className="flex justify-between">
                 <span className="text-slate-500">Applicant:</span>
                 <span className="font-semibold text-slate-900">
                   {appToDelete.personal_details?.fullName || appToDelete.applicant_name || '—'}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Programme:</span>
+                <span className="font-semibold text-slate-800">
+                  {appToDelete.personal_details?.programme || appToDelete.programme || '—'}
                 </span>
               </div>
               <div className="flex justify-between">

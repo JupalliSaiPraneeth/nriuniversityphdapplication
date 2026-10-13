@@ -13,7 +13,7 @@ describe('Database and Security Service', () => {
     const currentYear = new Date().getFullYear();
     const appNum = generateApplicationNumber();
 
-    expect(appNum).toMatch(new RegExp(`^NRIIT-PHD-${currentYear}-\\d{4}$`));
+    expect(appNum).toMatch(new RegExp(`^NRIIT-PHD-${currentYear}-\\d{4,5}$`));
 
     // Verify randomness/uniqueness across multiple generations
     const set = new Set();

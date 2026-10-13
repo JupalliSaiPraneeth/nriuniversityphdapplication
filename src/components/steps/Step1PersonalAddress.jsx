@@ -91,36 +91,26 @@ export default function Step1PersonalAddress({ formData, setFormData, fileObject
     <div className="space-y-2">
       {/* SECTION 1 */}
       <div className="card-section">
-        <div className="border-b border-slate-200 pb-1.5 mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-          <div>
-            <h2 className="text-base font-bold text-brand-950 flex items-center gap-1.5">
-              <span className="w-6 h-6 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-xs font-bold">
-                1
-              </span>
-              1. APPLICATION & PERSONAL DETAILS
-            </h2>
-            <p className="text-[11px] text-slate-500">
-              Enter candidate details and research subject as per official records
-            </p>
-          </div>
-          <div className="text-right">
-            <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">
-              Application Identifier
+        <div className="border-b border-slate-200 pb-2 mb-3">
+          <h2 className="text-sm sm:text-base font-bold text-brand-950 flex items-center gap-1.5">
+            <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-[11px] sm:text-xs font-bold shrink-0">
+              1
             </span>
-            <span className="inline-block px-2 py-0.5 bg-slate-100 text-slate-700 text-xs font-mono font-semibold rounded border border-slate-200">
-              {formData.applicationNumber || 'Generated upon submission'}
-            </span>
-          </div>
+            <span>1. APPLICATION & PERSONAL DETAILS</span>
+          </h2>
+          <p className="text-[11px] text-slate-500 mt-0.5">
+            Enter candidate details and research subject as per official records
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {/* Photograph Upload Area */}
-          <div className="md:col-span-1 flex flex-col items-center p-2.5 bg-slate-50 rounded-lg border border-dashed border-slate-300">
-            <span className="form-label form-label-required mb-1.5 text-center text-xs">
+          <div className="md:col-span-1 flex flex-col items-center p-3 bg-slate-50/80 rounded-xl sm:rounded-lg border border-dashed border-slate-300">
+            <span className="form-label form-label-required mb-2 text-center text-xs">
               Recent Passport Size Photo
             </span>
 
-            <div className="w-32 h-40 bg-white border-2 border-slate-200 rounded-lg overflow-hidden flex flex-col items-center justify-center relative shadow-inner">
+            <div className="w-28 h-36 sm:w-32 sm:h-40 bg-white border-2 border-slate-200 rounded-lg overflow-hidden flex flex-col items-center justify-center relative shadow-inner">
               {p.photoDataUrl ? (
                 <>
                   <img

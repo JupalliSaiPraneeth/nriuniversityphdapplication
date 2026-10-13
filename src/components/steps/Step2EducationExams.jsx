@@ -90,7 +90,98 @@ export default function Step2EducationExams({ formData, setFormData }) {
           </button>
         </div>
 
-        <div className="overflow-x-auto -mx-4 px-4">
+        {/* Mobile Cards View (< md) */}
+        <div className="md:hidden space-y-3">
+          {education.map((item, idx) => (
+            <div key={idx} className="bg-slate-50/70 border border-slate-200 rounded-lg p-3 relative">
+              <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-200">
+                <span className="text-xs font-bold text-brand-950 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-[10px] font-bold">
+                    {idx + 1}
+                  </span>
+                  Academic Record #{idx + 1}
+                </span>
+                {education.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeEduRow(idx)}
+                    className="text-xs font-semibold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2 py-0.5 rounded border border-red-200"
+                  >
+                    Delete Row
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div>
+                  <label className="form-label form-label-required text-[11px]">Qualification</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 10th / B.Tech / M.Tech"
+                    value={item.qualification}
+                    onChange={(e) => handleEduChange(idx, 'qualification', e.target.value)}
+                    className="form-input text-xs py-1.5"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="form-label form-label-required text-[11px]">Specialization</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Science / CSE / ECE"
+                    value={item.specialization}
+                    onChange={(e) => handleEduChange(idx, 'specialization', e.target.value)}
+                    className="form-input text-xs py-1.5"
+                    required
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="form-label form-label-required text-[11px]">University / Institution</label>
+                  <input
+                    type="text"
+                    placeholder="Board / College / University Name"
+                    value={item.institution}
+                    onChange={(e) => handleEduChange(idx, 'institution', e.target.value)}
+                    className="form-input text-xs py-1.5"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 sm:col-span-2">
+                  <div>
+                    <label className="form-label form-label-required text-[11px]">Passing Year</label>
+                    <input
+                      type="text"
+                      maxLength={4}
+                      placeholder="YYYY"
+                      value={item.year}
+                      onChange={(e) => handleEduChange(idx, 'year', e.target.value)}
+                      className="form-input text-xs py-1.5 text-center font-mono"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="form-label form-label-required text-[11px]">% / CGPA</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 82.5% / 8.5"
+                      value={item.percentage}
+                      onChange={(e) => handleEduChange(idx, 'percentage', e.target.value)}
+                      className="form-input text-xs py-1.5 text-center font-medium"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop Table View (>= md) */}
+        <div className="hidden md:block overflow-x-auto -mx-4 px-4">
           <table className="w-full min-w-[700px] border-collapse text-left text-xs">
             <thead>
               <tr className="bg-slate-100 border-y border-slate-200 text-slate-700 font-semibold uppercase tracking-wider text-[11px]">
@@ -178,13 +269,13 @@ export default function Step2EducationExams({ formData, setFormData }) {
 
       {/* SECTION 4 */}
       <div className="card-section">
-        <div className="border-b border-slate-200 pb-1.5 mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+        <div className="border-b border-slate-200 pb-2 mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
           <div>
-            <h2 className="text-base font-bold text-brand-950 flex items-center gap-1.5">
-              <span className="w-6 h-6 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-xs font-bold">
+            <h2 className="text-sm sm:text-base font-bold text-brand-950 flex items-center gap-1.5">
+              <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-[11px] sm:text-xs font-bold shrink-0">
                 4
               </span>
-              4. QUALIFYING / ELIGIBILITY EXAMINATIONS
+              <span>4. QUALIFYING / ELIGIBILITY EXAMINATIONS</span>
             </h2>
             <p className="text-[11px] text-slate-500">
               Examples: UGC-NET, UGC-JRF, CSIR-NET/JRF, GATE, SLET/SET, JEST, GPAT, etc.
@@ -193,17 +284,113 @@ export default function Step2EducationExams({ formData, setFormData }) {
           <button
             type="button"
             onClick={addExamRow}
-            className="inline-flex items-center px-2.5 py-1 bg-brand-50 hover:bg-brand-100 text-brand-800 text-xs font-semibold rounded border border-brand-200 transition"
+            className="self-start sm:self-auto inline-flex items-center px-2.5 py-1 bg-brand-50 hover:bg-brand-100 text-brand-800 text-xs font-semibold rounded border border-brand-200 transition"
           >
             + Add Row
           </button>
         </div>
 
-        <div className="p-2 bg-blue-50/70 border border-blue-200/60 rounded mb-2 text-[11px] text-blue-900 leading-tight">
+        <div className="p-2.5 bg-blue-50/70 border border-blue-200/60 rounded-lg mb-2.5 text-[11px] text-blue-900 leading-tight">
           If you have appeared or qualified in national or state examinations (such as GATE, UGC-NET, SLET, SET, GPAT), please mention the details below. Leave blank if not applicable.
         </div>
 
-        <div className="overflow-x-auto -mx-4 px-4">
+        {/* Mobile Cards View (< md) */}
+        <div className="md:hidden space-y-3">
+          {exams.map((item, idx) => (
+            <div key={idx} className="bg-slate-50/70 border border-slate-200 rounded-lg p-3 relative">
+              <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-200">
+                <span className="text-xs font-bold text-brand-950 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-[10px] font-bold">
+                    {idx + 1}
+                  </span>
+                  Examination #{idx + 1}
+                </span>
+                {exams.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeExamRow(idx)}
+                    className="text-xs font-semibold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2 py-0.5 rounded border border-red-200"
+                  >
+                    Delete Row
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div>
+                  <label className="form-label text-[11px]">Examination</label>
+                  <input
+                    type="text"
+                    list={`exam-suggestions-mob-${idx}`}
+                    placeholder="e.g. GATE / UGC-NET"
+                    value={item.examination}
+                    onChange={(e) => handleExamChange(idx, 'examination', e.target.value)}
+                    className="form-input text-xs py-1.5"
+                  />
+                  <datalist id={`exam-suggestions-mob-${idx}`}>
+                    {EXAMINATION_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt} />
+                    ))}
+                  </datalist>
+                </div>
+
+                <div>
+                  <label className="form-label text-[11px]">Subject / Paper Code</label>
+                  <input
+                    type="text"
+                    placeholder="Subject Name"
+                    value={item.subject}
+                    onChange={(e) => handleExamChange(idx, 'subject', e.target.value)}
+                    className="form-input text-xs py-1.5"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 sm:col-span-2">
+                  <div>
+                    <label className="form-label text-[11px]">Year</label>
+                    <input
+                      type="text"
+                      maxLength={4}
+                      placeholder="YYYY"
+                      value={item.year}
+                      onChange={(e) => handleExamChange(idx, 'year', e.target.value)}
+                      className="form-input text-xs py-1.5 text-center font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="form-label text-[11px]">Score / Percentile</label>
+                    <input
+                      type="text"
+                      placeholder="Marks / Rank"
+                      value={item.score}
+                      onChange={(e) => handleExamChange(idx, 'score', e.target.value)}
+                      className="form-input text-xs py-1.5 text-center"
+                    />
+                  </div>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="form-label text-[11px]">Qualification Status</label>
+                  <select
+                    value={item.qualification}
+                    onChange={(e) => handleExamChange(idx, 'qualification', e.target.value)}
+                    className="form-select text-xs py-1.5"
+                  >
+                    <option value="">-- Status --</option>
+                    <option value="Qualified">Qualified</option>
+                    <option value="Valid Score Card">Valid Score Card</option>
+                    <option value="JRF Awarded">JRF Awarded</option>
+                    <option value="Appeared / Awaited">Appeared / Awaited</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop Table View (>= md) */}
+        <div className="hidden md:block overflow-x-auto -mx-4 px-4">
           <table className="w-full min-w-[700px] border-collapse text-left text-xs">
             <thead>
               <tr className="bg-slate-100 border-y border-slate-200 text-slate-700 font-semibold uppercase tracking-wider text-[11px]">

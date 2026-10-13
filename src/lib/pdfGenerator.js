@@ -1,15 +1,50 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-// Institutional Details
-const INSTITUTION_HEADER = {
+// Institutional Information
+const INSTITUTION = {
   name: 'Dr RVR NRI INSTITUTE OF TECHNOLOGY',
-  status: '(Deemed to be University)',
-  location: 'Pothavarappadu, Agiripalli, Vijayawada Rural, Andhra Pradesh – 521212',
-  email: 'deanrnd@nriit.edu.in',
-  formTitle: 'BIODATA OF THE CANDIDATE FOR Ph.D. ADMISSION',
+  status: 'Deemed to be University | Pothavarappadu (V), Agiripalli (M)',
+  location: 'Vijayawada Rural, Andhra Pradesh - 521212 | E: deanrnd@nriit.edu.in',
+  titleLine1: 'BIODATA OF THE CANDIDATE',
+  titleLine2: 'FOR Ph.D. ADMISSION',
 };
 
+// Cached Logo Data URL
+let cachedLogoBase64 = null;
+
+async function getNriLogoBase64() {
+  if (cachedLogoBase64) return cachedLogoBase64;
+  if (typeof window === 'undefined') return null;
+
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        cachedLogoBase64 = canvas.toDataURL('image/png');
+        resolve(cachedLogoBase64);
+      } catch (e) {
+        console.warn('[PDF] Canvas toDataURL for logo failed:', e);
+        resolve(null);
+      }
+    };
+    img.onerror = () => {
+      console.warn('[PDF] Failed to load logo from /nrilogo.png');
+      resolve(null);
+    };
+    img.src = '/nrilogo.png';
+  });
+}
+
+/**
+ * Generate official Ph.D. Admission PDF matching official light-mode layout
+ */
 export async function generateApplicationPDF(application, photoDataUrl = null) {
   const doc = new jsPDF({
     orientation: 'portrait',
@@ -17,10 +52,12 @@ export async function generateApplicationPDF(application, photoDataUrl = null) {
     format: 'a4',
   });
 
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
+  const pageWidth = doc.internal.pageSize.getWidth(); // 210
+  const pageHeight = doc.internal.pageSize.getHeight(); // 297
   const margin = 14;
-  let currentY = 14;
+  const contentWidth = pageWidth - margin * 2; // 182
+
+  const logoBase64 = await getNriLogoBase64();
 
   const appNumber = application.application_number || 'N/A';
   const submittedAt = application.submitted_at
@@ -43,201 +80,292 @@ export async function generateApplicationPDF(application, photoDataUrl = null) {
   const conferences = application.conferences_workshops || [];
   const references = application.references_data || [];
   const declaration = application.declaration || {};
+  const docMeta = application.document_metadata || {};
 
-  // Header Function
-  const renderHeader = () => {
-    doc.setFillColor(7, 40, 73); // NRI Navy #072849
-    doc.rect(0, 0, pageWidth, 5, 'F');
+  // Photo URL fallback if stored in personal or document metadata
+  const effectivePhoto =
+    photoDataUrl ||
+    personal.photoDataUrl ||
+    (docMeta.photo && docMeta.photo.storagePath ? docMeta.photo.storagePath : null);
 
-    doc.setTextColor(7, 40, 73);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
-    doc.text(INSTITUTION_HEADER.name, pageWidth / 2, currentY, { align: 'center' });
-    currentY += 5;
+  // Common Palette
+  const THEME = {
+    navyText: [7, 40, 73],
+    darkText: [15, 23, 42],
+    bodyText: [51, 65, 85],
+    subText: [71, 85, 105],
+    headerFill: [224, 242, 254], // Light Blue #e0f2fe
+    borderColor: [203, 213, 225], // Light Slate #cbd5e1
+  };
 
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9.5);
-    doc.setTextColor(80, 80, 80);
-    doc.text(INSTITUTION_HEADER.status, pageWidth / 2, currentY, { align: 'center' });
-    currentY += 4;
+  // Track drawn page headers to prevent duplicate header draws
+  const drawnPageHeaders = new Set();
 
-    doc.setFontSize(8.5);
-    doc.text(INSTITUTION_HEADER.location, pageWidth / 2, currentY, { align: 'center' });
-    currentY += 4;
-    doc.text(`Email: ${INSTITUTION_HEADER.email}`, pageWidth / 2, currentY, { align: 'center' });
-    currentY += 6;
+  // Render Top Header on a page with enlarged institutional logo
+  const drawPageHeader = (y = 8) => {
+    const pageNum = doc.internal.getCurrentPageInfo().pageNumber;
+    if (drawnPageHeaders.has(pageNum)) {
+      return y + 20;
+    }
+    drawnPageHeaders.add(pageNum);
 
-    // Divider
-    doc.setDrawColor(200, 200, 200);
-    doc.setLineWidth(0.5);
-    doc.line(margin, currentY, pageWidth - margin, currentY);
-    currentY += 5;
-
-    // Form Title Banner
-    doc.setFillColor(240, 247, 255);
-    doc.roundedRect(margin, currentY, pageWidth - margin * 2, 8, 1.5, 1.5, 'F');
-    doc.setTextColor(1, 110, 201);
+    // Left: Institution Name & Subtitle
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10.5);
-    doc.text(INSTITUTION_HEADER.formTitle, pageWidth / 2, currentY + 5.5, { align: 'center' });
-    currentY += 12;
+    doc.setTextColor(...THEME.navyText);
+    doc.text(INSTITUTION.name, margin, y + 4.5);
 
-    // Application details strip
-    doc.setFontSize(8.5);
-    doc.setTextColor(50, 50, 50);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Application No: ${appNumber}`, margin, currentY);
-    doc.text(`Date of Submission: ${submittedAt}`, pageWidth - margin, currentY, { align: 'right' });
-    currentY += 5;
-  };
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.2);
+    doc.setTextColor(...THEME.subText);
+    doc.text(INSTITUTION.status, margin, y + 8.5);
+    doc.text(INSTITUTION.location, margin, y + 12);
 
-  renderHeader();
-
-  // Helper for Section Titles
-  const addSectionTitle = (title) => {
-    if (currentY > pageHeight - 30) {
-      doc.addPage();
-      currentY = 16;
-    }
-    doc.setFillColor(7, 40, 73);
-    doc.rect(margin, currentY, pageWidth - margin * 2, 6, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.text(title, margin + 3, currentY + 4.2);
-    currentY += 8;
-  };
-
-  // Helper for 2-column key-value grid
-  const addKeyValueGrid = (pairs) => {
-    const colWidth = (pageWidth - margin * 2) / 2;
-    for (let i = 0; i < pairs.length; i += 2) {
-      if (currentY > pageHeight - 15) {
-        doc.addPage();
-        currentY = 16;
-      }
-      const pair1 = pairs[i];
-      const pair2 = pairs[i + 1];
-
-      // Col 1
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8);
-      doc.setTextColor(70, 70, 70);
-      doc.text(pair1.label + ':', margin, currentY);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(15, 23, 42);
-      const val1 = pair1.value || '—';
-      doc.text(String(val1), margin + 48, currentY);
-
-      // Col 2 (if present)
-      if (pair2) {
+    // Right: Logo - increased size (width 42mm, height 16.5mm)
+    if (logoBase64) {
+      try {
+        doc.addImage(logoBase64, 'PNG', pageWidth - margin - 42, y, 42, 16.5);
+      } catch (e) {
+        // fallback emblem
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(70, 70, 70);
-        doc.text(pair2.label + ':', margin + colWidth, currentY);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(15, 23, 42);
-        const val2 = pair2.value || '—';
-        doc.text(String(val2), margin + colWidth + 48, currentY);
+        doc.setFontSize(9);
+        doc.setTextColor(...THEME.navyText);
+        doc.text('NRIIT', pageWidth - margin, y + 8, { align: 'right' });
       }
-      currentY += 5;
+    } else {
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(...THEME.navyText);
+      doc.text('NRIIT', pageWidth - margin, y + 8, { align: 'right' });
     }
-    currentY += 2;
+
+    // Divider line
+    doc.setDrawColor(...THEME.borderColor);
+    doc.setLineWidth(0.3);
+    doc.line(margin, y + 17.5, pageWidth - margin, y + 17.5);
+
+    return y + 20;
   };
+
+  // Helper for Section Titles (Flows smoothly with spacious bottom margins so content is never congested)
+  const drawSectionTitle = (title, currentY, minSpace = 32) => {
+    if (currentY > pageHeight - minSpace) {
+      doc.addPage();
+      currentY = drawPageHeader(8);
+    }
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(...THEME.navyText);
+    doc.text(title, margin, currentY + 3.2);
+    return currentY + 5;
+  };
+
+  const tableMargin = { top: 26, bottom: 24, left: margin, right: margin };
+
+  // ==========================================
+  // DOCUMENT BODY FLOW
+  // ==========================================
+  let currentY = drawPageHeader(8);
+
+  // Form Title Banner (Centered) & Photo Box (Right)
+  const titleCenterY = currentY + 5;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10.5);
+  doc.setTextColor(...THEME.darkText);
+  doc.text(INSTITUTION.titleLine1, 95, titleCenterY, { align: 'center' });
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(...THEME.subText);
+  doc.text(INSTITUTION.titleLine2, 95, titleCenterY + 4.8, { align: 'center' });
+
+  // Photo Box (Passport Size)
+  const photoBoxW = 27;
+  const photoBoxH = 32;
+  const photoBoxX = pageWidth - margin - photoBoxW;
+  const photoBoxY = currentY;
+
+  let photoRendered = false;
+  if (effectivePhoto && typeof effectivePhoto === 'string' && effectivePhoto.startsWith('data:image')) {
+    try {
+      const format = effectivePhoto.includes('png') ? 'PNG' : 'JPEG';
+      doc.addImage(effectivePhoto, format, photoBoxX, photoBoxY, photoBoxW, photoBoxH);
+      doc.setDrawColor(...THEME.borderColor);
+      doc.setLineWidth(0.3);
+      doc.rect(photoBoxX, photoBoxY, photoBoxW, photoBoxH);
+      photoRendered = true;
+    } catch (e) {
+      console.warn('[PDF] Could not draw candidate photo:', e);
+    }
+  }
+
+  if (!photoRendered) {
+    doc.setDrawColor(...THEME.borderColor);
+    doc.setLineWidth(0.3);
+    doc.rect(photoBoxX, photoBoxY, photoBoxW, photoBoxH);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.5);
+    doc.setTextColor(148, 163, 184);
+    doc.text('Affix Recent\nPassport Size\nPhoto', photoBoxX + photoBoxW / 2, photoBoxY + 13, {
+      align: 'center',
+    });
+  }
+
+  currentY = Math.max(titleCenterY + 11, photoBoxY + photoBoxH + 2.5);
 
   // --- SECTION 1: APPLICATION & PERSONAL DETAILS ---
-  addSectionTitle('1. APPLICATION & PERSONAL DETAILS');
+  currentY = drawSectionTitle('1. APPLICATION & PERSONAL DETAILS', currentY);
 
-  // Candidate Photo placement if available
-  const photoBoxWidth = 26;
-  const photoBoxHeight = 32;
-  const photoX = pageWidth - margin - photoBoxWidth;
-  const photoY = currentY;
-
-  let hasPhoto = false;
-  if (photoDataUrl && photoDataUrl.startsWith('data:image')) {
-    try {
-      const format = photoDataUrl.includes('png') ? 'PNG' : 'JPEG';
-      doc.addImage(photoDataUrl, format, photoX, photoY, photoBoxWidth, photoBoxHeight);
-      doc.setDrawColor(200, 200, 200);
-      doc.rect(photoX, photoY, photoBoxWidth, photoBoxHeight);
-      hasPhoto = true;
-    } catch (e) {
-      console.warn('Failed to render photo in PDF:', e);
-    }
-  }
-
-  if (!hasPhoto) {
-    doc.setDrawColor(180, 180, 180);
-    doc.rect(photoX, photoY, photoBoxWidth, photoBoxHeight);
-    doc.setFontSize(6.5);
-    doc.setTextColor(150, 150, 150);
-    doc.text('Passport Size\nPhotograph', photoX + photoBoxWidth / 2, photoY + 14, { align: 'center' });
-  }
-
-  // Personal Fields
-  const personalFields = [
-    { label: 'Ph.D. Programme / Subject', value: personal.programme },
-    { label: 'Specialization / Area', value: personal.specialization },
-    { label: 'Admission Category', value: personal.admissionCategory },
-    { label: 'Mode of Admission', value: personal.modeOfAdmission },
-    { label: 'Full Name', value: personal.fullName },
-    { label: "Father's / Guardian's Name", value: personal.guardianName },
-    { label: 'Date of Birth', value: personal.dateOfBirth },
-    { label: 'Gender', value: personal.gender },
-    { label: 'Category', value: personal.category },
-    { label: 'Email ID', value: personal.email },
-    { label: 'Mobile Number', value: personal.mobileNumber },
-    { label: 'Emergency Contact No', value: personal.emergencyContact },
+  const personalRows = [
+    ['Application Number', appNumber],
+    ['Ph.D. Programme / Subject', personal.programme || '—'],
+    ['Specialization / Research Area', personal.specialization || '—'],
+    ['Admission Category (Full-Time / Part-Time)', personal.admissionCategory || '—'],
+    ['Mode of Admission', personal.modeOfAdmission || '—'],
+    ['Full Name', personal.fullName || '—'],
+    ["Father's / Mother's / Guardian's Name", personal.guardianName || '—'],
+    ['Date of Birth', personal.dateOfBirth || '—'],
+    ['Gender', personal.gender || '—'],
+    ['Category', personal.category || '—'],
+    ['Email ID', personal.email || '—'],
+    ['Mobile Number', personal.mobileNumber || '—'],
+    ['Emergency Contact Number', personal.emergencyContact || '—'],
   ];
 
-  for (let i = 0; i < personalFields.length; i++) {
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(70, 70, 70);
-    doc.text(personalFields[i].label + ':', margin, currentY);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(15, 23, 42);
-    doc.text(String(personalFields[i].value || '—'), margin + 50, currentY);
-    currentY += 4.8;
-  }
-  currentY += 3;
+  autoTable(doc, {
+    startY: currentY,
+    body: personalRows,
+    theme: 'grid',
+    styles: {
+      fontSize: 7.2,
+      cellPadding: 1.2,
+      lineColor: THEME.borderColor,
+      lineWidth: 0.2,
+      textColor: THEME.darkText,
+    },
+    columnStyles: {
+      0: { cellWidth: 64, fontStyle: 'bold', textColor: THEME.bodyText, fillColor: [255, 255, 255] },
+      1: { cellWidth: contentWidth - 64, fontStyle: 'normal', textColor: THEME.darkText, fillColor: [255, 255, 255] },
+    },
+    margin: tableMargin,
+    didDrawPage: () => {
+      drawPageHeader(8);
+    },
+  });
+
+  currentY = doc.lastAutoTable.finalY + 3;
 
   // --- SECTION 2: ADDRESS ---
-  addSectionTitle('2. ADDRESS');
-  const addressPairs = [
-    { label: 'Permanent Address', value: address.permanentAddress },
-    { label: 'Correspondence Address', value: address.presentAddress },
-    { label: 'District', value: address.district },
-    { label: 'State', value: address.state },
-    { label: 'PIN Code', value: address.pinCode },
+  currentY = drawSectionTitle('2. ADDRESS', currentY);
+
+  const districtStateStr = [address.district, address.state].filter(Boolean).join(', ') || '—';
+  const addressRows = [
+    ['Permanent Address', address.permanentAddress || '—'],
+    ['Present / Correspondence Address', address.presentAddress || '—'],
+    ['District / State', districtStateStr],
+    ['PIN Code', address.pinCode || '—'],
   ];
-  addKeyValueGrid(addressPairs);
+
+  autoTable(doc, {
+    startY: currentY,
+    body: addressRows,
+    theme: 'grid',
+    styles: {
+      fontSize: 7.2,
+      cellPadding: 1.2,
+      lineColor: THEME.borderColor,
+      lineWidth: 0.2,
+      textColor: THEME.darkText,
+    },
+    columnStyles: {
+      0: { cellWidth: 64, fontStyle: 'bold', textColor: THEME.bodyText, fillColor: [255, 255, 255] },
+      1: { cellWidth: contentWidth - 64, fontStyle: 'normal', textColor: THEME.darkText, fillColor: [255, 255, 255] },
+    },
+    margin: tableMargin,
+    didDrawPage: () => {
+      drawPageHeader(8);
+    },
+  });
+
+  currentY = doc.lastAutoTable.finalY + 3;
 
   // --- SECTION 3: EDUCATIONAL QUALIFICATIONS ---
-  addSectionTitle('3. EDUCATIONAL QUALIFICATIONS');
-  const eduRows = (education.length > 0 ? education : [{}, {}, {}, {}]).map((item, index) => [
-    index + 1,
-    item.qualification || '—',
-    item.specialization || '—',
-    item.institution || '—',
-    item.year || '—',
-    item.percentage || '—',
-  ]);
+  currentY = drawSectionTitle('3. EDUCATIONAL QUALIFICATIONS', currentY);
+
+  const defaultQuals = ['10th / SSC', 'Intermediate / 10+2', "Bachelor's Degree (UG)", "Master's Degree (PG)"];
+  const eduRows = [];
+
+  defaultQuals.forEach((qName, idx) => {
+    const existing = education.find((e) =>
+      e.qualification && e.qualification.toLowerCase().includes(qName.toLowerCase().slice(0, 4))
+    ) || education[idx] || {};
+
+    eduRows.push([
+      idx + 1,
+      qName,
+      existing.specialization || '—',
+      existing.institution || '—',
+      existing.year || '—',
+      existing.percentage || '—',
+    ]);
+  });
+
+  if (education.length > defaultQuals.length) {
+    for (let i = defaultQuals.length; i < education.length; i++) {
+      const extra = education[i];
+      eduRows.push([
+        i + 1,
+        extra.qualification || 'Other Degree',
+        extra.specialization || '—',
+        extra.institution || '—',
+        extra.year || '—',
+        extra.percentage || '—',
+      ]);
+    }
+  }
 
   autoTable(doc, {
     startY: currentY,
     head: [['S.No.', 'Qualification', 'Specialization', 'University / Institution', 'Year', '% / CGPA']],
     body: eduRows,
     theme: 'grid',
-    headStyles: { fillColor: [7, 40, 73], textColor: 255, fontSize: 7.5, fontStyle: 'bold' },
-    bodyStyles: { fontSize: 7.5, textColor: [30, 41, 59] },
-    margin: { left: margin, right: margin },
+    headStyles: {
+      fillColor: THEME.headerFill,
+      textColor: THEME.darkText,
+      fontSize: 7.2,
+      fontStyle: 'bold',
+      lineColor: THEME.borderColor,
+      lineWidth: 0.2,
+    },
+    bodyStyles: {
+      fontSize: 7,
+      textColor: THEME.darkText,
+      cellPadding: 1.2,
+      lineColor: THEME.borderColor,
+      lineWidth: 0.2,
+      fillColor: [255, 255, 255],
+    },
+    columnStyles: {
+      0: { cellWidth: 12, halign: 'center' },
+      1: { cellWidth: 34, fontStyle: 'bold' },
+      2: { cellWidth: 32 },
+      3: { cellWidth: 58 },
+      4: { cellWidth: 18, halign: 'center' },
+      5: { cellWidth: 28, halign: 'center' },
+    },
+    margin: tableMargin,
+    didDrawPage: () => {
+      drawPageHeader(8);
+    },
   });
-  currentY = doc.lastAutoTable.finalY + 5;
+
+  currentY = doc.lastAutoTable.finalY + 3;
 
   // --- SECTION 4: QUALIFYING / ELIGIBILITY EXAMINATIONS ---
-  addSectionTitle('4. QUALIFYING / ELIGIBILITY EXAMINATIONS');
-  const examRows = (examinations.length > 0 ? examinations : [{}, {}, {}]).map((item, index) => [
+  currentY = drawSectionTitle('4. QUALIFYING / ELIGIBILITY EXAMINATIONS', currentY);
+
+  const examList = examinations.length > 0 ? examinations : [{}];
+  const examRows = examList.map((item, index) => [
     index + 1,
     item.examination || '—',
     item.subject || '—',
@@ -248,18 +376,57 @@ export async function generateApplicationPDF(application, photoDataUrl = null) {
 
   autoTable(doc, {
     startY: currentY,
-    head: [['S.No.', 'Examination', 'Subject', 'Year', 'Score / Percentile', 'Qualification']],
+    head: [['S.No.', 'Examination (NET/JRF/GATE/SLET/SET etc.)', 'Subject', 'Year', 'Score / Percentile', 'Qualification']],
     body: examRows,
     theme: 'grid',
-    headStyles: { fillColor: [7, 40, 73], textColor: 255, fontSize: 7.5, fontStyle: 'bold' },
-    bodyStyles: { fontSize: 7.5, textColor: [30, 41, 59] },
-    margin: { left: margin, right: margin },
+    headStyles: {
+      fillColor: THEME.headerFill,
+      textColor: THEME.darkText,
+      fontSize: 7,
+      fontStyle: 'bold',
+      lineColor: THEME.borderColor,
+      lineWidth: 0.2,
+    },
+    bodyStyles: {
+      fontSize: 7,
+      textColor: THEME.darkText,
+      cellPadding: 1.2,
+      lineColor: THEME.borderColor,
+      lineWidth: 0.2,
+      fillColor: [255, 255, 255],
+    },
+    columnStyles: {
+      0: { cellWidth: 12, halign: 'center' },
+      1: { cellWidth: 60 },
+      2: { cellWidth: 38 },
+      3: { cellWidth: 18, halign: 'center' },
+      4: { cellWidth: 28, halign: 'center' },
+      5: { cellWidth: 26, halign: 'center' },
+    },
+    margin: tableMargin,
+    didDrawPage: () => {
+      drawPageHeader(8);
+    },
   });
-  currentY = doc.lastAutoTable.finalY + 5;
+
+  currentY = doc.lastAutoTable.finalY + 1.2;
+
+  // Subnote as in official template
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(6.5);
+  doc.setTextColor(100, 116, 139);
+  doc.text(
+    'Examples: UGC-NET, UGC-JRF, CSIR-NET/JRF, GATE, SLET/SET, JEST, GPAT, other National/State/University examinations.',
+    margin,
+    currentY + 2
+  );
+  currentY += 4.5;
 
   // --- SECTION 5: PROFESSIONAL / TEACHING EXPERIENCE ---
-  addSectionTitle('5. PROFESSIONAL / TEACHING EXPERIENCE');
-  const expRows = (experience.length > 0 ? experience : [{}, {}, {}, {}, {}]).map((item, index) => [
+  currentY = drawSectionTitle('5. PROFESSIONAL / TEACHING EXPERIENCE', currentY);
+
+  const expList = experience.length > 0 ? experience : [{}];
+  const expRows = expList.map((item, index) => [
     index + 1,
     item.institution || '—',
     item.designation || '—',
@@ -270,32 +437,74 @@ export async function generateApplicationPDF(application, photoDataUrl = null) {
 
   autoTable(doc, {
     startY: currentY,
-    head: [['S.No.', 'Institution / Organization', 'Designation', 'From–To', 'Nature of Work', 'Total Exp']],
+    head: [['S.No.', 'Institution / Organization', 'Designation', 'From–To', 'Nature of Work', 'Total Experience']],
     body: expRows,
     theme: 'grid',
-    headStyles: { fillColor: [7, 40, 73], textColor: 255, fontSize: 7.5, fontStyle: 'bold' },
-    bodyStyles: { fontSize: 7.5, textColor: [30, 41, 59] },
-    margin: { left: margin, right: margin },
+    headStyles: {
+      fillColor: THEME.headerFill,
+      textColor: THEME.darkText,
+      fontSize: 7,
+      fontStyle: 'bold',
+      lineColor: THEME.borderColor,
+      lineWidth: 0.2,
+    },
+    bodyStyles: {
+      fontSize: 7,
+      textColor: THEME.darkText,
+      cellPadding: 1.2,
+      lineColor: THEME.borderColor,
+      lineWidth: 0.2,
+      fillColor: [255, 255, 255],
+    },
+    columnStyles: {
+      0: { cellWidth: 12, halign: 'center' },
+      1: { cellWidth: 54 },
+      2: { cellWidth: 32 },
+      3: { cellWidth: 28, halign: 'center' },
+      4: { cellWidth: 30 },
+      5: { cellWidth: 26, halign: 'center' },
+    },
+    margin: tableMargin,
+    didDrawPage: () => {
+      drawPageHeader(8);
+    },
   });
-  currentY = doc.lastAutoTable.finalY + 5;
 
-  // --- SECTION 6: RESEARCH EXPOSURE / AREA OF INTEREST ---
-  addSectionTitle('6. RESEARCH EXPOSURE / AREA OF INTEREST');
-  if (currentY > pageHeight - 25) {
-    doc.addPage();
-    currentY = 16;
+  currentY = doc.lastAutoTable.finalY + 3;
+
+  // --- SECTION 6: RESEARCH EXPOSURE / AREA OF INTEREST (if any) ---
+  const estimatedExposureHeight = (researchExposure && researchExposure.trim().length > 0)
+    ? Math.max(14, doc.splitTextToSize(researchExposure.trim(), contentWidth - 4).length * 3.8 + 6)
+    : 12;
+  currentY = drawSectionTitle('6. RESEARCH EXPOSURE / AREA OF INTEREST (if any)', currentY, estimatedExposureHeight + 16);
+
+  if (researchExposure && researchExposure.trim().length > 0) {
+    const splitExp = doc.splitTextToSize(researchExposure.trim(), contentWidth - 4);
+    const boxHeight = Math.max(10, splitExp.length * 3.6 + 3.5);
+
+    doc.setDrawColor(...THEME.borderColor);
+    doc.setLineWidth(0.2);
+    doc.rect(margin, currentY, contentWidth, boxHeight);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.2);
+    doc.setTextColor(...THEME.darkText);
+    doc.text(splitExp, margin + 2, currentY + 3.5);
+
+    currentY += boxHeight + 4;
+  } else {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.2);
+    doc.setTextColor(148, 163, 184);
+    doc.text('— Nil / Not Specified —', margin + 2, currentY + 3.2);
+    currentY += 6;
   }
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(30, 41, 59);
-  const exposureText = researchExposure || 'No specific research exposure mentioned.';
-  const splitText = doc.splitTextToSize(exposureText, pageWidth - margin * 2);
-  doc.text(splitText, margin, currentY);
-  currentY += splitText.length * 4.2 + 4;
 
   // --- SECTION 7: RESEARCH PUBLICATIONS ---
-  addSectionTitle('7. RESEARCH PUBLICATIONS');
-  const pubRows = (publications.length > 0 ? publications : [{}, {}, {}, {}, {}, {}]).map((item, index) => [
+  currentY = drawSectionTitle('7. RESEARCH PUBLICATIONS', currentY);
+
+  const pubList = publications.length > 0 ? publications : [{}];
+  const pubRows = pubList.map((item, index) => [
     index + 1,
     item.titleAuthor || '—',
     item.journalConference || '—',
@@ -309,15 +518,43 @@ export async function generateApplicationPDF(application, photoDataUrl = null) {
     head: [['S.No.', 'Title / Author(s)', 'Journal / Conference', 'Year', 'Indexing / Quartile', 'DOI']],
     body: pubRows,
     theme: 'grid',
-    headStyles: { fillColor: [7, 40, 73], textColor: 255, fontSize: 7.5, fontStyle: 'bold' },
-    bodyStyles: { fontSize: 7.5, textColor: [30, 41, 59] },
-    margin: { left: margin, right: margin },
+    headStyles: {
+      fillColor: THEME.headerFill,
+      textColor: THEME.darkText,
+      fontSize: 7,
+      fontStyle: 'bold',
+      lineColor: THEME.borderColor,
+      lineWidth: 0.2,
+    },
+    bodyStyles: {
+      fontSize: 7,
+      textColor: THEME.darkText,
+      cellPadding: 1.2,
+      lineColor: THEME.borderColor,
+      lineWidth: 0.2,
+      fillColor: [255, 255, 255],
+    },
+    columnStyles: {
+      0: { cellWidth: 12, halign: 'center' },
+      1: { cellWidth: 54 },
+      2: { cellWidth: 44 },
+      3: { cellWidth: 18, halign: 'center' },
+      4: { cellWidth: 26, halign: 'center' },
+      5: { cellWidth: 28 },
+    },
+    margin: tableMargin,
+    didDrawPage: () => {
+      drawPageHeader(8);
+    },
   });
-  currentY = doc.lastAutoTable.finalY + 5;
+
+  currentY = doc.lastAutoTable.finalY + 3;
 
   // --- SECTION 8: BOOKS / PATENTS / OTHER RESEARCH OUTPUTS ---
-  addSectionTitle('8. BOOKS / PATENTS / OTHER RESEARCH OUTPUTS');
-  const bpRows = (booksPatents.length > 0 ? booksPatents : [{}, {}, {}, {}]).map((item, index) => [
+  currentY = drawSectionTitle('8. BOOKS / PATENTS / OTHER RESEARCH OUTPUTS', currentY);
+
+  const bpList = booksPatents.length > 0 ? booksPatents : [{}];
+  const bpRows = bpList.map((item, index) => [
     index + 1,
     item.type || '—',
     item.titleDetails || '—',
@@ -330,15 +567,42 @@ export async function generateApplicationPDF(application, photoDataUrl = null) {
     head: [['S.No.', 'Type', 'Title / Details', 'Year', 'ISBN / Patent No.']],
     body: bpRows,
     theme: 'grid',
-    headStyles: { fillColor: [7, 40, 73], textColor: 255, fontSize: 7.5, fontStyle: 'bold' },
-    bodyStyles: { fontSize: 7.5, textColor: [30, 41, 59] },
-    margin: { left: margin, right: margin },
+    headStyles: {
+      fillColor: THEME.headerFill,
+      textColor: THEME.darkText,
+      fontSize: 7,
+      fontStyle: 'bold',
+      lineColor: THEME.borderColor,
+      lineWidth: 0.2,
+    },
+    bodyStyles: {
+      fontSize: 7,
+      textColor: THEME.darkText,
+      cellPadding: 1.2,
+      lineColor: THEME.borderColor,
+      lineWidth: 0.2,
+      fillColor: [255, 255, 255],
+    },
+    columnStyles: {
+      0: { cellWidth: 12, halign: 'center' },
+      1: { cellWidth: 32 },
+      2: { cellWidth: 78 },
+      3: { cellWidth: 20, halign: 'center' },
+      4: { cellWidth: 40 },
+    },
+    margin: tableMargin,
+    didDrawPage: () => {
+      drawPageHeader(8);
+    },
   });
-  currentY = doc.lastAutoTable.finalY + 5;
+
+  currentY = doc.lastAutoTable.finalY + 3;
 
   // --- SECTION 9: PROFESSIONAL MEMBERSHIPS / FELLOWSHIPS / AWARDS ---
-  addSectionTitle('9. PROFESSIONAL MEMBERSHIPS / FELLOWSHIPS / AWARDS');
-  const memRows = (memberships.length > 0 ? memberships : [{}, {}, {}, {}]).map((item, index) => [
+  currentY = drawSectionTitle('9. PROFESSIONAL MEMBERSHIPS / FELLOWSHIPS / AWARDS', currentY);
+
+  const memList = memberships.length > 0 ? memberships : [{}];
+  const memRows = memList.map((item, index) => [
     index + 1,
     item.awardMembership || '—',
     item.organization || '—',
@@ -351,15 +615,42 @@ export async function generateApplicationPDF(application, photoDataUrl = null) {
     head: [['S.No.', 'Award / Fellowship / Membership', 'Organization', 'Year', 'Details']],
     body: memRows,
     theme: 'grid',
-    headStyles: { fillColor: [7, 40, 73], textColor: 255, fontSize: 7.5, fontStyle: 'bold' },
-    bodyStyles: { fontSize: 7.5, textColor: [30, 41, 59] },
-    margin: { left: margin, right: margin },
+    headStyles: {
+      fillColor: THEME.headerFill,
+      textColor: THEME.darkText,
+      fontSize: 7,
+      fontStyle: 'bold',
+      lineColor: THEME.borderColor,
+      lineWidth: 0.2,
+    },
+    bodyStyles: {
+      fontSize: 7,
+      textColor: THEME.darkText,
+      cellPadding: 1.2,
+      lineColor: THEME.borderColor,
+      lineWidth: 0.2,
+      fillColor: [255, 255, 255],
+    },
+    columnStyles: {
+      0: { cellWidth: 12, halign: 'center' },
+      1: { cellWidth: 58 },
+      2: { cellWidth: 46 },
+      3: { cellWidth: 20, halign: 'center' },
+      4: { cellWidth: 46 },
+    },
+    margin: tableMargin,
+    didDrawPage: () => {
+      drawPageHeader(8);
+    },
   });
-  currentY = doc.lastAutoTable.finalY + 5;
 
-  // --- SECTION 10: CONFERENCES / WORKSHOPS / FDPS (OPTIONAL) ---
-  addSectionTitle('10. CONFERENCES / WORKSHOPS / FDPS (Organized/Attended)');
-  const confRows = (conferences.length > 0 ? conferences : [{}, {}, {}, {}, {}]).map((item, index) => [
+  currentY = doc.lastAutoTable.finalY + 3;
+
+  // --- SECTION 10: CONFERENCES / WORKSHOPS / FDPs (Organized/Attended - Optional) ---
+  currentY = drawSectionTitle('10. CONFERENCES / WORKSHOPS / FDPs (Organized/Attended - Optional)', currentY);
+
+  const confList = conferences.length > 0 ? conferences : [{}];
+  const confRows = confList.map((item, index) => [
     index + 1,
     item.programme || '—',
     item.organizer || '—',
@@ -372,15 +663,42 @@ export async function generateApplicationPDF(application, photoDataUrl = null) {
     head: [['S.No.', 'Programme', 'Organizer', 'Year', 'Role / Participation']],
     body: confRows,
     theme: 'grid',
-    headStyles: { fillColor: [7, 40, 73], textColor: 255, fontSize: 7.5, fontStyle: 'bold' },
-    bodyStyles: { fontSize: 7.5, textColor: [30, 41, 59] },
-    margin: { left: margin, right: margin },
+    headStyles: {
+      fillColor: THEME.headerFill,
+      textColor: THEME.darkText,
+      fontSize: 7,
+      fontStyle: 'bold',
+      lineColor: THEME.borderColor,
+      lineWidth: 0.2,
+    },
+    bodyStyles: {
+      fontSize: 7,
+      textColor: THEME.darkText,
+      cellPadding: 1.2,
+      lineColor: THEME.borderColor,
+      lineWidth: 0.2,
+      fillColor: [255, 255, 255],
+    },
+    columnStyles: {
+      0: { cellWidth: 12, halign: 'center' },
+      1: { cellWidth: 62 },
+      2: { cellWidth: 50 },
+      3: { cellWidth: 20, halign: 'center' },
+      4: { cellWidth: 38 },
+    },
+    margin: tableMargin,
+    didDrawPage: () => {
+      drawPageHeader(8);
+    },
   });
-  currentY = doc.lastAutoTable.finalY + 5;
+
+  currentY = doc.lastAutoTable.finalY + 3;
 
   // --- SECTION 11: REFERENCES ---
-  addSectionTitle('11. REFERENCES');
-  const refRows = (references.length > 0 ? references : [{}, {}]).map((item, index) => [
+  currentY = drawSectionTitle('11. REFERENCES', currentY);
+
+  const refList = references.length > 0 ? references : [{}];
+  const refRows = refList.map((item, index) => [
     index + 1,
     item.nameDesignation || '—',
     item.institution || '—',
@@ -392,89 +710,138 @@ export async function generateApplicationPDF(application, photoDataUrl = null) {
     head: [['S.No.', 'Name & Designation', 'Institution', 'Contact / Email']],
     body: refRows,
     theme: 'grid',
-    headStyles: { fillColor: [7, 40, 73], textColor: 255, fontSize: 7.5, fontStyle: 'bold' },
-    bodyStyles: { fontSize: 7.5, textColor: [30, 41, 59] },
-    margin: { left: margin, right: margin },
+    headStyles: {
+      fillColor: THEME.headerFill,
+      textColor: THEME.darkText,
+      fontSize: 7,
+      fontStyle: 'bold',
+      lineColor: THEME.borderColor,
+      lineWidth: 0.2,
+    },
+    bodyStyles: {
+      fontSize: 7,
+      textColor: THEME.darkText,
+      cellPadding: 1.2,
+      lineColor: THEME.borderColor,
+      lineWidth: 0.2,
+      fillColor: [255, 255, 255],
+    },
+    columnStyles: {
+      0: { cellWidth: 12, halign: 'center' },
+      1: { cellWidth: 58 },
+      2: { cellWidth: 54 },
+      3: { cellWidth: 58 },
+    },
+    margin: tableMargin,
+    didDrawPage: () => {
+      drawPageHeader(8);
+    },
   });
-  currentY = doc.lastAutoTable.finalY + 5;
 
-  // --- SECTION 12: DOCUMENTS ENCLOSED CHECKLIST ---
-  addSectionTitle('12. DOCUMENTS ENCLOSED (CHECKLIST)');
-  const docMeta = application.document_metadata || {};
-  const docList = [
-    { name: '1. Photograph', key: 'photo', uploaded: !!docMeta.photo || hasPhoto },
-    { name: '2. 10th / SSC Certificate', key: 'sscCertificate', uploaded: !!docMeta.sscCertificate },
-    { name: '3. Intermediate / 12th Certificate', key: 'interCertificate', uploaded: !!docMeta.interCertificate },
-    { name: "4. Bachelor's Degree & Marksheets", key: 'ugDegree', uploaded: !!docMeta.ugDegree },
-    { name: "5. Master's Degree & Marksheets", key: 'pgDegree', uploaded: !!docMeta.pgDegree },
-    { name: '6. All Experience Certificate (if applicable)', key: 'expCertificates', uploaded: !!docMeta.expCertificates },
-    { name: '7. GATE/SLET/SET/NET/JRF/GPAT Qualifying Card', key: 'examCard', uploaded: !!docMeta.examCard },
-    { name: '8. Category Certificate (if applicable)', key: 'categoryCertificate', uploaded: !!docMeta.categoryCertificate },
-    { name: '9. Aadhar Card', key: 'aadharCard', uploaded: !!docMeta.aadharCard },
-    { name: '10. Application Fee Payment Slip', key: 'feeReceipt', uploaded: !!docMeta.feeReceipt },
+  currentY = doc.lastAutoTable.finalY + 3;
+
+  // --- SECTION 12: DOCUMENTS TO BE ENCLOSED ---
+  currentY = drawSectionTitle('12. DOCUMENTS TO BE ENCLOSED', currentY, 46);
+
+  const checklistItems = [
+    { label: 'Passport Size Photograph', key: 'photo', uploaded: !!docMeta.photo || !!effectivePhoto },
+    { label: '10th / SSC Certificate & Marks Memo', key: 'sscCertificate', uploaded: !!docMeta.sscCertificate },
+    { label: 'Intermediate / 10+2 Certificate & Marks Memo', key: 'interCertificate', uploaded: !!docMeta.interCertificate },
+    { label: "Bachelor's Degree Certificate (UG) & Consolidated Marks Memo", key: 'ugDegree', uploaded: !!docMeta.ugDegree },
+    { label: "Master's Degree Certificate (PG) & Consolidated Marks Memo", key: 'pgDegree', uploaded: !!docMeta.pgDegree },
+    { label: 'Service / Experience Certificates (Teaching & Industrial)', key: 'expCertificates', uploaded: !!docMeta.expCertificates },
+    { label: 'GATE / NET / SLET / SET / JRF / GPAT Qualifying Scorecard', key: 'examCard', uploaded: !!docMeta.examCard },
+    { label: 'Category / Community Certificate (if applicable)', key: 'categoryCertificate', uploaded: !!docMeta.categoryCertificate },
+    { label: 'Aadhaar Card / Government Identity Proof', key: 'aadharCard', uploaded: !!docMeta.aadharCard },
+    { label: 'Application Fee Payment Proof / Receipt', key: 'feeReceipt', uploaded: !!docMeta.feeReceipt },
   ];
 
-  const docRows = docList.map((d) => [
-    d.name,
-    d.uploaded ? 'Enclosed / Uploaded' : 'Not Attached',
-    docMeta[d.key]?.fileName || '—',
+  const docRows = checklistItems.map((item, index) => [
+    index + 1,
+    item.label,
+    item.uploaded ? 'Enclosed / Attached' : 'Not Attached',
+    docMeta[item.key]?.fileName || '—',
   ]);
 
   autoTable(doc, {
     startY: currentY,
-    head: [['Document Name', 'Status', 'File Name']],
+    head: [['S.No.', 'Document Description', 'Status', 'File Name']],
     body: docRows,
     theme: 'grid',
-    headStyles: { fillColor: [7, 40, 73], textColor: 255, fontSize: 7.5, fontStyle: 'bold' },
-    bodyStyles: { fontSize: 7.5, textColor: [30, 41, 59] },
-    margin: { left: margin, right: margin },
+    headStyles: {
+      fillColor: THEME.headerFill,
+      textColor: THEME.darkText,
+      fontSize: 7,
+      fontStyle: 'bold',
+      lineColor: THEME.borderColor,
+      lineWidth: 0.2,
+    },
+    bodyStyles: {
+      fontSize: 6.8,
+      textColor: THEME.darkText,
+      cellPadding: 1.1,
+      lineColor: THEME.borderColor,
+      lineWidth: 0.2,
+      fillColor: [255, 255, 255],
+    },
+    columnStyles: {
+      0: { cellWidth: 12, halign: 'center' },
+      1: { cellWidth: 84 },
+      2: { cellWidth: 38, halign: 'center' },
+      3: { cellWidth: 48 },
+    },
+    margin: tableMargin,
+    didDrawPage: () => {
+      drawPageHeader(8);
+    },
   });
-  currentY = doc.lastAutoTable.finalY + 6;
+
+  currentY = doc.lastAutoTable.finalY + 3;
 
   // --- SECTION 13: DECLARATION ---
-  if (currentY > pageHeight - 45) {
+  currentY = drawSectionTitle('13. DECLARATION', currentY, 36);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(...THEME.darkText);
+  const declarationText =
+    'I declare that the information furnished above is true, complete and correct to the best of my knowledge and belief. I understand that any false or incorrect information may lead to rejection/cancellation of my application/admission as per University rules.';
+  const splitDec = doc.splitTextToSize(declarationText, contentWidth);
+  doc.text(splitDec, margin, currentY + 3);
+  currentY += splitDec.length * 3.5 + 4;
+
+  if (currentY > pageHeight - 22) {
     doc.addPage();
-    currentY = 16;
+    currentY = drawPageHeader(8) + 4;
   }
-  addSectionTitle('13. DECLARATION');
 
-  doc.setFont('helvetica', 'italic');
-  doc.setFontSize(8);
-  doc.setTextColor(30, 41, 59);
-  const declarationStatement =
-    '"I declare that the information furnished above is true, complete and correct to the best of my knowledge and belief. I understand that any false or incorrect information may lead to rejection/cancellation of my application/admission as per University rules."';
-  const splitDec = doc.splitTextToSize(declarationStatement, pageWidth - margin * 2);
-  doc.text(splitDec, margin, currentY);
-  currentY += splitDec.length * 4.2 + 6;
-
+  // Place, Date, Signature in official row
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8.5);
-  doc.setTextColor(50, 50, 50);
+  doc.setFontSize(7.5);
+  doc.setTextColor(...THEME.darkText);
 
   doc.text(`Place: ${declaration.place || '—'}`, margin, currentY);
-  doc.text(`Date: ${declaration.date || submittedAt}`, margin + 55, currentY);
+  doc.text(`Date: ${declaration.date || submittedAt}`, margin + 50, currentY);
 
-  const sigText = declaration.typedSignature || personal.fullName || 'Digitally Verified';
-  doc.text(`Candidate Signature: ${sigText}`, pageWidth - margin, currentY, { align: 'right' });
-  currentY += 10;
+  const sigName = declaration.typedSignature || personal.fullName || 'Digitally Verified';
+  doc.text(`Signature of Candidate: ${sigName}`, pageWidth - margin, currentY, { align: 'right' });
 
-  // Page Numbers Footer on all pages
+  // ==========================================
+  // RUNNING FOOTERS ON ALL PAGES
+  // ==========================================
   const totalPages = doc.internal.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
-    doc.setDrawColor(220, 220, 220);
+    doc.setDrawColor(...THEME.borderColor);
     doc.setLineWidth(0.3);
-    doc.line(margin, pageHeight - 10, pageWidth - margin, pageHeight - 10);
+    doc.line(margin, pageHeight - 10.5, pageWidth - margin, pageHeight - 10.5);
 
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7.5);
-    doc.setTextColor(120, 120, 120);
-    doc.text(
-      `Dr RVR NRI Institute of Technology | Application: ${appNumber}`,
-      margin,
-      pageHeight - 6
-    );
-    doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin, pageHeight - 6, { align: 'right' });
+    doc.setFontSize(7);
+    doc.setTextColor(100, 116, 139);
+    doc.text('Application for Ph.D. Admission', margin, pageHeight - 6.5);
+    doc.text(`Application No: ${appNumber}`, pageWidth / 2, pageHeight - 6.5, { align: 'center' });
+    doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin, pageHeight - 6.5, { align: 'right' });
   }
 
   return doc;

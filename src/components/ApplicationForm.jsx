@@ -10,14 +10,48 @@ import Step6Documents from './steps/Step6Documents';
 import Step7DeclarationReview from './steps/Step7DeclarationReview';
 
 const FORM_STEPS = [
-  { id: 0, title: 'Personal & Address', subtitle: 'Sec 1 & 2' },
-  { id: 1, title: 'Academics & Exams', subtitle: 'Sec 3 & 4' },
-  { id: 2, title: 'Experience & Area', subtitle: 'Sec 5 & 6' },
-  { id: 3, title: 'Research & Outputs', subtitle: 'Sec 7, 8 & 9' },
-  { id: 4, title: 'FDPs & References', subtitle: 'Sec 10 & 11' },
-  { id: 5, title: 'Document Uploads', subtitle: 'Sec 12' },
-  { id: 6, title: 'Declaration & Review', subtitle: 'Sec 13' },
+  {
+    id: 0,
+    milestone: 'Milestone 1',
+    stepNumber: '1',
+    title: 'Personal & Address',
+    subtitle: 'Sec 1 & 2',
+    desc: 'Profile & contact',
+  },
+  {
+    id: 1,
+    milestone: 'Milestone 2',
+    stepNumber: '2',
+    title: 'Academics & Experience',
+    subtitle: 'Sec 3, 4, 5 & 6',
+    desc: 'Degrees & service',
+  },
+  {
+    id: 2,
+    milestone: 'Milestone 3',
+    stepNumber: '3',
+    title: 'Research & References',
+    subtitle: 'Sec 7 to 11',
+    desc: 'Papers & referees',
+  },
+  {
+    id: 3,
+    milestone: 'Milestone 4',
+    stepNumber: '4',
+    title: 'Document Uploads',
+    subtitle: 'Sec 12',
+    desc: 'Certificates & files',
+  },
+  {
+    id: 4,
+    milestone: 'Milestone 5',
+    stepNumber: '5',
+    title: 'Declaration & Review',
+    subtitle: 'Sec 13',
+    desc: 'Review & submit',
+  },
 ];
+
 
 export default function ApplicationForm({ onSubmissionComplete }) {
   const [currentStep, setCurrentStep] = useState(0);
@@ -109,12 +143,13 @@ export default function ApplicationForm({ onSubmissionComplete }) {
     }
   };
 
-  // Step Validation rules
+  // Step Validation rules for 5 steps
   const validateCurrentStep = () => {
     setValidationError('');
     const p = formData.personalDetails;
     const a = formData.addressDetails;
 
+    // STEP 0: Personal & Address (Sec 1 & 2)
     if (currentStep === 0) {
       if (!p.programme) return 'Please select your Ph.D. Programme / Subject.';
       if (!p.specialization?.trim()) return 'Please enter your Specialization / Research Area.';
@@ -133,6 +168,7 @@ export default function ApplicationForm({ onSubmissionComplete }) {
         return 'Please enter a valid 6-digit PIN code.';
     }
 
+    // STEP 1: Academics & Experience (Sec 3, 4, 5 & 6)
     if (currentStep === 1) {
       const edu = formData.educationalQualifications;
       const validRows = edu.filter((r) => r.qualification && r.qualification.trim());
@@ -149,14 +185,16 @@ export default function ApplicationForm({ onSubmissionComplete }) {
       }
     }
 
-    if (currentStep === 4) {
+    // STEP 2: Research & References (Sec 7 to 11)
+    if (currentStep === 2) {
       const refs = formData.references;
       if (!refs[0]?.nameDesignation?.trim() || !refs[0]?.institution?.trim() || !refs[0]?.contactEmail?.trim()) {
         return 'Please provide details for at least Referee 1 in Section 11.';
       }
     }
 
-    if (currentStep === 5) {
+    // STEP 3: Document Uploads (Sec 12)
+    if (currentStep === 3) {
       const requiredDocs = ['sscCertificate', 'interCertificate', 'ugDegree', 'pgDegree', 'aadharCard', 'feeReceipt'];
       for (const docKey of requiredDocs) {
         if (!fileObjects[docKey] && !formData.documentMetadata[docKey]) {
@@ -165,7 +203,8 @@ export default function ApplicationForm({ onSubmissionComplete }) {
       }
     }
 
-    if (currentStep === 6) {
+    // STEP 4: Declaration & Review (Sec 13)
+    if (currentStep === 4) {
       if (!formData.declaration.accepted) {
         return 'You must agree and check the mandatory declaration before submitting.';
       }
@@ -234,27 +273,27 @@ export default function ApplicationForm({ onSubmissionComplete }) {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-3 sm:px-4 py-2.5">
+    <div className="max-w-5xl 2xl:max-w-6xl mx-auto px-2.5 sm:px-4 md:px-6 py-2 sm:py-3">
       {/* Toast message */}
       {draftToast && (
-        <div className="fixed top-16 right-4 z-50 bg-brand-950 text-white px-3 py-2 rounded shadow-md text-xs">
+        <div className="fixed top-14 sm:top-16 right-3 sm:right-6 z-50 bg-brand-950 text-white px-3 py-2 rounded-lg shadow-lg text-xs animate-in fade-in slide-in-from-top-2">
           <span>{draftToast}</span>
         </div>
       )}
 
       {/* Header Banner */}
-      <div className="bg-white rounded-lg border border-slate-200/90 shadow-sm p-3.5 mb-2.5">
+      <div className="bg-white rounded-xl sm:rounded-lg border border-slate-200/90 shadow-sm p-3 sm:p-4 mb-2.5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
           <div>
             <span className="text-[10px] font-bold tracking-wider text-brand-700 uppercase">
               Official Application Form
             </span>
-            <h1 className="text-base sm:text-lg font-bold text-brand-950 tracking-tight">
+            <h1 className="text-sm sm:text-base md:text-lg font-bold text-brand-950 tracking-tight">
               Biodata of the Candidate for Ph.D. Admission
             </h1>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between sm:justify-end gap-2 pt-1 sm:pt-0">
             <span className="text-[11px] font-semibold text-slate-500">
               {autoSaveStatus === 'saving'
                 ? 'Saving draft...'
@@ -266,61 +305,150 @@ export default function ApplicationForm({ onSubmissionComplete }) {
               type="button"
               onClick={handleSaveDraft}
               disabled={isSavingDraft}
-              className="btn-secondary text-xs px-2.5 py-1"
+              className="btn-secondary text-xs px-2.5 py-1 shrink-0"
             >
               {isSavingDraft ? 'Saving...' : 'Save Draft'}
             </button>
           </div>
         </div>
 
-        {/* Stepper Progress Bar */}
-        <div className="mt-2">
-          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-1">
-            {FORM_STEPS.map((step) => {
-              const isCurrent = currentStep === step.id;
-              const isDone = currentStep > step.id;
+        {/* Application Roadmap Design */}
+        <div className="mt-2.5 pt-2.5 border-t border-slate-100">
+          {/* Desktop & Tablet Roadmap Pathway (>= md) */}
+          <div className="hidden md:block bg-gradient-to-b from-slate-50/70 via-slate-50/40 to-white rounded-xl border border-slate-200/90 px-3 py-3 lg:px-4 shadow-sm">
+            <div className="relative">
+              {/* Background Roadmap Line */}
+              <div className="absolute top-1/2 -translate-y-1/2 left-[10%] right-[10%] h-1 bg-slate-200 rounded-full z-0" />
+              {/* Active Roadmap Progress Line */}
+              <div
+                className="absolute top-1/2 -translate-y-1/2 left-[10%] h-1 bg-gradient-to-r from-brand-800 via-brand-600 to-emerald-600 rounded-full z-0 transition-all duration-500"
+                style={{
+                  width: `${(currentStep / (FORM_STEPS.length - 1)) * 80}%`,
+                }}
+              />
 
-              return (
-                <button
-                  key={step.id}
-                  type="button"
-                  onClick={() => {
-                    if (isDone || isCurrent) {
-                      setValidationError('');
-                      setCurrentStep(step.id);
-                      window.scrollTo({ top: 80, behavior: 'smooth' });
-                    }
-                  }}
-                  disabled={!isDone && !isCurrent}
-                  className={`text-left p-1.5 sm:p-2 rounded border transition-all ${
-                    isCurrent
-                      ? 'bg-brand-950 text-white border-brand-950 font-bold'
-                      : isDone
-                      ? 'bg-brand-50 border-brand-200 text-brand-900 font-medium'
-                      : 'bg-slate-50 border-slate-200 text-slate-400 opacity-60 cursor-not-allowed'
-                  }`}
-                >
-                  <div className="text-[10px] font-mono leading-none mb-0.5">
-                    0{step.id + 1} {isDone ? '✓' : ''}
-                  </div>
-                  <div className="text-xs truncate leading-tight">
-                    {step.title}
-                  </div>
-                </button>
-              );
-            })}
+              {/* 5 Connected Milestone Nodes */}
+              <div className="grid grid-cols-5 gap-2 relative z-10">
+                {FORM_STEPS.map((step) => {
+                  const isCurrent = currentStep === step.id;
+                  const isDone = currentStep > step.id;
+                  const isClickable = isDone || isCurrent;
+
+                  return (
+                    <button
+                      key={step.id}
+                      type="button"
+                      title={`${step.milestone}: ${step.title} (${step.subtitle})`}
+                      onClick={() => {
+                        if (isClickable) {
+                          setValidationError('');
+                          setCurrentStep(step.id);
+                          window.scrollTo({ top: 80, behavior: 'smooth' });
+                        }
+                      }}
+                      disabled={!isClickable}
+                      className={`group flex items-center justify-center focus:outline-none transition-all ${
+                        !isClickable ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+                      }`}
+                    >
+                      {/* Milestone Node */}
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center font-mono font-bold text-xs sm:text-sm transition-all duration-300 ${
+                          isDone
+                            ? 'bg-emerald-600 text-white shadow-sm ring-4 ring-emerald-50 hover:bg-emerald-700'
+                            : isCurrent
+                            ? 'bg-brand-950 text-white shadow-md ring-4 ring-brand-100 scale-110'
+                            : 'bg-white border-2 border-slate-300 text-slate-400 group-hover:border-slate-400'
+                        }`}
+                      >
+                        {isDone ? '✓' : step.stepNumber}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile Roadmap Pathway (< md) */}
+          <div className="md:hidden bg-gradient-to-b from-slate-50/80 to-white rounded-xl border border-slate-200/90 p-2.5 shadow-sm">
+            {/* Connected Route on Mobile */}
+            <div className="relative py-1 px-2">
+              {/* Background Route Line */}
+              <div className="absolute top-1/2 -translate-y-1/2 left-6 right-6 h-1 bg-slate-200 rounded-full z-0" />
+              {/* Filled Progress Line */}
+              <div
+                className="absolute top-1/2 -translate-y-1/2 left-6 h-1 bg-gradient-to-r from-brand-800 via-brand-600 to-emerald-600 rounded-full z-0 transition-all duration-500"
+                style={{
+                  width: `${(currentStep / (FORM_STEPS.length - 1)) * 100}%`,
+                  maxWidth: 'calc(100% - 48px)',
+                }}
+              />
+
+              {/* 5 Milestone Circles */}
+              <div className="flex items-center justify-between relative z-10">
+                {FORM_STEPS.map((step) => {
+                  const isCurrent = currentStep === step.id;
+                  const isDone = currentStep > step.id;
+                  const isClickable = isDone || isCurrent;
+
+                  return (
+                    <button
+                      key={step.id}
+                      type="button"
+                      title={`${step.milestone}: ${step.title} (${step.subtitle})`}
+                      onClick={() => {
+                        if (isClickable) {
+                          setValidationError('');
+                          setCurrentStep(step.id);
+                          window.scrollTo({ top: 80, behavior: 'smooth' });
+                        }
+                      }}
+                      disabled={!isClickable}
+                      className={`flex flex-col items-center focus:outline-none transition-all ${
+                        !isClickable ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
+                      }`}
+                    >
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                          isDone
+                            ? 'bg-emerald-600 text-white ring-2 ring-emerald-100 shadow-sm'
+                            : isCurrent
+                            ? 'bg-brand-950 text-white ring-4 ring-brand-100 scale-110 shadow-md'
+                            : 'bg-white border-2 border-slate-300 text-slate-400'
+                        }`}
+                      >
+                        {isDone ? (
+                          <span className="text-xs font-bold">✓</span>
+                        ) : (
+                          <span className="text-[10px] font-mono font-bold">{step.stepNumber}</span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
+
       </div>
 
       {/* Validation alert banner */}
       {validationError && (
-        <div className="mb-2.5 p-2.5 bg-red-50 border-l-4 border-red-600 rounded-r text-red-800 text-xs">
-          <strong>Missing required field:</strong> {validationError}
+        <div className="mb-2.5 p-2.5 bg-red-50 border-l-4 border-red-600 rounded-r text-red-800 text-xs flex items-start gap-1.5">
+          <span className="font-bold shrink-0">
+            {validationError.toLowerCase().includes('violates') ||
+            validationError.toLowerCase().includes('failed') ||
+            validationError.toLowerCase().includes('error')
+              ? 'Submission Notice:'
+              : 'Missing Required Field:'}
+          </span>
+          <span>{validationError}</span>
         </div>
       )}
 
-      {/* Form Steps Rendering */}
+      {/* Form Steps Rendering (13 Sections across 5 Steps) */}
       <div>
         {currentStep === 0 && (
           <Step1PersonalAddress
@@ -331,18 +459,18 @@ export default function ApplicationForm({ onSubmissionComplete }) {
           />
         )}
         {currentStep === 1 && (
-          <Step2EducationExams formData={formData} setFormData={setFormData} />
+          <div className="space-y-3">
+            <Step2EducationExams formData={formData} setFormData={setFormData} />
+            <Step3ExperienceExposure formData={formData} setFormData={setFormData} />
+          </div>
         )}
         {currentStep === 2 && (
-          <Step3ExperienceExposure formData={formData} setFormData={setFormData} />
+          <div className="space-y-3">
+            <Step4PublicationsOutputs formData={formData} setFormData={setFormData} />
+            <Step5ConferencesReferences formData={formData} setFormData={setFormData} />
+          </div>
         )}
         {currentStep === 3 && (
-          <Step4PublicationsOutputs formData={formData} setFormData={setFormData} />
-        )}
-        {currentStep === 4 && (
-          <Step5ConferencesReferences formData={formData} setFormData={setFormData} />
-        )}
-        {currentStep === 5 && (
           <Step6Documents
             formData={formData}
             setFormData={setFormData}
@@ -350,7 +478,7 @@ export default function ApplicationForm({ onSubmissionComplete }) {
             setFileObjects={setFileObjects}
           />
         )}
-        {currentStep === 6 && (
+        {currentStep === 4 && (
           <Step7DeclarationReview
             formData={formData}
             setFormData={setFormData}
@@ -360,45 +488,57 @@ export default function ApplicationForm({ onSubmissionComplete }) {
       </div>
 
       {/* Navigation Controls Bar */}
-      <div className="mt-2.5 bg-white p-3 rounded-lg border border-slate-200/90 shadow-sm flex items-center justify-between gap-2">
+      <div className="mt-3 bg-white p-2.5 sm:p-3.5 rounded-xl sm:rounded-lg border border-slate-200/90 shadow-sm flex flex-wrap items-center justify-between gap-2">
         <div>
           {currentStep > 0 && (
             <button
               type="button"
               onClick={handlePrevStep}
-              className="btn-secondary text-xs px-3 py-1.5"
+              className="btn-secondary text-xs px-2.5 sm:px-3 py-1.5"
             >
-              Previous Section
+              <span className="hidden sm:inline">← Previous Section</span>
+              <span className="sm:hidden">← Back</span>
             </button>
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 ml-auto">
           <button
             type="button"
             onClick={handleSaveDraft}
             disabled={isSavingDraft}
-            className="btn-secondary text-xs px-2.5 py-1.5"
+            className="btn-secondary text-xs px-2.5 sm:px-3 py-1.5"
           >
-            {isSavingDraft ? 'Saving...' : 'Save Draft'}
+            {isSavingDraft ? 'Saving...' : (
+              <>
+                <span className="hidden sm:inline">Save Draft</span>
+                <span className="sm:hidden">Draft</span>
+              </>
+            )}
           </button>
 
           {currentStep < FORM_STEPS.length - 1 ? (
             <button
               type="button"
               onClick={handleNextStep}
-              className="btn-primary text-xs px-4 py-1.5"
+              className="btn-primary text-xs px-3 sm:px-4 py-1.5 font-semibold"
             >
-              Save & Continue
+              <span className="hidden sm:inline">Save & Continue →</span>
+              <span className="sm:hidden">Next →</span>
             </button>
           ) : (
             <button
               type="button"
               onClick={handleFinalSubmitClick}
               disabled={isSubmitting}
-              className="btn-primary bg-emerald-700 hover:bg-emerald-800 text-xs px-5 py-1.5 font-bold"
+              className="btn-primary bg-emerald-700 hover:bg-emerald-800 text-xs px-3.5 sm:px-5 py-1.5 font-bold shadow-sm"
             >
-              {isSubmitting ? 'Submitting Application...' : 'Submit Application Final'}
+              {isSubmitting ? 'Submitting Application...' : (
+                <>
+                  <span className="hidden sm:inline">Submit Application Final ✓</span>
+                  <span className="sm:hidden">Final Submit ✓</span>
+                </>
+              )}
             </button>
           )}
         </div>

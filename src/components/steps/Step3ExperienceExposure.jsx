@@ -64,7 +64,92 @@ export default function Step3ExperienceExposure({ formData, setFormData }) {
           </button>
         </div>
 
-        <div className="overflow-x-auto -mx-4 px-4">
+        {/* Mobile Cards View (< md) */}
+        <div className="md:hidden space-y-3">
+          {experience.map((item, idx) => (
+            <div key={idx} className="bg-slate-50/70 border border-slate-200 rounded-lg p-3 relative">
+              <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-200">
+                <span className="text-xs font-bold text-brand-950 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-[10px] font-bold">
+                    {idx + 1}
+                  </span>
+                  Experience Entry #{idx + 1}
+                </span>
+                {experience.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeExpRow(idx)}
+                    className="text-xs font-semibold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2 py-0.5 rounded border border-red-200"
+                  >
+                    Delete Row
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div className="sm:col-span-2">
+                  <label className="form-label text-[11px]">Institution / Organization</label>
+                  <input
+                    type="text"
+                    placeholder="Organization / College Name"
+                    value={item.institution}
+                    onChange={(e) => handleExpChange(idx, 'institution', e.target.value)}
+                    className="form-input text-xs py-1.5"
+                  />
+                </div>
+
+                <div>
+                  <label className="form-label text-[11px]">Designation</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Assistant Professor / Software Eng"
+                    value={item.designation}
+                    onChange={(e) => handleExpChange(idx, 'designation', e.target.value)}
+                    className="form-input text-xs py-1.5"
+                  />
+                </div>
+
+                <div>
+                  <label className="form-label text-[11px]">Nature of Work</label>
+                  <input
+                    type="text"
+                    placeholder="Teaching / R&D / Industry"
+                    value={item.natureOfWork}
+                    onChange={(e) => handleExpChange(idx, 'natureOfWork', e.target.value)}
+                    className="form-input text-xs py-1.5"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 sm:col-span-2">
+                  <div>
+                    <label className="form-label text-[11px]">From – To</label>
+                    <input
+                      type="text"
+                      placeholder="MM/YYYY – MM/YYYY"
+                      value={item.fromTo}
+                      onChange={(e) => handleExpChange(idx, 'fromTo', e.target.value)}
+                      className="form-input text-xs py-1.5 text-center"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="form-label text-[11px]">Total Experience</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 3 Yrs 4 Mos"
+                      value={item.totalExperience}
+                      onChange={(e) => handleExpChange(idx, 'totalExperience', e.target.value)}
+                      className="form-input text-xs py-1.5 text-center font-medium"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop Table View (>= md) */}
+        <div className="hidden md:block overflow-x-auto -mx-4 px-4">
           <table className="w-full min-w-[750px] border-collapse text-left text-xs">
             <thead>
               <tr className="bg-slate-100 border-y border-slate-200 text-slate-700 font-semibold uppercase tracking-wider text-[11px]">

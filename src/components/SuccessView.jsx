@@ -65,30 +65,30 @@ export default function SuccessView({ submittedRecord, onStartNew }) {
   const p = submittedRecord?.personal_details || {};
 
   return (
-    <div className="max-w-3xl mx-auto py-3 px-4">
-      <div className="bg-white rounded-xl border border-slate-200/90 shadow-md overflow-hidden">
+    <div className="max-w-3xl 2xl:max-w-4xl mx-auto py-2.5 sm:py-4 px-2.5 sm:px-4">
+      <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 shadow-md overflow-hidden">
         {/* Top Header Banner */}
-        <div className="bg-brand-950 text-white p-4 text-center">
-          <div className="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-300 font-bold text-xs rounded-full border border-emerald-400 mb-1.5">
+        <div className="bg-brand-950 text-white p-4 sm:p-5 text-center">
+          <div className="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-300 font-bold text-xs rounded-full border border-emerald-400 mb-2">
             SUBMISSION RECORDED
           </div>
-          <h1 className="text-xl font-bold tracking-tight">Application Successfully Submitted</h1>
-          <p className="text-brand-200 text-xs mt-0.5 max-w-md mx-auto">
+          <h1 className="text-lg sm:text-xl font-bold tracking-tight">Application Successfully Submitted</h1>
+          <p className="text-brand-200 text-xs mt-1 max-w-md mx-auto leading-relaxed">
             Your application for Ph.D. Admission at Dr RVR NRI Institute of Technology has been officially recorded.
           </p>
         </div>
 
         {/* Application details strip */}
-        <div className="p-4 space-y-3">
-          <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="p-3.5 sm:p-5 space-y-3.5">
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block">
                 Official Application Number
               </span>
-              <span className="text-xl font-extrabold text-brand-950 font-mono tracking-tight block">
+              <span className="text-lg sm:text-xl font-extrabold text-brand-950 font-mono tracking-tight block">
                 {appNumber}
               </span>
-              <span className="text-xs text-slate-500 mt-0.5 block">
+              <span className="text-[11px] sm:text-xs text-slate-500 mt-0.5 block">
                 Submitted on: {submittedDate}
               </span>
             </div>
@@ -96,9 +96,9 @@ export default function SuccessView({ submittedRecord, onStartNew }) {
             <button
               type="button"
               onClick={handleCopyAppNumber}
-              className="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded border border-slate-300 shadow-sm transition"
+              className="self-start sm:self-auto px-3.5 py-2 sm:py-1.5 bg-white hover:bg-slate-100 active:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg sm:rounded border border-slate-300 shadow-sm transition"
             >
-              {copied ? 'Copied to Clipboard' : 'Copy Application No.'}
+              {copied ? '✓ Copied to Clipboard' : 'Copy Application No.'}
             </button>
           </div>
 

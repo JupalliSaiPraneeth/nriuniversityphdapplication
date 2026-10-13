@@ -50,13 +50,13 @@ export default function Step7DeclarationReview({ formData, setFormData, onJumpTo
             "I declare that the information furnished above is true, complete and correct to the best of my knowledge and belief. I understand that any false or incorrect information may lead to rejection/cancellation of my application/admission as per University rules."
           </p>
 
-          <div className="mt-2 pt-2 border-t border-slate-100">
-            <label className="flex items-start gap-2 cursor-pointer select-none">
+          <div className="mt-2.5 pt-2 border-t border-slate-100">
+            <label className="flex items-start gap-2.5 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={dec.accepted}
                 onChange={(e) => handleDeclarationChange('accepted', e.target.checked)}
-                className="w-4 h-4 mt-0.5 rounded text-brand-700 focus:ring-brand-500 border-slate-300"
+                className="w-5 h-5 mt-0.5 rounded text-brand-700 focus:ring-brand-500 border-slate-300 shrink-0"
                 required
               />
               <span className="text-xs font-semibold text-slate-900 leading-normal">
@@ -67,7 +67,7 @@ export default function Step7DeclarationReview({ formData, setFormData, onJumpTo
         </div>
 
         {/* Place, Date, Signature */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
           <div>
             <label htmlFor="dec-place" className="form-label form-label-required">
               Place
@@ -119,41 +119,41 @@ export default function Step7DeclarationReview({ formData, setFormData, onJumpTo
 
       {/* COMPREHENSIVE APPLICATION REVIEW ACCORDION */}
       <div className="card-section">
-        <div className="border-b border-slate-200 pb-1.5 mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+        <div className="border-b border-slate-200 pb-2 mb-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
           <div>
-            <h2 className="text-base font-bold text-brand-950">
+            <h2 className="text-sm sm:text-base font-bold text-brand-950">
               Complete Application Review
             </h2>
             <p className="text-[11px] text-slate-500">
               Review all 13 sections before final irrevocable submission to the university
             </p>
           </div>
-          <span className="text-[11px] px-2 py-0.5 bg-amber-50 text-amber-800 border border-amber-200 rounded font-medium">
+          <span className="self-start sm:self-auto text-[11px] px-2 py-0.5 bg-amber-50 text-amber-800 border border-amber-200 rounded font-medium">
             Check entries before final submit
           </span>
         </div>
 
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           {/* Section 1 & 2 Review */}
           <div className="border border-slate-200 rounded-lg overflow-hidden">
             <div
               onClick={() => toggleSection('personal')}
-              className="px-3 py-2 bg-slate-50 flex items-center justify-between cursor-pointer hover:bg-slate-100 transition"
+              className="px-3 py-2.5 bg-slate-50 flex items-center justify-between cursor-pointer hover:bg-slate-100 transition min-h-[44px]"
             >
-              <div className="flex items-center gap-1.5 font-semibold text-xs text-slate-800">
-                <span>1. Personal & 2. Address Details</span>
-                <span className="text-slate-400 font-normal">
+              <div className="flex items-center gap-1.5 font-semibold text-xs text-slate-800 min-w-0 mr-2">
+                <span className="shrink-0">1. Personal & 2. Address</span>
+                <span className="text-slate-400 font-normal truncate hidden xs:inline sm:inline">
                   ({p.fullName || 'No name'}, {p.programme || 'No programme'})
                 </span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     onJumpToStep(0);
                   }}
-                  className="text-xs text-brand-600 hover:text-brand-800 font-semibold mr-1"
+                  className="text-xs text-brand-600 hover:text-brand-800 font-semibold px-2 py-0.5 rounded hover:bg-brand-50 transition"
                 >
                   Edit
                 </button>
@@ -201,22 +201,22 @@ export default function Step7DeclarationReview({ formData, setFormData, onJumpTo
           <div className="border border-slate-200 rounded-lg overflow-hidden">
             <div
               onClick={() => toggleSection('education')}
-              className="px-3 py-2 bg-slate-50 flex items-center justify-between cursor-pointer hover:bg-slate-100 transition"
+              className="px-3 py-2.5 bg-slate-50 flex items-center justify-between cursor-pointer hover:bg-slate-100 transition min-h-[44px]"
             >
-              <div className="flex items-center gap-1.5 font-semibold text-xs text-slate-800">
-                <span>3. Educational Qualifications & 4. Examinations</span>
-                <span className="text-slate-400 font-normal">
-                  ({formData.educationalQualifications.filter((e) => e.qualification).length} Qualifications)
+              <div className="flex items-center gap-1.5 font-semibold text-xs text-slate-800 min-w-0 mr-2">
+                <span>3. Academics, 4. Exams & 5-6. Experience</span>
+                <span className="text-slate-400 font-normal truncate hidden sm:inline">
+                  ({formData.educationalQualifications.filter((e) => e.qualification).length} Qualifications, {formData.professionalExperience.filter((e) => e.institution).length} Experience records)
                 </span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     onJumpToStep(1);
                   }}
-                  className="text-xs text-brand-600 hover:text-brand-800 font-semibold mr-1"
+                  className="text-xs text-brand-600 hover:text-brand-800 font-semibold px-2 py-0.5 rounded hover:bg-brand-50 transition"
                 >
                   Edit
                 </button>
@@ -227,18 +227,109 @@ export default function Step7DeclarationReview({ formData, setFormData, onJumpTo
             </div>
 
             {expandedSections.education && (
-              <div className="p-3 bg-white text-xs border-t border-slate-200">
-                <div className="space-y-1.5">
-                  {formData.educationalQualifications.filter((e) => e.qualification).map((item, i) => (
-                    <div key={i} className="flex justify-between border-b border-slate-100 pb-1">
-                      <span className="font-medium text-slate-800">
-                        {item.qualification} ({item.specialization || '—'}) - {item.institution}
-                      </span>
-                      <span className="font-semibold text-brand-800">
-                        {item.year} | {item.percentage}%
-                      </span>
+              <div className="p-3 bg-white text-xs border-t border-slate-200 space-y-2">
+                <div>
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                    Educational Qualifications:
+                  </span>
+                  <div className="space-y-1">
+                    {formData.educationalQualifications.filter((e) => e.qualification).map((item, i) => (
+                      <div key={i} className="flex justify-between border-b border-slate-100 pb-1">
+                        <span className="font-medium text-slate-800">
+                          {item.qualification} ({item.specialization || '—'}) - {item.institution}
+                        </span>
+                        <span className="font-semibold text-brand-800">
+                          {item.year} | {item.percentage}%
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {formData.professionalExperience.some((e) => e.institution) && (
+                  <div className="pt-1.5 border-t border-slate-100">
+                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                      Professional Experience:
+                    </span>
+                    <div className="space-y-1">
+                      {formData.professionalExperience.filter((e) => e.institution).map((item, i) => (
+                        <div key={i} className="flex justify-between border-b border-slate-100 pb-1">
+                          <span className="font-medium text-slate-800">
+                            {item.designation} at {item.institution}
+                          </span>
+                          <span className="text-slate-500 font-mono text-[11px]">
+                            {item.totalExperience || item.fromTo || '—'}
+                          </span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Section 7 to 11 Review */}
+          <div className="border border-slate-200 rounded-lg overflow-hidden">
+            <div
+              onClick={() => toggleSection('publications')}
+              className="px-3 py-2.5 bg-slate-50 flex items-center justify-between cursor-pointer hover:bg-slate-100 transition min-h-[44px]"
+            >
+              <div className="flex items-center gap-1.5 font-semibold text-xs text-slate-800 min-w-0 mr-2">
+                <span>7-9. Research Outputs & 10-11. References</span>
+                <span className="text-slate-400 font-normal truncate hidden sm:inline">
+                  ({formData.researchPublications.filter((p) => p.titleAuthor).length} Papers, {formData.references.filter((r) => r.nameDesignation).length} Referees)
+                </span>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onJumpToStep(2);
+                  }}
+                  className="text-xs text-brand-600 hover:text-brand-800 font-semibold px-2 py-0.5 rounded hover:bg-brand-50 transition"
+                >
+                  Edit
+                </button>
+                <span className="text-[10px] text-slate-400">
+                  {expandedSections.publications ? '▲' : '▼'}
+                </span>
+              </div>
+            </div>
+
+            {expandedSections.publications && (
+              <div className="p-3 bg-white text-xs border-t border-slate-200 space-y-2">
+                <div>
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                    Research Publications:
+                  </span>
+                  {formData.researchPublications.filter((p) => p.titleAuthor).length > 0 ? (
+                    <div className="space-y-1">
+                      {formData.researchPublications.filter((p) => p.titleAuthor).map((pub, idx) => (
+                        <div key={idx} className="flex justify-between border-b border-slate-100 pb-1">
+                          <span className="font-medium text-slate-800 truncate mr-2">{pub.titleAuthor} ({pub.journalConference})</span>
+                          <span className="font-mono text-slate-500 shrink-0">{pub.year || '—'}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-slate-400 italic">None entered / Fresher</p>
+                  )}
+                </div>
+
+                <div className="pt-1.5 border-t border-slate-100">
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                    Referees:
+                  </span>
+                  <div className="space-y-1">
+                    {formData.references.filter((r) => r.nameDesignation).map((ref, idx) => (
+                      <div key={idx} className="flex justify-between border-b border-slate-100 pb-1">
+                        <span className="font-medium text-slate-800">{ref.nameDesignation} ({ref.institution})</span>
+                        <span className="text-slate-500 text-[11px]">{ref.contactEmail}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
@@ -248,22 +339,22 @@ export default function Step7DeclarationReview({ formData, setFormData, onJumpTo
           <div className="border border-slate-200 rounded-lg overflow-hidden">
             <div
               onClick={() => toggleSection('documents')}
-              className="px-3 py-2 bg-slate-50 flex items-center justify-between cursor-pointer hover:bg-slate-100 transition"
+              className="px-3 py-2.5 bg-slate-50 flex items-center justify-between cursor-pointer hover:bg-slate-100 transition min-h-[44px]"
             >
-              <div className="flex items-center gap-1.5 font-semibold text-xs text-slate-800">
+              <div className="flex items-center gap-1.5 font-semibold text-xs text-slate-800 min-w-0 mr-2">
                 <span>12. Documents Enclosed Checklist</span>
                 <span className="text-emerald-700 font-medium">
                   ({Object.keys(formData.documentMetadata || {}).length} files attached)
                 </span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onJumpToStep(5);
+                    onJumpToStep(3);
                   }}
-                  className="text-xs text-brand-600 hover:text-brand-800 font-semibold mr-1"
+                  className="text-xs text-brand-600 hover:text-brand-800 font-semibold px-2 py-0.5 rounded hover:bg-brand-50 transition"
                 >
                   Edit
                 </button>
@@ -282,7 +373,7 @@ export default function Step7DeclarationReview({ formData, setFormData, onJumpTo
                     </div>
                   ))}
                   {Object.keys(formData.documentMetadata || {}).length === 0 && (
-                    <p className="text-amber-700 italic">No files attached yet. Please attach required documents in Step 6.</p>
+                    <p className="text-amber-700 italic">No files attached yet. Please attach required documents in Step 4.</p>
                   )}
                 </div>
               </div>

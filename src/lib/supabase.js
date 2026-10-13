@@ -27,7 +27,7 @@ export const supabase = isSupabaseConfigured()
 // Unique Application Number Generator (Format: NRIIT-PHD-YYYY-XXXX)
 export function generateApplicationNumber() {
   const year = new Date().getFullYear();
-  const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+  const randomSuffix = Math.floor(10000 + Math.random() * 90000);
   return `NRIIT-PHD-${year}-${randomSuffix}`;
 }
 
@@ -248,7 +248,7 @@ export const dbService = {
       try {
         const { data, error } = await supabase
           .from('applications')
-          .insert([applicationRecord])
+          .upsert(applicationRecord, { onConflict: 'id' })
           .select()
           .single();
 

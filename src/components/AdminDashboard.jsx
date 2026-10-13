@@ -21,6 +21,7 @@ import {
   Layers,
   Lock,
   FileEdit,
+  Trash2,
 } from 'lucide-react';
 import { dbService } from '../lib/supabase';
 import { generateApplicationPDF } from '../lib/pdfGenerator';
@@ -51,6 +52,10 @@ export default function AdminDashboard({ onBackToForm }) {
   const [newStatus, setNewStatus] = useState('');
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [activeDetailTab, setActiveDetailTab] = useState('personal');
+
+  // Deletion state
+  const [appToDelete, setAppToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Check persisted admin session
   useEffect(() => {
@@ -198,6 +203,32 @@ export default function AdminDashboard({ onBackToForm }) {
       alert('Failed to update status. Please try again.');
     } finally {
       setIsUpdatingStatus(false);
+    }
+  };
+
+  // Delete application handler
+  const handleConfirmDelete = async () => {
+    if (!appToDelete) return;
+    setIsDeleting(true);
+    try {
+      await dbService.deleteApplication(appToDelete.id);
+      setApplications((prev) =>
+        prev.filter(
+          (item) => item.id !== appToDelete.id && item.application_number !== appToDelete.application_number
+        )
+      );
+      if (
+        selectedApp?.id === appToDelete.id ||
+        selectedApp?.application_number === appToDelete.application_number
+      ) {
+        setSelectedApp(null);
+      }
+      setAppToDelete(null);
+    } catch (err) {
+      console.error('Failed to delete application:', err);
+      alert('Failed to delete application. Please try again.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -671,6 +702,14 @@ export default function AdminDashboard({ onBackToForm }) {
                         >
                           <FileSpreadsheet className="w-3.5 h-3.5 inline" />
                         </button>
+                        <button
+                          type="button"
+                          onClick={() => setAppToDelete(app)}
+                          className="px-2 py-1.5 text-slate-400 hover:text-red-700 rounded hover:bg-red-50 transition"
+                          title="Delete Application"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 inline text-red-500" />
+                        </button>
                       </td>
                     </tr>
                   );
@@ -742,6 +781,14 @@ export default function AdminDashboard({ onBackToForm }) {
                   className="px-3 py-1.5 bg-emerald-800 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition flex items-center gap-1.5"
                 >
                   <FileSpreadsheet className="w-3.5 h-3.5" /> CSV
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAppToDelete(selectedApp)}
+                  className="px-2.5 py-1.5 bg-red-900/80 hover:bg-red-800 text-white text-xs font-semibold rounded-lg transition flex items-center gap-1.5 border border-red-700/60"
+                  title="Delete this application record"
+                >
+                  <Trash2 className="w-3.5 h-3.5" /> Delete
                 </button>
                 <button
                   type="button"
@@ -1031,6 +1078,66 @@ export default function AdminDashboard({ onBackToForm }) {
                   {isUpdatingStatus ? 'Saving...' : 'Save Decision'}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE CONFIRMATION DIALOG MODAL */}
+      {appToDelete && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 space-y-4 animate-in zoom-in-95">
+            <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 mx-auto flex items-center justify-center">
+              <Trash2 className="w-6 h-6" />
+            </div>
+
+            <div className="text-center">
+              <h3 className="text-lg font-bold text-slate-900">
+                Permanently Delete Application?
+              </h3>
+              <p className="text-xs text-slate-500 mt-1">
+                Are you sure you want to delete this record? This action will permanently remove all applicant biodata and attached references from the portal.
+              </p>
+            </div>
+
+            <div className="bg-red-50/60 border border-red-200/80 rounded-xl p-3.5 text-xs text-slate-800 space-y-1.5">
+              <div className="flex justify-between">
+                <span className="text-slate-500">Application No:</span>
+                <span className="font-mono font-bold text-brand-950">
+                  {appToDelete.application_number}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Applicant:</span>
+                <span className="font-semibold text-slate-900">
+                  {appToDelete.personal_details?.fullName || appToDelete.applicant_name || '—'}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Status:</span>
+                <span className="font-semibold capitalize text-slate-700">
+                  {appToDelete.status || 'draft'}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setAppToDelete(null)}
+                disabled={isDeleting}
+                className="btn-secondary flex-1 py-2.5 text-xs font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+                className="btn-primary bg-red-600 hover:bg-red-700 flex-1 py-2.5 text-xs font-semibold shadow-sm"
+              >
+                {isDeleting ? 'Deleting...' : 'Yes, Delete Record'}
+              </button>
             </div>
           </div>
         </div>

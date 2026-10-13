@@ -85,4 +85,27 @@ describe('Database and Security Service', () => {
     expect(updated.status).toBe('approved');
     expect(updated.reviewer_notes).toBe('Recommended by DRC for interview');
   });
+
+  it('should allow administrators to permanently delete an application', async () => {
+    const mockFormData = {
+      personalDetails: {
+        fullName: 'To Be Deleted Candidate',
+        email: 'delete.me@example.com',
+      },
+    };
+
+    const record = await dbService.submitApplication(mockFormData);
+    expect(record).toBeDefined();
+
+    const retrievedBefore = await dbService.getApplication(record.id);
+    expect(retrievedBefore).toBeDefined();
+
+    // Execute delete
+    const result = await dbService.deleteApplication(record.id);
+    expect(result).toBe(true);
+
+    // Verify it is gone
+    const retrievedAfter = await dbService.getApplication(record.id);
+    expect(retrievedAfter).toBeNull();
+  });
 });

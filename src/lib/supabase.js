@@ -416,4 +416,21 @@ export const dbService = {
       throw new Error('Application not found');
     }
   },
+
+  // Delete application
+  async deleteApplication(id) {
+    if (isSupabaseConfigured()) {
+      const { error } = await supabase
+        .from('applications')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+      return true;
+    } else {
+      const apps = getLocalApps();
+      const updated = apps.filter((a) => a.id !== id && a.application_number !== id);
+      saveLocalApps(updated);
+      return true;
+    }
+  },
 };

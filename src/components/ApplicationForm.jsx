@@ -39,21 +39,65 @@ export default function ApplicationForm({ onSubmissionComplete }) {
   const [draftToast, setDraftToast] = useState(null);
   const [validationError, setValidationError] = useState('');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState('saved'); // 'saving' | 'saved'
+  const [lastSavedTime, setLastSavedTime] = useState(null);
 
-  // Restore draft from localStorage on initial load
+  // Restore draft from localStorage on initial load and assign draft number
   useEffect(() => {
     try {
       const savedDraft = localStorage.getItem('nriit_phd_applicant_draft');
       if (savedDraft) {
         const parsed = JSON.parse(savedDraft);
-        setFormData((prev) => ({ ...prev, ...parsed }));
+        const restoredAppNumber = parsed.applicationNumber || `DRAFT-${Math.floor(100000 + Math.random() * 900000)}`;
+        setFormData((prev) => ({
+          ...prev,
+          ...parsed,
+          applicationNumber: restoredAppNumber,
+        }));
+      } else {
+        setFormData((prev) => ({
+          ...prev,
+          applicationNumber: prev.applicationNumber || `DRAFT-${Math.floor(100000 + Math.random() * 900000)}`,
+        }));
       }
     } catch (e) {
       console.warn('Could not restore draft:', e);
     }
   }, []);
 
-  // Save draft helper
+  // Automatic real-time background draft saving to database & storage
+  useEffect(() => {
+    const hasAnyContent = Boolean(
+      formData.personalDetails?.fullName?.trim() ||
+      formData.personalDetails?.email?.trim() ||
+      formData.personalDetails?.mobileNumber?.trim() ||
+      formData.personalDetails?.programme ||
+      formData.personalDetails?.specialization?.trim() ||
+      formData.addressDetails?.permanentAddress?.trim() ||
+      formData.educationalQualifications?.some((q) => q.qualification?.trim())
+    );
+
+    if (!hasAnyContent) return;
+
+    setAutoSaveStatus('saving');
+    const timer = setTimeout(async () => {
+      try {
+        localStorage.setItem('nriit_phd_applicant_draft', JSON.stringify(formData));
+        await dbService.saveDraft(formData);
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        setLastSavedTime(timeStr);
+        setAutoSaveStatus('saved');
+      } catch (err) {
+        console.warn('Background auto-save warning:', err);
+        setAutoSaveStatus('saved');
+      }
+    }, 1200);
+
+    return () => clearTimeout(timer);
+  }, [formData]);
+
+  // Save draft helper (manual trigger)
   const handleSaveDraft = async () => {
     setIsSavingDraft(true);
     setValidationError('');
@@ -61,7 +105,11 @@ export default function ApplicationForm({ onSubmissionComplete }) {
       localStorage.setItem('nriit_phd_applicant_draft', JSON.stringify(formData));
       await dbService.saveDraft(formData);
 
-      setDraftToast('Draft saved successfully! You can resume anytime.');
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      setLastSavedTime(timeStr);
+      setAutoSaveStatus('saved');
+      setDraftToast('Draft auto-saved to Admin Portal! You can resume anytime.');
       setTimeout(() => setDraftToast(null), 4000);
     } catch (err) {
       console.error('Failed to save draft:', err);
@@ -151,6 +199,8 @@ export default function ApplicationForm({ onSubmissionComplete }) {
       return;
     }
     setValidationError('');
+    // Save draft immediately on step progression
+    dbService.saveDraft(formData).catch(console.warn);
     if (currentStep < FORM_STEPS.length - 1) {
       setCurrentStep((prev) => prev + 1);
       window.scrollTo({ top: 100, behavior: 'smooth' });
@@ -159,6 +209,8 @@ export default function ApplicationForm({ onSubmissionComplete }) {
 
   const handlePrevStep = () => {
     setValidationError('');
+    // Save draft immediately on step regression
+    dbService.saveDraft(formData).catch(console.warn);
     if (currentStep > 0) {
       setCurrentStep((prev) => prev - 1);
       window.scrollTo({ top: 100, behavior: 'smooth' });
@@ -182,7 +234,7 @@ export default function ApplicationForm({ onSubmissionComplete }) {
 
     try {
       const record = await dbService.submitApplication(formData, fileObjects);
-      // Clear draft
+      // Clear draft from localStorage
       localStorage.removeItem('nriit_phd_applicant_draft');
       onSubmissionComplete(record);
     } catch (err) {
@@ -220,16 +272,37 @@ export default function ApplicationForm({ onSubmissionComplete }) {
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={handleSaveDraft}
-            disabled={isSavingDraft}
-            className="btn-secondary text-xs px-3.5 py-2 flex items-center gap-1.5 self-start sm:self-center shrink-0"
-            title="Save draft to continue later"
-          >
-            {isSavingDraft ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5 text-brand-600" />}
-            Save Application Draft
-          </button>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2.5">
+            <div className="flex items-center gap-1.5 text-xs">
+              {autoSaveStatus === 'saving' ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-50 text-brand-700 font-semibold border border-brand-200 text-xs">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-600" />
+                  Auto-saving to portal...
+                </span>
+              ) : lastSavedTime ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 font-semibold border border-emerald-200 text-xs shadow-xs">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  Auto-saved to Portal ({lastSavedTime})
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 text-slate-600 font-medium border border-slate-200 text-xs">
+                  <Save className="w-3.5 h-3.5 text-slate-400" />
+                  Auto-save Active
+                </span>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={handleSaveDraft}
+              disabled={isSavingDraft}
+              className="btn-secondary text-xs px-3.5 py-2 flex items-center gap-1.5 self-start sm:self-center shrink-0"
+              title="Save draft to continue later"
+            >
+              {isSavingDraft ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5 text-brand-600" />}
+              Save Draft Now
+            </button>
+          </div>
         </div>
 
         {/* Stepper Progress Bar */}

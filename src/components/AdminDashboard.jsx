@@ -20,6 +20,7 @@ import {
   Calendar,
   Layers,
   Lock,
+  FileEdit,
 } from 'lucide-react';
 import { dbService } from '../lib/supabase';
 import { generateApplicationPDF } from '../lib/pdfGenerator';
@@ -64,7 +65,16 @@ export default function AdminDashboard({ onBackToForm }) {
     setLoading(true);
     try {
       const data = await dbService.getApplications();
-      setApplications(data || []);
+      // Ensure any application with DRAFT- number or without submitted_at is recognized as draft
+      const normalized = (data || []).map((app) => {
+        const isDraftNumber = String(app.application_number || '').startsWith('DRAFT-');
+        const hasNoSubmission = !app.submitted_at;
+        if ((isDraftNumber || hasNoSubmission) && app.status !== 'approved' && app.status !== 'rejected' && app.status !== 'under_review') {
+          return { ...app, status: 'draft' };
+        }
+        return app;
+      });
+      setApplications(normalized);
     } catch (err) {
       console.error('Error fetching applications:', err);
     } finally {
@@ -151,6 +161,7 @@ export default function AdminDashboard({ onBackToForm }) {
   const stats = useMemo(() => {
     return {
       total: applications.length,
+      drafts: applications.filter((a) => a.status === 'draft').length,
       submitted: applications.filter((a) => a.status === 'submitted').length,
       underReview: applications.filter((a) => a.status === 'under_review').length,
       approved: applications.filter((a) => a.status === 'approved').length,
@@ -278,6 +289,12 @@ export default function AdminDashboard({ onBackToForm }) {
   // STATUS BADGE RENDERER
   const renderStatusBadge = (status) => {
     switch (status) {
+      case 'draft':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <FileEdit className="w-3 h-3 text-indigo-500" /> Draft / In-Progress
+          </span>
+        );
       case 'approved':
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
@@ -296,6 +313,7 @@ export default function AdminDashboard({ onBackToForm }) {
             <XCircle className="w-3 h-3" /> Rejected
           </span>
         );
+      case 'submitted':
       default:
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
@@ -364,7 +382,7 @@ export default function AdminDashboard({ onBackToForm }) {
       </div>
 
       {/* METRIC STATS CARDS */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
         <div
           onClick={() => setStatusFilter('all')}
           className={`p-4 rounded-xl border cursor-pointer transition ${
@@ -380,6 +398,23 @@ export default function AdminDashboard({ onBackToForm }) {
             <Layers className="w-4 h-4 opacity-70" />
           </div>
           <p className="text-2xl font-black mt-2">{stats.total}</p>
+        </div>
+
+        <div
+          onClick={() => setStatusFilter('draft')}
+          className={`p-4 rounded-xl border cursor-pointer transition ${
+            statusFilter === 'draft'
+              ? 'bg-indigo-700 text-white border-indigo-700 shadow-md'
+              : 'bg-white border-slate-200 hover:border-slate-300'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold uppercase tracking-wider opacity-80">
+              Drafts (In-Progress)
+            </span>
+            <FileEdit className="w-4 h-4 text-indigo-400" />
+          </div>
+          <p className="text-2xl font-black mt-2 text-indigo-600">{stats.drafts}</p>
         </div>
 
         <div
@@ -455,9 +490,9 @@ export default function AdminDashboard({ onBackToForm }) {
 
       {/* SEARCH AND FILTERS TOOLBAR */}
       <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           {/* Search bar */}
-          <div className="relative md:col-span-1">
+          <div className="relative">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
             <input
               type="text"
@@ -466,6 +501,22 @@ export default function AdminDashboard({ onBackToForm }) {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none"
             />
+          </div>
+
+          {/* Status Filter */}
+          <div>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none font-medium"
+            >
+              <option value="all">All Application Statuses</option>
+              <option value="draft">Drafts / In-Progress</option>
+              <option value="submitted">Submitted</option>
+              <option value="under_review">Under Review</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
           </div>
 
           {/* Programme Filter */}
@@ -578,13 +629,19 @@ export default function AdminDashboard({ onBackToForm }) {
                         {p.admissionCategory || app.admission_category || '—'}
                       </td>
                       <td className="py-3 px-4 text-slate-500">
-                        {app.submitted_at
-                          ? new Date(app.submitted_at).toLocaleDateString('en-IN', {
-                              day: '2-digit',
-                              month: 'short',
-                              year: 'numeric',
-                            })
-                          : '—'}
+                        {app.status === 'draft' ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                            <FileEdit className="w-3 h-3 text-slate-400" /> In Progress (Draft)
+                          </span>
+                        ) : app.submitted_at ? (
+                          new Date(app.submitted_at).toLocaleDateString('en-IN', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                          })
+                        ) : (
+                          '—'
+                        )}
                       </td>
                       <td className="py-3 px-4 text-center">
                         {renderStatusBadge(app.status)}
@@ -721,6 +778,17 @@ export default function AdminDashboard({ onBackToForm }) {
 
             {/* Modal Content Body */}
             <div className="p-6 overflow-y-auto space-y-5 text-xs flex-1">
+              {selectedApp.status === 'draft' && (
+                <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-lg text-indigo-900 flex items-center gap-2.5">
+                  <FileEdit className="w-4 h-4 text-indigo-600 shrink-0" />
+                  <div>
+                    <span className="font-bold">In-Progress Auto-Saved Draft:</span>
+                    <p className="text-[11px] text-indigo-800">
+                      This candidate is currently filling out the application. The details below reflect their auto-saved form data till now. Final submission declaration has not yet been executed.
+                    </p>
+                  </div>
+                </div>
+              )}
               {activeDetailTab === 'personal' && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                   <div className="p-3 bg-slate-50 rounded-lg">

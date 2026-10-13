@@ -1,12 +1,12 @@
 -- ==============================================================================
 -- Dr RVR NRI Institute of Technology - Ph.D. Admission System Database Schema
--- Migration: 20250101000000_phd_admissions_schema.sql
+-- Run this entire script in Supabase: Dashboard -> SQL Editor -> New Query -> Run
 -- ==============================================================================
 
--- 1. Create custom types and sequences
+-- 1. Create Sequence for official Ph.D. Application Numbers (Format: NRIIT-PHD-YYYY-XXXX)
 CREATE SEQUENCE IF NOT EXISTS phd_application_number_seq START WITH 1001 INCREMENT BY 1;
 
--- 2. Applications Table
+-- 2. Applications Table (Supports all 13 sections of the official NRIIT Ph.D. Application)
 CREATE TABLE IF NOT EXISTS public.applications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     application_number TEXT UNIQUE NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS public.applications (
     -- Administrative fields
     pdf_storage_path TEXT,
     reviewer_notes TEXT,
-    reviewed_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    reviewed_by TEXT,
     
     -- Timestamps
     created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
@@ -45,14 +45,13 @@ CREATE TABLE IF NOT EXISTS public.applications (
     submitted_at TIMESTAMPTZ
 );
 
--- Indexes for performance and quick searching
+-- Indexes for performance, fast search and scrutiny filtering
 CREATE INDEX IF NOT EXISTS idx_applications_app_number ON public.applications (application_number);
 CREATE INDEX IF NOT EXISTS idx_applications_email ON public.applications (applicant_email);
 CREATE INDEX IF NOT EXISTS idx_applications_status ON public.applications (status);
 CREATE INDEX IF NOT EXISTS idx_applications_created_at ON public.applications (created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_applications_applicant_user ON public.applications (applicant_user_id);
 
--- 3. Normalized Document Records Table
+-- 3. Normalized Application Documents Table
 CREATE TABLE IF NOT EXISTS public.application_documents (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     application_id UUID NOT NULL REFERENCES public.applications(id) ON DELETE CASCADE,
@@ -66,25 +65,7 @@ CREATE TABLE IF NOT EXISTS public.application_documents (
 
 CREATE INDEX IF NOT EXISTS idx_application_documents_app_id ON public.application_documents (application_id);
 
--- 4. User Roles Table for RBAC
-CREATE TABLE IF NOT EXISTS public.user_roles (
-    user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    role TEXT NOT NULL CHECK (role IN ('admin', 'reviewer', 'applicant')),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
-);
-
--- 5. Helper Function: Check if current user is administrator
-CREATE OR REPLACE FUNCTION public.is_admin()
-RETURNS boolean AS $$
-BEGIN
-    RETURN EXISTS (
-        SELECT 1 FROM public.user_roles
-        WHERE user_id = auth.uid() AND role IN ('admin', 'reviewer')
-    );
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- 6. Trigger Function: Generate Safe Human-Readable Application Number Server-Side
+-- 4. Trigger Function: Automatically Generate Application Number (e.g. NRIIT-PHD-2025-1001)
 CREATE OR REPLACE FUNCTION public.generate_phd_application_number()
 RETURNS trigger AS $$
 DECLARE
@@ -104,9 +85,10 @@ DROP TRIGGER IF EXISTS trigger_generate_app_num ON public.applications;
 CREATE TRIGGER trigger_generate_app_num
 BEFORE INSERT ON public.applications
 FOR EACH ROW
+WHEN (NEW.status = 'submitted')
 EXECUTE FUNCTION public.generate_phd_application_number();
 
--- 7. Trigger Function: Automatically Update updated_at Timestamp
+-- 5. Trigger Function: Automatically Update updated_at Timestamp
 CREATE OR REPLACE FUNCTION public.handle_updated_at()
 RETURNS trigger AS $$
 BEGIN
@@ -121,70 +103,58 @@ BEFORE UPDATE ON public.applications
 FOR EACH ROW
 EXECUTE FUNCTION public.handle_updated_at();
 
--- 8. Row Level Security (RLS) Configuration
+-- 6. Storage Bucket for Candidate Certificates & Documents
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('phd-documents', 'phd-documents', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+-- 7. Row Level Security (RLS) Configuration
 ALTER TABLE public.applications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.application_documents ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
 
--- Applications Policies:
--- 8.1 Anyone (including guests or authenticated applicants) can submit a new application
-CREATE POLICY "Applicants can insert new application"
-ON public.applications
-FOR INSERT
-WITH CHECK (true);
+-- 7.1 Applications Table Policies
+DROP POLICY IF EXISTS "Allow select applications" ON public.applications;
+CREATE POLICY "Allow select applications" ON public.applications
+FOR SELECT USING (true);
 
--- 8.2 Applicants can read their own draft/submitted application
-CREATE POLICY "Applicants can read own applications"
-ON public.applications
-FOR SELECT
-USING (
-    (auth.uid() IS NOT NULL AND applicant_user_id = auth.uid()) OR
-    public.is_admin()
-);
+DROP POLICY IF EXISTS "Allow insert applications" ON public.applications;
+CREATE POLICY "Allow insert applications" ON public.applications
+FOR INSERT WITH CHECK (true);
 
--- 8.3 Applicants can ONLY modify DRAFT applications; submitted applications are locked!
-CREATE POLICY "Applicants can update draft applications only"
-ON public.applications
-FOR UPDATE
-USING (
-    (auth.uid() IS NOT NULL AND applicant_user_id = auth.uid() AND status = 'draft') OR
-    public.is_admin()
-)
-WITH CHECK (
-    (auth.uid() IS NOT NULL AND applicant_user_id = auth.uid() AND status = 'draft') OR
-    public.is_admin()
-);
+DROP POLICY IF EXISTS "Allow update applications" ON public.applications;
+CREATE POLICY "Allow update applications" ON public.applications
+FOR UPDATE USING (true) WITH CHECK (true);
 
--- 8.4 Admins have full access
-CREATE POLICY "Admins have full access to applications"
-ON public.applications
-FOR ALL
-USING (public.is_admin());
+DROP POLICY IF EXISTS "Allow delete applications" ON public.applications;
+CREATE POLICY "Allow delete applications" ON public.applications
+FOR DELETE USING (true);
 
--- Documents Policies:
-CREATE POLICY "Anyone can insert documents during application submission"
-ON public.application_documents
-FOR INSERT
-WITH CHECK (true);
+-- 7.2 Application Documents Table Policies
+DROP POLICY IF EXISTS "Allow select documents" ON public.application_documents;
+CREATE POLICY "Allow select documents" ON public.application_documents
+FOR SELECT USING (true);
 
-CREATE POLICY "Users and admins can view documents for authorized applications"
-ON public.application_documents
-FOR SELECT
-USING (
-    EXISTS (
-        SELECT 1 FROM public.applications a
-        WHERE a.id = application_documents.application_id
-        AND (a.applicant_user_id = auth.uid() OR public.is_admin())
-    )
-);
+DROP POLICY IF EXISTS "Allow insert documents" ON public.application_documents;
+CREATE POLICY "Allow insert documents" ON public.application_documents
+FOR INSERT WITH CHECK (true);
 
--- User roles policies
-CREATE POLICY "Admins can view user roles"
-ON public.user_roles
-FOR SELECT
-USING (public.is_admin() OR auth.uid() = user_id);
+DROP POLICY IF EXISTS "Allow delete documents" ON public.application_documents;
+CREATE POLICY "Allow delete documents" ON public.application_documents
+FOR DELETE USING (true);
 
--- 9. Storage Setup Instructions
--- Run this in Supabase SQL editor to create the private storage bucket:
--- INSERT INTO storage.buckets (id, name, public) VALUES ('phd-documents', 'phd-documents', false)
--- ON CONFLICT (id) DO NOTHING;
+-- 7.3 Storage Bucket Policies (storage.objects)
+DROP POLICY IF EXISTS "Allow upload to phd-documents" ON storage.objects;
+CREATE POLICY "Allow upload to phd-documents" ON storage.objects
+FOR INSERT WITH CHECK (bucket_id = 'phd-documents');
+
+DROP POLICY IF EXISTS "Allow select from phd-documents" ON storage.objects;
+CREATE POLICY "Allow select from phd-documents" ON storage.objects
+FOR SELECT USING (bucket_id = 'phd-documents');
+
+DROP POLICY IF EXISTS "Allow update to phd-documents" ON storage.objects;
+CREATE POLICY "Allow update to phd-documents" ON storage.objects
+FOR UPDATE USING (bucket_id = 'phd-documents');
+
+DROP POLICY IF EXISTS "Allow delete from phd-documents" ON storage.objects;
+CREATE POLICY "Allow delete from phd-documents" ON storage.objects
+FOR DELETE USING (bucket_id = 'phd-documents');

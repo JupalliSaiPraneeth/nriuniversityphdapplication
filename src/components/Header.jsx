@@ -1,38 +1,60 @@
-import React from 'react';
-import { isSupabaseConfigured } from '../lib/supabase';
+import React, { useState, useEffect } from 'react';
+import { Award, Mail, Phone, MapPin, Database, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { isSupabaseConfigured, dbService } from '../lib/supabase';
 
 export default function Header({ currentView, setCurrentView }) {
   const isSupabaseLive = isSupabaseConfigured();
+  const [dbStatus, setDbStatus] = useState({
+    configured: isSupabaseLive,
+    tableReady: false,
+    message: isSupabaseLive ? 'Checking Supabase schema...' : 'Active Local DB',
+  });
+
+  useEffect(() => {
+    if (isSupabaseLive) {
+      dbService.checkSchemaStatus().then((status) => {
+        setDbStatus(status);
+      });
+    }
+  }, [isSupabaseLive]);
 
   return (
     <header className="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-30">
       {/* Top utility bar */}
-      <div className="bg-brand-950 text-slate-200 text-xs py-1 px-4 sm:px-8 border-b border-brand-900">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-1.5">
-          <div className="flex items-center gap-3 text-[11px]">
-            <span className="text-slate-300">
-              Pothavarappadu, Agiripalli, Vijayawada Rural, AP – 521212
+      <div className="bg-brand-950 text-slate-200 text-xs py-1.5 px-4 sm:px-8 border-b border-brand-900">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-4">
+            <span className="flex items-center gap-1.5 text-slate-300">
+              <MapPin className="w-3.5 h-3.5 text-gold-400" />
+              Vijayawada Rural, Andhra Pradesh – 521212
             </span>
-            <span className="text-slate-500">|</span>
-            <span>
-              Email:{' '}
-              <a href="mailto:deanrnd@nriit.edu.in" className="text-gold-400 hover:text-white underline">
+            <span className="hidden md:inline-flex items-center gap-1.5 text-slate-300">
+              <Mail className="w-3.5 h-3.5 text-gold-400" />
+              <a href="mailto:deanrnd@nriit.edu.in" className="hover:text-white underline">
                 deanrnd@nriit.edu.in
               </a>
             </span>
           </div>
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-3">
             <span
-              className={`inline-block px-2 py-0.2 rounded text-[10px] font-semibold ${
-                isSupabaseLive
+              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium ${
+                dbStatus.tableReady
                   ? 'bg-emerald-900/60 text-emerald-300 border border-emerald-700/50'
+                  : dbStatus.configured
+                  ? 'bg-blue-900/60 text-blue-300 border border-blue-700/50'
                   : 'bg-amber-900/60 text-amber-300 border border-amber-700/50'
               }`}
+              title={dbStatus.message}
             >
-              {isSupabaseLive ? '● Supabase Live' : '● Local DB Active'}
+              <Database className="w-3 h-3" />
+              {dbStatus.tableReady
+                ? 'Supabase Live'
+                : dbStatus.configured
+                ? 'Supabase Connected (Run SQL)'
+                : 'Active Local DB'}
             </span>
-            <span className="text-slate-500 hidden sm:inline">|</span>
-            <span className="text-gold-400 font-semibold text-[11px]">
+            <span className="text-slate-400 hidden sm:inline">|</span>
+            <span className="text-gold-400 font-semibold text-[11px] tracking-wide">
               Ph.D. Admissions 2025-26
             </span>
           </div>
@@ -40,48 +62,52 @@ export default function Header({ currentView, setCurrentView }) {
       </div>
 
       {/* Main branding & navigation bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-8 py-2">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
-          <div className="flex items-center gap-3">
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 py-3.5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
             <img
               src="/nrilogo.png"
-              alt="Dr RVR NRIIT"
-              className="h-11 sm:h-12 w-auto object-contain"
+              alt="Dr RVR NRIIT Logo"
+              className="h-14 sm:h-16 w-auto object-contain drop-shadow-sm"
               onError={(e) => {
                 e.target.style.display = 'none';
               }}
             />
             <div>
-              <h1 className="text-base sm:text-lg font-bold text-brand-950 tracking-tight leading-tight">
-                Dr RVR NRI INSTITUTE OF TECHNOLOGY
-              </h1>
-              <p className="text-[11px] sm:text-xs font-semibold text-brand-700 leading-tight">
-                (Deemed to be University) · Directorate of Research & Development (R&D)
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg sm:text-xl font-bold text-brand-950 tracking-tight leading-tight">
+                  Dr RVR NRI INSTITUTE OF TECHNOLOGY
+                </h1>
+              </div>
+              <p className="text-xs sm:text-sm font-semibold text-brand-700">
+                (Deemed to be University)
+              </p>
+              <p className="text-[11px] text-slate-500 font-medium">
+                Pothavarappadu, Agiripalli, Vijayawada Rural, A.P. – 521212
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 self-end md:self-center">
+          <div className="flex items-center gap-2.5 self-end md:self-center">
             <button
               type="button"
               onClick={() => setCurrentView('form')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded transition-all ${
-                currentView === 'form'
-                  ? 'bg-brand-800 text-white'
-                  : 'text-slate-700 hover:bg-slate-100 border border-slate-200'
-              }`}
+              className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${currentView === 'form'
+                  ? 'bg-brand-800 text-white shadow-sm'
+                  : 'text-slate-700 hover:bg-slate-100'
+                }`}
             >
               Applicant Form
             </button>
             <button
               type="button"
               onClick={() => setCurrentView('admin')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded transition-all ${
-                currentView === 'admin'
-                  ? 'bg-brand-950 text-white'
+              className={`px-4 py-2 text-sm font-semibold rounded-lg flex items-center gap-1.5 transition-all ${currentView === 'admin'
+                  ? 'bg-brand-950 text-white shadow-sm'
                   : 'text-slate-700 hover:bg-slate-100 border border-slate-200'
-              }`}
+                }`}
             >
+              <ShieldCheck className="w-4 h-4 text-brand-500" />
               Admin Portal
             </button>
           </div>

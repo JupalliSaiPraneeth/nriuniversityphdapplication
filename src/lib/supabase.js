@@ -28,11 +28,20 @@ export const supabase = isSupabaseConfigured()
 export function generateApplicationNumber() {
   const year = new Date().getFullYear();
   const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-  const timeSlice = Date.now().toString().slice(-4);
   return `NRIIT-PHD-${year}-${randomSuffix}`;
 }
 
-// Local Persistent Store (Simulates Supabase when live credentials are not set)
+// Check if error is due to missing schema table
+function isTableMissingError(error) {
+  if (!error) return false;
+  return (
+    error.code === 'PGRST205' ||
+    error.code === '42P01' ||
+    (typeof error.message === 'string' && error.message.toLowerCase().includes('schema cache'))
+  );
+}
+
+// Local Persistent Store (Simulates Supabase when live credentials or tables are not yet set)
 const LOCAL_STORAGE_KEY = 'nriit_phd_applications_v1';
 const LOCAL_DOCS_KEY = 'nriit_phd_documents_v1';
 
@@ -91,6 +100,29 @@ export const dbService = {
     return isSupabaseConfigured();
   },
 
+  // Check if live Supabase table is created
+  async checkSchemaStatus() {
+    if (!isSupabaseConfigured() || !supabase) {
+      return { configured: false, tableReady: false, message: 'Local DB Active' };
+    }
+    try {
+      const { error } = await supabase.from('applications').select('id').limit(1);
+      if (error && isTableMissingError(error)) {
+        return {
+          configured: true,
+          tableReady: false,
+          message: 'Connected to Supabase (SQL Migration Pending)',
+        };
+      }
+      if (error) {
+        return { configured: true, tableReady: false, message: error.message };
+      }
+      return { configured: true, tableReady: true, message: 'Supabase Live & Synchronized' };
+    } catch (err) {
+      return { configured: true, tableReady: false, message: err.message };
+    }
+  },
+
   // Save draft
   async saveDraft(formData) {
     const appNumber = formData.applicationNumber || `DRAFT-${Date.now().toString().slice(-6)}`;
@@ -122,24 +154,39 @@ export const dbService = {
     };
 
     if (isSupabaseConfigured()) {
-      const { data, error } = await supabase
-        .from('applications')
-        .upsert(draftRecord, { onConflict: 'id' })
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
-    } else {
-      const apps = getLocalApps();
-      const existingIndex = apps.findIndex((a) => a.id === draftRecord.id);
-      if (existingIndex >= 0) {
-        apps[existingIndex] = { ...apps[existingIndex], ...draftRecord };
-      } else {
-        apps.unshift(draftRecord);
+      try {
+        const { data, error } = await supabase
+          .from('applications')
+          .upsert(draftRecord, { onConflict: 'id' })
+          .select()
+          .single();
+
+        if (error) {
+          if (isTableMissingError(error)) {
+            console.warn('[Supabase] applications table not found in Supabase. Auto-saving to local store.');
+          } else {
+            throw error;
+          }
+        } else {
+          return data;
+        }
+      } catch (err) {
+        if (!isTableMissingError(err)) {
+          console.warn('[Supabase] Draft save error:', err);
+        }
       }
-      saveLocalApps(apps);
-      return draftRecord;
     }
+
+    // Local fallback
+    const apps = getLocalApps();
+    const existingIndex = apps.findIndex((a) => a.id === draftRecord.id);
+    if (existingIndex >= 0) {
+      apps[existingIndex] = { ...apps[existingIndex], ...draftRecord };
+    } else {
+      apps.unshift(draftRecord);
+    }
+    saveLocalApps(apps);
+    return draftRecord;
   },
 
   // Final Submit
@@ -198,19 +245,34 @@ export const dbService = {
     };
 
     if (isSupabaseConfigured()) {
-      const { data, error } = await supabase
-        .from('applications')
-        .insert([applicationRecord])
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
-    } else {
-      const apps = getLocalApps();
-      apps.unshift(applicationRecord);
-      saveLocalApps(apps);
-      return applicationRecord;
+      try {
+        const { data, error } = await supabase
+          .from('applications')
+          .insert([applicationRecord])
+          .select()
+          .single();
+
+        if (error) {
+          if (isTableMissingError(error)) {
+            console.warn('[Supabase] applications table not found in Supabase. Saving to local store.');
+          } else {
+            throw error;
+          }
+        } else {
+          return data;
+        }
+      } catch (err) {
+        if (!isTableMissingError(err)) {
+          throw err;
+        }
+      }
     }
+
+    // Local fallback
+    const apps = getLocalApps();
+    apps.unshift(applicationRecord);
+    saveLocalApps(apps);
+    return applicationRecord;
   },
 
   // Upload document to private storage
@@ -219,78 +281,79 @@ export const dbService = {
     const filePath = `${applicationId}/${docType}_${Date.now()}.${extension}`;
 
     if (isSupabaseConfigured()) {
-      const { data, error } = await supabase.storage
-        .from(storageBucket)
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: true,
-        });
-
-      if (error) {
-        console.error(`Storage error uploading ${docType}:`, error);
-        throw error;
-      }
-
-      // Record normalized metadata in application_documents table
       try {
-        await supabase.from('application_documents').insert([
-          {
-            application_id: applicationId,
-            document_type: docType,
-            storage_path: data.path,
-            file_name: file.name,
-            file_size: file.size,
-            content_type: file.type,
-          },
-        ]);
-      } catch (docErr) {
-        console.warn('Could not insert application_document record:', docErr);
-      }
+        const { data, error } = await supabase.storage
+          .from(storageBucket)
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: true,
+          });
 
-      return {
-        docType,
-        fileName: file.name,
-        fileSize: file.size,
-        contentType: file.type,
-        storagePath: data.path,
-        uploadedAt: new Date().toISOString(),
-      };
-    } else {
-      // Local fallback: read file to data URL or object URL
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const docs = getLocalDocs();
-          const docKey = `${applicationId}_${docType}`;
-          docs[docKey] = {
-            dataUrl: reader.result,
+        if (!error && data) {
+          // Record normalized metadata in application_documents table if table exists
+          try {
+            await supabase.from('application_documents').insert([
+              {
+                application_id: applicationId,
+                document_type: docType,
+                storage_path: data.path,
+                file_name: file.name,
+                file_size: file.size,
+                content_type: file.type,
+              },
+            ]);
+          } catch (docErr) {
+            // Ignore if documents table is not yet migrated
+          }
+
+          return {
+            docType,
             fileName: file.name,
             fileSize: file.size,
             contentType: file.type,
+            storagePath: data.path,
+            uploadedAt: new Date().toISOString(),
           };
-          saveLocalDocs(docs);
-
-          resolve({
-            docType,
-            fileName: file.name,
-            fileSize: file.size,
-            contentType: file.type,
-            storagePath: `local://${docKey}`,
-            uploadedAt: new Date().toISOString(),
-          });
-        };
-        reader.onerror = () => {
-          resolve({
-            docType,
-            fileName: file.name || 'document',
-            fileSize: file.size || 0,
-            storagePath: `local://fallback`,
-            uploadedAt: new Date().toISOString(),
-          });
-        };
-        reader.readAsDataURL(file);
-      });
+        }
+      } catch (storageErr) {
+        console.warn('[Supabase Storage] Storage upload warning:', storageErr);
+      }
     }
+
+    // Local fallback: read file to data URL
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const docs = getLocalDocs();
+        const docKey = `${applicationId}_${docType}`;
+        docs[docKey] = {
+          dataUrl: reader.result,
+          fileName: file.name,
+          fileSize: file.size,
+          contentType: file.type,
+        };
+        saveLocalDocs(docs);
+
+        resolve({
+          docType,
+          fileName: file.name,
+          fileSize: file.size,
+          contentType: file.type,
+          storagePath: `local://${docKey}`,
+          uploadedAt: new Date().toISOString(),
+        });
+      };
+      reader.onerror = () => {
+        resolve({
+          docType,
+          fileName: file.name || 'document',
+          fileSize: file.size || 0,
+          storagePath: `local://fallback`,
+          uploadedAt: new Date().toISOString(),
+        });
+      };
+      reader.readAsDataURL(file);
+    });
   },
 
   // Get Signed URL for private document
@@ -304,14 +367,16 @@ export const dbService = {
     }
 
     if (isSupabaseConfigured()) {
-      const { data, error } = await supabase.storage
-        .from(storageBucket)
-        .createSignedUrl(storagePath, 3600); // 1 hour valid
-      if (error) {
-        console.error('Error creating signed URL:', error);
-        return null;
+      try {
+        const { data, error } = await supabase.storage
+          .from(storageBucket)
+          .createSignedUrl(storagePath, 3600); // 1 hour valid
+        if (!error && data?.signedUrl) {
+          return data.signedUrl;
+        }
+      } catch (err) {
+        console.warn('Error creating signed URL:', err);
       }
-      return data.signedUrl;
     }
 
     return null;
@@ -320,17 +385,19 @@ export const dbService = {
   // Get single application
   async getApplication(idOrNumber) {
     if (isSupabaseConfigured()) {
-      const { data, error } = await supabase
-        .from('applications')
-        .select('*')
-        .or(`id.eq.${idOrNumber},application_number.eq.${idOrNumber}`)
-        .single();
-      if (error) throw error;
-      return data;
-    } else {
-      const apps = getLocalApps();
-      return apps.find((a) => a.id === idOrNumber || a.application_number === idOrNumber) || null;
+      try {
+        const { data, error } = await supabase
+          .from('applications')
+          .select('*')
+          .or(`id.eq.${idOrNumber},application_number.eq.${idOrNumber}`)
+          .single();
+        if (!error && data) return data;
+      } catch (err) {
+        // Fall back to local
+      }
     }
+    const apps = getLocalApps();
+    return apps.find((a) => a.id === idOrNumber || a.application_number === idOrNumber) || null;
   },
 
   // Get all applications with search and filters
@@ -338,53 +405,62 @@ export const dbService = {
     const { status, programme, admissionCategory, searchQuery } = options;
 
     if (isSupabaseConfigured()) {
-      let query = supabase.from('applications').select('*').order('created_at', { ascending: false });
+      try {
+        let query = supabase.from('applications').select('*').order('created_at', { ascending: false });
 
-      if (status && status !== 'all') {
-        query = query.eq('status', status);
-      }
-      if (programme && programme !== 'all') {
-        query = query.eq('programme', programme);
-      }
-      if (admissionCategory && admissionCategory !== 'all') {
-        query = query.eq('admission_category', admissionCategory);
-      }
-      if (searchQuery && searchQuery.trim()) {
-        const q = searchQuery.trim();
-        query = query.or(
-          `application_number.ilike.%${q}%,applicant_name.ilike.%${q}%,applicant_email.ilike.%${q}%,applicant_phone.ilike.%${q}%`
-        );
-      }
+        if (status && status !== 'all') {
+          query = query.eq('status', status);
+        }
+        if (programme && programme !== 'all') {
+          query = query.eq('programme', programme);
+        }
+        if (admissionCategory && admissionCategory !== 'all') {
+          query = query.eq('admission_category', admissionCategory);
+        }
+        if (searchQuery && searchQuery.trim()) {
+          const q = searchQuery.trim();
+          query = query.or(
+            `application_number.ilike.%${q}%,applicant_name.ilike.%${q}%,applicant_email.ilike.%${q}%,applicant_phone.ilike.%${q}%`
+          );
+        }
 
-      const { data, error } = await query;
-      if (error) throw error;
-      return data || [];
-    } else {
-      let apps = getLocalApps();
-
-      if (status && status !== 'all') {
-        apps = apps.filter((a) => a.status === status);
+        const { data, error } = await query;
+        if (!error && data) {
+          return data;
+        }
+        if (error && isTableMissingError(error)) {
+          console.warn('[Supabase] applications table not found in Supabase. Reading from local store.');
+        }
+      } catch (err) {
+        console.warn('[Supabase] fetch applications error:', err);
       }
-      if (programme && programme !== 'all') {
-        apps = apps.filter((a) => a.programme === programme);
-      }
-      if (admissionCategory && admissionCategory !== 'all') {
-        apps = apps.filter((a) => a.admission_category === admissionCategory);
-      }
-      if (searchQuery && searchQuery.trim()) {
-        const q = searchQuery.trim().toLowerCase();
-        apps = apps.filter(
-          (a) =>
-            (a.application_number && a.application_number.toLowerCase().includes(q)) ||
-            (a.applicant_name && a.applicant_name.toLowerCase().includes(q)) ||
-            (a.applicant_email && a.applicant_email.toLowerCase().includes(q)) ||
-            (a.applicant_phone && a.applicant_phone.toLowerCase().includes(q)) ||
-            (a.specialization && a.specialization.toLowerCase().includes(q))
-        );
-      }
-
-      return apps;
     }
+
+    // Local fallback
+    let apps = getLocalApps();
+
+    if (status && status !== 'all') {
+      apps = apps.filter((a) => a.status === status);
+    }
+    if (programme && programme !== 'all') {
+      apps = apps.filter((a) => a.programme === programme);
+    }
+    if (admissionCategory && admissionCategory !== 'all') {
+      apps = apps.filter((a) => a.admission_category === admissionCategory);
+    }
+    if (searchQuery && searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      apps = apps.filter(
+        (a) =>
+          (a.application_number && a.application_number.toLowerCase().includes(q)) ||
+          (a.applicant_name && a.applicant_name.toLowerCase().includes(q)) ||
+          (a.applicant_email && a.applicant_email.toLowerCase().includes(q)) ||
+          (a.applicant_phone && a.applicant_phone.toLowerCase().includes(q)) ||
+          (a.specialization && a.specialization.toLowerCase().includes(q))
+      );
+    }
+
+    return apps;
   },
 
   // Update status and reviewer notes
@@ -397,40 +473,46 @@ export const dbService = {
     };
 
     if (isSupabaseConfigured()) {
-      const { data, error } = await supabase
-        .from('applications')
-        .update(updatePayload)
-        .eq('id', id)
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
-    } else {
-      const apps = getLocalApps();
-      const idx = apps.findIndex((a) => a.id === id);
-      if (idx >= 0) {
-        apps[idx] = { ...apps[idx], ...updatePayload };
-        saveLocalApps(apps);
-        return apps[idx];
+      try {
+        const { data, error } = await supabase
+          .from('applications')
+          .update(updatePayload)
+          .eq('id', id)
+          .select()
+          .single();
+        if (!error && data) return data;
+      } catch (err) {
+        // Fall back to local
       }
-      throw new Error('Application not found');
     }
+
+    const apps = getLocalApps();
+    const idx = apps.findIndex((a) => a.id === id);
+    if (idx >= 0) {
+      apps[idx] = { ...apps[idx], ...updatePayload };
+      saveLocalApps(apps);
+      return apps[idx];
+    }
+    throw new Error('Application not found');
   },
 
   // Delete application
   async deleteApplication(id) {
     if (isSupabaseConfigured()) {
-      const { error } = await supabase
-        .from('applications')
-        .delete()
-        .eq('id', id);
-      if (error) throw error;
-      return true;
-    } else {
-      const apps = getLocalApps();
-      const updated = apps.filter((a) => a.id !== id && a.application_number !== id);
-      saveLocalApps(updated);
-      return true;
+      try {
+        const { error } = await supabase
+          .from('applications')
+          .delete()
+          .eq('id', id);
+        if (!error) return true;
+      } catch (err) {
+        // Fall back to local
+      }
     }
+
+    const apps = getLocalApps();
+    const updated = apps.filter((a) => a.id !== id && a.application_number !== id);
+    saveLocalApps(updated);
+    return true;
   },
 };

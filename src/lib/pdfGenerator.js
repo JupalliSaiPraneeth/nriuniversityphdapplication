@@ -846,3 +846,174 @@ export async function generateApplicationPDF(application, photoDataUrl = null) {
 
   return doc;
 }
+
+/**
+ * Export tabular overview of applications as a formatted PDF report
+ */
+export async function exportApplicationsListPdf(applications, reportTitle = 'Ph.D. Admissions Applications Report') {
+  if (!applications || applications.length === 0) {
+    alert('No application records to export.');
+    return;
+  }
+
+  const doc = new jsPDF({
+    orientation: 'landscape',
+    unit: 'mm',
+    format: 'a4',
+  });
+
+  const pageWidth = doc.internal.pageSize.getWidth(); // 297
+  const pageHeight = doc.internal.pageSize.getHeight(); // 210
+  const margin = 14;
+
+  const logoBase64 = await getNriLogoBase64();
+  let currentY = 12;
+
+  // Header
+  if (logoBase64) {
+    try {
+      doc.addImage(logoBase64, 'PNG', margin, currentY, 36, 14);
+    } catch (e) {
+      console.warn('[PDF] Failed to render header logo:', e);
+    }
+  }
+
+  const headerLeftX = logoBase64 ? margin + 40 : margin;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.setTextColor(7, 40, 73);
+  doc.text('Dr RVR NRI INSTITUTE OF TECHNOLOGY', headerLeftX, currentY + 4);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(51, 65, 85);
+  doc.text('(Deemed to be University) · Directorate of Research & Development', headerLeftX, currentY + 9);
+  doc.text('Pothavarappadu, Agiripalli, Vijayawada Rural, A.P. – 521212 | Ph.D. Admissions Scrutiny Portal', headerLeftX, currentY + 13.5);
+
+  currentY += 19;
+  doc.setDrawColor(203, 213, 225);
+  doc.setLineWidth(0.4);
+  doc.line(margin, currentY, pageWidth - margin, currentY);
+
+  currentY += 5;
+
+  // Title and metadata bar
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10.5);
+  doc.setTextColor(7, 40, 73);
+  doc.text(reportTitle.toUpperCase(), margin, currentY);
+
+  const dateStr = new Date().toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(100, 116, 139);
+  doc.text(`Generated on: ${dateStr} | Total Records: ${applications.length}`, pageWidth - margin, currentY, { align: 'right' });
+
+  currentY += 4;
+
+  // Build rows for autoTable
+  const tableRows = applications.map((app, index) => {
+    const p = app.personal_details || {};
+    const name = p.fullName || app.applicant_name || '—';
+    const email = p.email || app.applicant_email || '';
+    const phone = p.mobileNumber || app.applicant_phone || '';
+    const applicantInfo = [name, email, phone].filter(Boolean).join('\n');
+
+    const prog = p.programme || app.programme || '—';
+    const spec = p.specialization || app.specialization || '';
+    const progInfo = spec ? `${prog}\n(${spec})` : prog;
+
+    const category = p.admissionCategory || app.admission_category || '—';
+
+    let dateText = '—';
+    if (app.status === 'draft') {
+      dateText = 'Draft (In-Progress)';
+    } else if (app.submitted_at) {
+      dateText = new Date(app.submitted_at).toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      });
+    }
+
+    const statusMap = {
+      draft: 'Draft',
+      submitted: 'Submitted',
+      under_review: 'Under Review',
+      approved: 'Approved',
+      rejected: 'Rejected',
+    };
+    const statusText = statusMap[app.status] || app.status || '—';
+
+    return [index + 1, applicantInfo, progInfo, category, dateText, statusText];
+  });
+
+  autoTable(doc, {
+    startY: currentY,
+    head: [['#', 'Applicant Name & Contact', 'Programme & Specialization', 'Category', 'Submission Date', 'Status']],
+    body: tableRows,
+    theme: 'grid',
+    styles: {
+      fontSize: 8,
+      cellPadding: 2.2,
+      lineColor: [203, 213, 225],
+      lineWidth: 0.2,
+      textColor: [15, 23, 42],
+      overflow: 'linebreak',
+    },
+    headStyles: {
+      fillColor: [7, 40, 73],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold',
+      fontSize: 8.5,
+    },
+    alternateRowStyles: {
+      fillColor: [248, 250, 252],
+    },
+    columnStyles: {
+      0: { cellWidth: 10, halign: 'center' },
+      1: { cellWidth: 68 },
+      2: { cellWidth: 72 },
+      3: { cellWidth: 50 },
+      4: { cellWidth: 35 },
+      5: { cellWidth: 34, fontStyle: 'bold', halign: 'center' },
+    },
+    margin: { left: margin, right: margin, top: 14, bottom: 14 },
+    didDrawPage: () => {
+      const pageNum = doc.internal.getCurrentPageInfo().pageNumber;
+      if (pageNum > 1) {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7.5);
+        doc.setTextColor(100, 116, 139);
+        doc.text('Dr RVR NRI Institute of Technology — Ph.D. Admissions Table Report', margin, 9);
+        doc.line(margin, 11, pageWidth - margin, 11);
+      }
+    },
+  });
+
+  // Add footers on all pages
+  const totalPages = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    doc.setDrawColor(203, 213, 225);
+    doc.setLineWidth(0.3);
+    doc.line(margin, pageHeight - 9, pageWidth - margin, pageHeight - 9);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text('Dr RVR NRIIT — Confidential Ph.D. Scrutiny Records', margin, pageHeight - 5.5);
+    doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin, pageHeight - 5.5, { align: 'right' });
+  }
+
+  const filenameDate = new Date().toISOString().split('T')[0];
+  const safeTitle = reportTitle.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+  doc.save(`${safeTitle}_${filenameDate}.pdf`);
+
+  return doc;
+}
+

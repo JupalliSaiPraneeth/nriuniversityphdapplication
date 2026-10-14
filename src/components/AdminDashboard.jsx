@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { dbService } from '../lib/supabase';
-import { generateApplicationPDF } from '../lib/pdfGenerator';
+import { generateApplicationPDF, exportApplicationsListPdf } from '../lib/pdfGenerator';
 import { exportSingleApplicationCsv, exportApplicationsListCsv } from '../lib/csvExporter';
 import { PROGRAMME_OPTIONS, ADMISSION_CATEGORIES } from '../data/initialFormState';
 
@@ -339,37 +339,37 @@ export default function AdminDashboard({ onBackToForm }) {
     );
   }
 
-  // STATUS BADGE RENDERER
+  // STATUS BADGE RENDERER (Clean text without background color)
   const renderStatusBadge = (status) => {
     switch (status) {
       case 'draft':
         return (
-          <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+          <span className="inline-block text-xs font-semibold text-indigo-600">
             Draft (In-Progress)
           </span>
         );
       case 'approved':
         return (
-          <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+          <span className="inline-block text-xs font-semibold text-emerald-700">
             Approved
           </span>
         );
       case 'under_review':
         return (
-          <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+          <span className="inline-block text-xs font-semibold text-blue-700">
             Under Review
           </span>
         );
       case 'rejected':
         return (
-          <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-800 border border-red-200">
+          <span className="inline-block text-xs font-semibold text-red-600">
             Rejected
           </span>
         );
       case 'submitted':
       default:
         return (
-          <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+          <span className="inline-block text-xs font-semibold text-amber-600">
             Submitted
           </span>
         );
@@ -403,21 +403,53 @@ export default function AdminDashboard({ onBackToForm }) {
             {loading ? 'Refreshing...' : 'Refresh'}
           </button>
 
-          <button
-            type="button"
-            onClick={() => exportApplicationsListCsv(filteredApps, 'phd_applications_filtered')}
-            className="btn-secondary text-xs px-2.5 py-1 text-emerald-700 hover:text-emerald-800"
-          >
-            Export Filtered CSV ({filteredApps.length})
-          </button>
+          {/* Table Download Options: Filtered */}
+          <div className="inline-flex items-center rounded border border-slate-200 bg-white p-0.5 shadow-xs text-xs">
+            <span className="text-[11px] font-medium text-slate-500 px-1.5">
+              Filtered ({filteredApps.length}):
+            </span>
+            <button
+              type="button"
+              onClick={() => exportApplicationsListCsv(filteredApps, 'phd_applications_filtered')}
+              className="px-2 py-0.5 font-semibold text-emerald-700 hover:bg-emerald-50 rounded transition"
+              title="Download current filtered table as CSV"
+            >
+              CSV
+            </button>
+            <span className="text-slate-300">|</span>
+            <button
+              type="button"
+              onClick={() => exportApplicationsListPdf(filteredApps, 'Filtered Ph.D. Applications')}
+              className="px-2 py-0.5 font-semibold text-brand-800 hover:bg-brand-50 rounded transition"
+              title="Download current filtered table as PDF"
+            >
+              PDF
+            </button>
+          </div>
 
-          <button
-            type="button"
-            onClick={() => exportApplicationsListCsv(applications, 'phd_applications_all')}
-            className="btn-primary text-xs px-2.5 py-1"
-          >
-            Export All CSV ({applications.length})
-          </button>
+          {/* Table Download Options: All */}
+          <div className="inline-flex items-center rounded border border-slate-200 bg-white p-0.5 shadow-xs text-xs">
+            <span className="text-[11px] font-medium text-slate-500 px-1.5">
+              All ({applications.length}):
+            </span>
+            <button
+              type="button"
+              onClick={() => exportApplicationsListCsv(applications, 'phd_applications_all')}
+              className="px-2 py-0.5 font-semibold text-emerald-700 hover:bg-emerald-50 rounded transition"
+              title="Download all applications as CSV"
+            >
+              CSV
+            </button>
+            <span className="text-slate-300">|</span>
+            <button
+              type="button"
+              onClick={() => exportApplicationsListPdf(applications, 'All Ph.D. Applications')}
+              className="px-2 py-0.5 font-semibold text-brand-800 hover:bg-brand-50 rounded transition"
+              title="Download all applications as PDF"
+            >
+              PDF
+            </button>
+          </div>
 
           <button
             type="button"
@@ -666,9 +698,9 @@ export default function AdminDashboard({ onBackToForm }) {
                     <button
                       type="button"
                       onClick={() => handleOpenDetail(app)}
-                      className="flex-1 py-1.5 bg-brand-800 hover:bg-brand-900 text-white rounded font-semibold text-xs text-center transition"
+                      className="flex-1 py-1.5 border border-brand-800 text-brand-800 hover:bg-brand-50 rounded font-semibold text-xs text-center transition"
                     >
-                      View PDF Preview
+                      View
                     </button>
                     <button
                       type="button"
@@ -753,7 +785,7 @@ export default function AdminDashboard({ onBackToForm }) {
                       </td>
                       <td className="py-2 px-3 text-slate-500">
                         {app.status === 'draft' ? (
-                          <span className="inline-block px-1.5 py-0.2 rounded text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                          <span className="text-[11px] text-slate-500 italic">
                             In Progress (Draft)
                           </span>
                         ) : app.submitted_at ? (
@@ -773,7 +805,7 @@ export default function AdminDashboard({ onBackToForm }) {
                         <button
                           type="button"
                           onClick={() => handleOpenDetail(app)}
-                          className="px-2 py-0.5 bg-brand-50 hover:bg-brand-100 text-brand-800 rounded font-semibold text-xs transition"
+                          className="px-2 py-0.5 text-brand-800 hover:text-brand-950 hover:underline font-semibold text-xs transition"
                           title="View PDF Preview"
                         >
                           View
@@ -813,9 +845,32 @@ export default function AdminDashboard({ onBackToForm }) {
 
         {/* Pagination Controls */}
         <div className="p-2.5 sm:p-2 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-600">
-          <div className="text-center sm:text-left">
-            Showing {(currentPage - 1) * pageSize + 1} to{' '}
-            {Math.min(currentPage * pageSize, filteredApps.length)} of {filteredApps.length} entries
+          <div className="text-center sm:text-left flex flex-wrap items-center gap-2">
+            <span>
+              Showing {(currentPage - 1) * pageSize + 1} to{' '}
+              {Math.min(currentPage * pageSize, filteredApps.length)} of {filteredApps.length} entries
+            </span>
+            <span className="text-slate-300 hidden sm:inline">·</span>
+            <div className="flex items-center gap-1.5 text-[11px]">
+              <span className="text-slate-400 font-medium">Download Table:</span>
+              <button
+                type="button"
+                onClick={() => exportApplicationsListCsv(filteredApps, 'phd_applications_filtered')}
+                className="font-semibold text-emerald-700 hover:underline cursor-pointer"
+                title="Download table as CSV"
+              >
+                CSV
+              </button>
+              <span className="text-slate-300">/</span>
+              <button
+                type="button"
+                onClick={() => exportApplicationsListPdf(filteredApps, 'Filtered Ph.D. Applications')}
+                className="font-semibold text-brand-800 hover:underline cursor-pointer"
+                title="Download table as PDF"
+              >
+                PDF
+              </button>
+            </div>
           </div>
           <div className="flex items-center gap-1.5">
             <button

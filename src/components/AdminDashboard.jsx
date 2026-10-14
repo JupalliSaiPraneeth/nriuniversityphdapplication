@@ -403,53 +403,23 @@ export default function AdminDashboard({ onBackToForm }) {
             {loading ? 'Refreshing...' : 'Refresh'}
           </button>
 
-          {/* Table Download Options: Filtered */}
-          <div className="inline-flex items-center rounded border border-slate-200 bg-white p-0.5 shadow-xs text-xs">
-            <span className="text-[11px] font-medium text-slate-500 px-1.5">
-              Filtered ({filteredApps.length}):
-            </span>
-            <button
-              type="button"
-              onClick={() => exportApplicationsListCsv(filteredApps, 'phd_applications_filtered')}
-              className="px-2 py-0.5 font-semibold text-emerald-700 hover:bg-emerald-50 rounded transition"
-              title="Download current filtered table as CSV"
-            >
-              CSV
-            </button>
-            <span className="text-slate-300">|</span>
-            <button
-              type="button"
-              onClick={() => exportApplicationsListPdf(filteredApps, 'Filtered Ph.D. Applications')}
-              className="px-2 py-0.5 font-semibold text-brand-800 hover:bg-brand-50 rounded transition"
-              title="Download current filtered table as PDF"
-            >
-              PDF
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => exportApplicationsListCsv(filteredApps, 'phd_applications_filtered')}
+            className="btn-secondary text-xs px-2.5 py-1 text-emerald-700 hover:text-emerald-800"
+            title="Download table applications as CSV"
+          >
+            Export CSV ({filteredApps.length})
+          </button>
 
-          {/* Table Download Options: All */}
-          <div className="inline-flex items-center rounded border border-slate-200 bg-white p-0.5 shadow-xs text-xs">
-            <span className="text-[11px] font-medium text-slate-500 px-1.5">
-              All ({applications.length}):
-            </span>
-            <button
-              type="button"
-              onClick={() => exportApplicationsListCsv(applications, 'phd_applications_all')}
-              className="px-2 py-0.5 font-semibold text-emerald-700 hover:bg-emerald-50 rounded transition"
-              title="Download all applications as CSV"
-            >
-              CSV
-            </button>
-            <span className="text-slate-300">|</span>
-            <button
-              type="button"
-              onClick={() => exportApplicationsListPdf(applications, 'All Ph.D. Applications')}
-              className="px-2 py-0.5 font-semibold text-brand-800 hover:bg-brand-50 rounded transition"
-              title="Download all applications as PDF"
-            >
-              PDF
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => exportApplicationsListPdf(filteredApps, 'Ph.D. Applications Table Report')}
+            className="btn-primary text-xs px-2.5 py-1"
+            title="Download table applications as PDF"
+          >
+            Export PDF ({filteredApps.length})
+          </button>
 
           <button
             type="button"

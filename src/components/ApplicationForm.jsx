@@ -53,7 +53,7 @@ const FORM_STEPS = [
 ];
 
 
-export default function ApplicationForm({ onSubmissionComplete }) {
+export default function ApplicationForm({ onSubmissionComplete, onBackToPortal }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState(getInitialFormData);
   const [fileObjects, setFileObjects] = useState({});
@@ -278,6 +278,22 @@ export default function ApplicationForm({ onSubmissionComplete }) {
       {draftToast && (
         <div className="fixed top-14 sm:top-16 right-3 sm:right-6 z-50 bg-brand-950 text-white px-3 py-2 rounded-lg shadow-lg text-xs animate-in fade-in slide-in-from-top-2">
           <span>{draftToast}</span>
+        </div>
+      )}
+
+      {/* Return to University Portal button */}
+      {onBackToPortal && (
+        <div className="mb-2 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={onBackToPortal}
+            className="text-xs font-semibold text-brand-800 hover:text-brand-950 hover:underline flex items-center gap-1 cursor-pointer"
+          >
+            ← Back to University Website
+          </button>
+          <span className="text-[11px] text-slate-500 font-medium">
+            Ph.D. Admissions 2026–2027
+          </span>
         </div>
       )}
 

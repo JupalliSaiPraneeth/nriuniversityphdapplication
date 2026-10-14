@@ -168,13 +168,22 @@ export default function SuccessView({ submittedRecord, onStartNew }) {
             </ul>
           </div>
 
-          <div className="text-center pt-1">
+          <div className="flex items-center justify-center gap-4 pt-1 text-xs">
+            {onBackToPortal && (
+              <button
+                type="button"
+                onClick={onBackToPortal}
+                className="font-bold text-brand-800 hover:text-brand-950 hover:underline transition cursor-pointer"
+              >
+                ← Return to University Website
+              </button>
+            )}
             <button
               type="button"
               onClick={onStartNew}
-              className="text-xs font-semibold text-slate-500 hover:text-brand-700 transition"
+              className="font-semibold text-slate-500 hover:text-brand-700 transition cursor-pointer"
             >
-              ← Submit another application
+              Submit another application
             </button>
           </div>
         </div>

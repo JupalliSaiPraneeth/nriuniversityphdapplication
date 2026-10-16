@@ -7,9 +7,11 @@ export const PROGRAMME_OPTIONS = [
   'Mechanical Engineering (ME)',
   'Civil Engineering (CE)',
   'Master of Business Administration (MBA)',
+  'Economics',
   'Mathematics',
   'Physics',
   'Chemistry',
+  'Pharmacy',
   'English',
 ];
 
@@ -165,3 +167,180 @@ export const getInitialFormData = () => ({
     typedSignature: '',
   },
 });
+
+/**
+ * Checks if the user has actively filled at least one field in the application form.
+ * Ignores default values (like 'Full-Time', 'Andhra Pradesh', pre-populated qualification labels, etc.)
+ * Supports both nested frontend formData and flattened/database application records.
+ */
+export const hasUserFilledAnyField = (data) => {
+  if (!data || typeof data !== 'object') return false;
+
+  const pd = data.personalDetails || data.personal_details || {};
+  const ad = data.addressDetails || data.address_details || {};
+  const edu = data.educationalQualifications || data.educational_qualifications || [];
+  const exams = data.eligibilityExaminations || data.eligibility_examinations || [];
+  const exp = data.professionalExperience || data.professional_experience || [];
+  const pubs = data.researchPublications || data.research_publications || [];
+  const books = data.booksPatentsOutputs || data.books_patents_outputs || [];
+  const awards = data.membershipsAwards || data.memberships_awards || [];
+  const confs = data.conferencesWorkshops || data.conferences_workshops || [];
+  const refs = data.references || data.references_data || [];
+  const dec = data.declaration || {};
+  const docs = data.documentMetadata || data.document_metadata || {};
+
+  // Top level fields if present on db record
+  if (data.programme && String(data.programme).trim()) return true;
+  if (data.specialization && String(data.specialization).trim()) return true;
+  if (
+    data.applicant_name &&
+    String(data.applicant_name).trim() &&
+    String(data.applicant_name).trim().toLowerCase() !== 'draft applicant'
+  ) {
+    return true;
+  }
+  if (data.applicant_email && String(data.applicant_email).trim()) return true;
+  if (data.applicant_phone && String(data.applicant_phone).trim()) return true;
+
+  // Personal details
+  if (pd.programme && String(pd.programme).trim()) return true;
+  if (pd.specialization && String(pd.specialization).trim()) return true;
+  if (
+    pd.fullName &&
+    String(pd.fullName).trim() &&
+    String(pd.fullName).trim().toLowerCase() !== 'draft applicant'
+  ) {
+    return true;
+  }
+  if (pd.guardianName && String(pd.guardianName).trim()) return true;
+  if (pd.dateOfBirth && String(pd.dateOfBirth).trim()) return true;
+  if (pd.gender && String(pd.gender).trim()) return true;
+  if (pd.email && String(pd.email).trim()) return true;
+  if (pd.mobileNumber && String(pd.mobileNumber).trim()) return true;
+  if (pd.emergencyContact && String(pd.emergencyContact).trim()) return true;
+  if (pd.photoDataUrl && String(pd.photoDataUrl).trim()) return true;
+  if (pd.category && pd.category !== 'General / OC') return true;
+  if (pd.admissionCategory && pd.admissionCategory !== 'Full-Time') return true;
+  if (pd.modeOfAdmission && pd.modeOfAdmission !== 'Regular / Entrance Examination') return true;
+
+  // Address details
+  if (ad.permanentAddress && String(ad.permanentAddress).trim()) return true;
+  if (ad.presentAddress && String(ad.presentAddress).trim()) return true;
+  if (ad.district && String(ad.district).trim()) return true;
+  if (ad.pinCode && String(ad.pinCode).trim()) return true;
+  if (ad.state && String(ad.state).trim() && ad.state !== 'Andhra Pradesh') return true;
+
+  // Education: check if institution, year, percentage or user-specified specialization are filled
+  if (Array.isArray(edu)) {
+    const hasEdu = edu.some((q, idx) => {
+      if (q.institution && String(q.institution).trim()) return true;
+      if (q.year && String(q.year).trim()) return true;
+      if (q.percentage && String(q.percentage).trim()) return true;
+      // UG / PG rows specialization
+      if (idx >= 2 && q.specialization && String(q.specialization).trim()) return true;
+      // Custom rows added by candidate
+      if (idx > 3 && (q.qualification?.trim() || q.specialization?.trim())) return true;
+      return false;
+    });
+    if (hasEdu) return true;
+  }
+
+  // Examinations
+  if (Array.isArray(exams)) {
+    const hasExam = exams.some((ex, idx) => {
+      if (ex.subject && String(ex.subject).trim()) return true;
+      if (ex.year && String(ex.year).trim()) return true;
+      if (ex.score && String(ex.score).trim()) return true;
+      if (ex.qualification && String(ex.qualification).trim()) return true;
+      if (idx > 1 && ex.examination && String(ex.examination).trim()) return true;
+      return false;
+    });
+    if (hasExam) return true;
+  }
+
+  // Experience
+  if (Array.isArray(exp)) {
+    const hasExp = exp.some(
+      (e) =>
+        (e.institution && String(e.institution).trim()) ||
+        (e.designation && String(e.designation).trim()) ||
+        (e.fromTo && String(e.fromTo).trim()) ||
+        (e.natureOfWork && String(e.natureOfWork).trim()) ||
+        (e.totalExperience && String(e.totalExperience).trim())
+    );
+    if (hasExp) return true;
+  }
+
+  // Research exposure
+  const researchExposure = data.researchExposure || data.research_exposure;
+  if (researchExposure && String(researchExposure).trim()) return true;
+
+  // Publications
+  if (Array.isArray(pubs)) {
+    const hasPub = pubs.some(
+      (p) =>
+        (p.titleAuthor && String(p.titleAuthor).trim()) ||
+        (p.journalConference && String(p.journalConference).trim()) ||
+        (p.year && String(p.year).trim()) ||
+        (p.indexingQuartile && String(p.indexingQuartile).trim()) ||
+        (p.doi && String(p.doi).trim())
+    );
+    if (hasPub) return true;
+  }
+
+  // Books / Patents
+  if (Array.isArray(books)) {
+    const hasBook = books.some(
+      (b) =>
+        (b.titleDetails && String(b.titleDetails).trim()) ||
+        (b.year && String(b.year).trim()) ||
+        (b.isbnPatentNo && String(b.isbnPatentNo).trim())
+    );
+    if (hasBook) return true;
+  }
+
+  // Memberships
+  if (Array.isArray(awards)) {
+    const hasAward = awards.some(
+      (a) =>
+        (a.awardMembership && String(a.awardMembership).trim()) ||
+        (a.organization && String(a.organization).trim()) ||
+        (a.year && String(a.year).trim()) ||
+        (a.details && String(a.details).trim())
+    );
+    if (hasAward) return true;
+  }
+
+  // Conferences
+  if (Array.isArray(confs)) {
+    const hasConf = confs.some(
+      (c) =>
+        (c.programme && String(c.programme).trim()) ||
+        (c.organizer && String(c.organizer).trim()) ||
+        (c.year && String(c.year).trim()) ||
+        (c.roleParticipation && String(c.roleParticipation).trim())
+    );
+    if (hasConf) return true;
+  }
+
+  // References
+  if (Array.isArray(refs)) {
+    const hasRef = refs.some(
+      (r) =>
+        (r.nameDesignation && String(r.nameDesignation).trim()) ||
+        (r.institution && String(r.institution).trim()) ||
+        (r.contactEmail && String(r.contactEmail).trim())
+    );
+    if (hasRef) return true;
+  }
+
+  // Documents uploaded
+  if (docs && typeof docs === 'object' && Object.keys(docs).length > 0) return true;
+
+  // Declaration
+  if (dec.typedSignature && String(dec.typedSignature).trim()) return true;
+  if (dec.accepted === true) return true;
+
+  return false;
+};
+

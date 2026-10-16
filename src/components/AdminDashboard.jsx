@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { dbService } from '../lib/supabase';
 import { generateApplicationPDF, exportApplicationsListPdf } from '../lib/pdfGenerator';
 import { exportSingleApplicationCsv, exportApplicationsListCsv } from '../lib/csvExporter';
-import { PROGRAMME_OPTIONS, ADMISSION_CATEGORIES } from '../data/initialFormState';
+import { PROGRAMME_OPTIONS, ADMISSION_CATEGORIES, hasUserFilledAnyField } from '../data/initialFormState';
 
 export default function AdminDashboard({ onBackToForm }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -58,8 +58,16 @@ export default function AdminDashboard({ onBackToForm }) {
     setLoading(true);
     try {
       const data = await dbService.getApplications();
+      // Ensure only drafts with at least one field filled by the user are included
+      const validApps = (data || []).filter((app) => {
+        const isDraft = app.status === 'draft' || String(app.application_number || '').startsWith('DRAFT-') || !app.submitted_at;
+        if (isDraft && app.status !== 'approved' && app.status !== 'rejected' && app.status !== 'under_review') {
+          return hasUserFilledAnyField(app);
+        }
+        return true;
+      });
       // Ensure any application with DRAFT- number or without submitted_at is recognized as draft
-      const normalized = (data || []).map((app) => {
+      const normalized = validApps.map((app) => {
         const isDraftNumber = String(app.application_number || '').startsWith('DRAFT-');
         const hasNoSubmission = !app.submitted_at;
         if ((isDraftNumber || hasNoSubmission) && app.status !== 'approved' && app.status !== 'rejected' && app.status !== 'under_review') {

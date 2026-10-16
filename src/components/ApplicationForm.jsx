@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getInitialFormData } from '../data/initialFormState';
+import { getInitialFormData, hasUserFilledAnyField } from '../data/initialFormState';
 import { dbService } from '../lib/supabase';
 import Step1PersonalAddress from './steps/Step1PersonalAddress';
 import Step2EducationExams from './steps/Step2EducationExams';
@@ -71,17 +71,16 @@ export default function ApplicationForm({ onSubmissionComplete, onBackToPortal }
       const savedDraft = localStorage.getItem('nriit_phd_applicant_draft');
       if (savedDraft) {
         const parsed = JSON.parse(savedDraft);
-        const restoredAppNumber = parsed.applicationNumber || `DRAFT-${Math.floor(100000 + Math.random() * 900000)}`;
-        setFormData((prev) => ({
-          ...prev,
-          ...parsed,
-          applicationNumber: restoredAppNumber,
-        }));
-      } else {
-        setFormData((prev) => ({
-          ...prev,
-          applicationNumber: prev.applicationNumber || `DRAFT-${Math.floor(100000 + Math.random() * 900000)}`,
-        }));
+        if (hasUserFilledAnyField(parsed)) {
+          const restoredAppNumber = parsed.applicationNumber || `DRAFT-${Math.floor(100000 + Math.random() * 900000)}`;
+          setFormData((prev) => ({
+            ...prev,
+            ...parsed,
+            applicationNumber: restoredAppNumber,
+          }));
+        } else {
+          localStorage.removeItem('nriit_phd_applicant_draft');
+        }
       }
     } catch (e) {
       console.warn('Could not restore draft:', e);
@@ -90,17 +89,12 @@ export default function ApplicationForm({ onSubmissionComplete, onBackToPortal }
 
   // Automatic real-time background draft saving to database & storage
   useEffect(() => {
-    const hasAnyContent = Boolean(
-      formData.personalDetails?.fullName?.trim() ||
-      formData.personalDetails?.email?.trim() ||
-      formData.personalDetails?.mobileNumber?.trim() ||
-      formData.personalDetails?.programme ||
-      formData.personalDetails?.specialization?.trim() ||
-      formData.addressDetails?.permanentAddress?.trim() ||
-      formData.educationalQualifications?.some((q) => q.qualification?.trim())
-    );
+    const hasAnyContent = hasUserFilledAnyField(formData);
 
-    if (!hasAnyContent) return;
+    if (!hasAnyContent) {
+      setAutoSaveStatus('idle');
+      return;
+    }
 
     setAutoSaveStatus('saving');
     const timer = setTimeout(async () => {
@@ -124,6 +118,14 @@ export default function ApplicationForm({ onSubmissionComplete, onBackToPortal }
   const handleSaveDraft = async () => {
     setIsSavingDraft(true);
     setValidationError('');
+
+    if (!hasUserFilledAnyField(formData)) {
+      setDraftToast('Please fill at least one field before saving as draft.');
+      setTimeout(() => setDraftToast(null), 3000);
+      setIsSavingDraft(false);
+      return;
+    }
+
     try {
       localStorage.setItem('nriit_phd_applicant_draft', JSON.stringify(formData));
       await dbService.saveDraft(formData);

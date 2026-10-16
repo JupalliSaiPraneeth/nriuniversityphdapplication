@@ -1,6 +1,4 @@
 import React from 'react';
-import { UNIVERSITY_INFO, RESEARCH_DISCIPLINES } from '../data/portalData';
-
 
 export default function Footer({ onOpenForm, onOpenStatus, onOpenPrivacy, setCurrentView }) {
   const scrollToTop = () => {
@@ -105,22 +103,22 @@ export default function Footer({ onOpenForm, onOpenStatus, onOpenPrivacy, setCur
               </li>
               <li>
                 <a href="#departments" className="hover:text-[#EC691F] transition">
-                  Departments & Research Areas (10 Disciplines)
+                  Departments & Research Areas (11 Disciplines)
                 </a>
               </li>
               <li>
-                <a href="#entrance-exam" className="hover:text-[#EC691F] transition">
+                <a href="#selection-exam" className="hover:text-[#EC691F] transition">
                   Entrance Examination (Part A & B — 75 Marks)
                 </a>
               </li>
               <li>
-                <a href="#syllabus" className="hover:text-[#EC691F] transition">
+                <a href="#part-b-syllabus" className="hover:text-[#EC691F] transition">
                   Department-Wise Syllabus Downloads
                 </a>
               </li>
               <li>
-                <a href="#fee-structure" className="hover:text-[#EC691F] transition">
-                  Ph.D. Fee Structure Circular
+                <a href="#apply-online" className="hover:text-[#EC691F] transition">
+                  Ph.D. Fee Structure & Online Payment
                 </a>
               </li>
               <li>
@@ -143,28 +141,23 @@ export default function Footer({ onOpenForm, onOpenStatus, onOpenPrivacy, setCur
                 </a>
               </li>
               <li>
-                <a href="#procedure" className="hover:text-[#EC691F] transition">
-                  7-Stage Admission Procedure
+                <a href="#selection-exam" className="hover:text-[#EC691F] transition">
+                  7-Stage Selection Process & Interview
                 </a>
               </li>
               <li>
                 <a href="#exemptions" className="hover:text-[#EC691F] transition">
-                  NET / JRF / GATE Exemptions
+                  NET / GATE / SLET / SET / GPAT Exemptions
                 </a>
               </li>
               <li>
-                <a href="#interview" className="hover:text-[#EC691F] transition">
-                  Interview & Proposal Presentation
+                <a href="#part-a-syllabus" className="hover:text-[#EC691F] transition">
+                  Part A Research Aptitude Syllabus
                 </a>
               </li>
               <li>
                 <a href="#downloads" className="hover:text-[#EC691F] transition">
                   Ph.D. Regulations & Guidelines
-                </a>
-              </li>
-              <li>
-                <a href="#checklist" className="hover:text-[#EC691F] transition">
-                  Final Implementation Checklist
                 </a>
               </li>
               <li>
@@ -181,7 +174,7 @@ export default function Footer({ onOpenForm, onOpenStatus, onOpenPrivacy, setCur
               Ph.D. ADMISSIONS 2026–27
             </h3>
             <p className="text-[11px] text-slate-300 leading-relaxed">
-              Applications are invited for Full-Time & Part-Time Ph.D. programmes across Engineering, Pharmacy, Management, and Applied Sciences.
+              Applications are invited for Full-Time & Part-Time Ph.D. programmes across Engineering, Pharmacy, Management, Economics, and Applied Sciences.
             </p>
 
             <div className="space-y-2.5 pt-1">

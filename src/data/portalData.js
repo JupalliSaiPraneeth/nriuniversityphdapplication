@@ -2,8 +2,8 @@
  * Official Admissions & Academic Data for Dr. RVR NRIIT (Deemed to be University)
  * Ph.D. Admissions 2026–2027 Portal
  * 
- * Content faithfully structured to match the 15 official sections with
- * exact UI/UX design tokens inspired by https://rvrnriuniversity.edu.in/
+ * Strict alignment with UGC (Minimum Standards and Procedures for Award of Ph.D. Degree) Regulations
+ * and official institutional design tokens matching https://rvrnriuniversity.edu.in/
  */
 
 // 1. Home Page & University Info
@@ -33,55 +33,61 @@ export const IMPORTANT_DATES = [
     date: '02 December 2026',
     status: 'Upcoming',
     badgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    isConfirmed: true,
   },
   {
     activity: 'Last date for submission of applications',
     date: '25 December 2026',
     status: 'Deadline',
     badgeColor: 'bg-rose-100 text-rose-800 border-rose-300',
+    isConfirmed: true,
   },
   {
-    activity: 'Ph.D. entrance examination',
+    activity: 'Ph.D. Entrance Examination (Proposed)',
     date: '02 January 2027',
-    status: 'Proposed',
+    status: 'Proposed Schedule',
     badgeColor: 'bg-blue-100 text-blue-800 border-blue-300',
+    isConfirmed: false,
   },
   {
-    activity: 'Declaration of entrance examination results',
+    activity: 'Declaration of Entrance Examination Results',
     date: '10 January 2027',
-    status: 'Proposed',
+    status: 'Proposed Schedule',
     badgeColor: 'bg-indigo-100 text-indigo-800 border-indigo-300',
+    isConfirmed: false,
   },
   {
-    activity: 'Interview and research proposal presentation',
+    activity: 'Research Proposal Presentation & DRC Interview',
     date: '12 January 2027',
-    status: 'Proposed',
+    status: 'Proposed Schedule',
     badgeColor: 'bg-amber-100 text-amber-800 border-amber-300',
+    isConfirmed: false,
   },
   {
-    activity: 'Final selection and admission formalities',
+    activity: 'Final Merit List & Admission Formalities',
     date: 'To be notified',
-    status: 'Pending University Approval',
+    status: 'Pending University Ratification',
     badgeColor: 'bg-slate-100 text-slate-800 border-slate-300',
+    isConfirmed: false,
   },
 ];
 
 export const IMPORTANT_DATES_DISCLAIMER =
-  'The dates above are the proposed schedule discussed earlier. Publish them as confirmed dates only after formal approval by the University.';
+  'Note: The application opening and deadline dates are tentatively scheduled. Examination and interview dates represent the proposed timeline and are subject to formal confirmation by the University. Applicants are advised to check the portal regularly for notifications.';
 
 // 3. Ph.D. Programme Options
 export const PROGRAMME_OPTIONS = {
   intro:
-    'The University will offer admissions under the following categories, subject to the approved regulations and availability of supervisors.',
+    'The University offers Ph.D. admissions under Full-Time and Part-Time modes in accordance with UGC guidelines and availability of approved research supervisors.',
   options: [
     {
       id: 'full-time',
       title: 'Full-Time Ph.D.',
       subtitle: 'Dedicated Campus Research & Fellowship Track',
       description:
-        "Candidates pursue research on a full-time basis under the guidance of an approved research supervisor. They are expected to meet the University's requirements for coursework, research progress, seminars, publications where applicable, thesis submission and evaluation.",
+        "Candidates pursue doctoral research on a full-time residential basis under the direct guidance of recognized research supervisors. Scholars have full access to university research centers, specialized laboratories, computing facilities, and digital library resources.",
       highlights: [
-        'Full-time access to advanced research labs, computing clusters and central library',
+        'Full-time access to advanced research labs, computing clusters and central digital library',
         'Eligible for Institutional Doctoral Fellowships / UGC-CSIR-NET JRF contingency',
         'Continuous research progress monitoring, pre-Ph.D. coursework & colloquiums',
         'Mandatory research seminars and indexed peer-reviewed journal publications',
@@ -94,10 +100,10 @@ export const PROGRAMME_OPTIONS = {
       title: 'Part-Time Ph.D.',
       subtitle: 'Working Professionals, Industry & Faculty Track',
       description:
-        'Candidates employed in educational institutions, research organizations, industry or other eligible establishments may apply, subject to the applicable eligibility conditions, employer permission where required, research facilities and supervisor availability.',
+        'Candidates employed in educational institutions, research organizations, government sectors, or industries may apply. Requires mandatory employer permission / No Objection Certificate (NOC) and fulfillment of coursework requirements.',
       highlights: [
-        'Tailored for working faculty members, scientists and industry experts',
-        'Mandatory No Objection Certificate (NOC) / Employer Permission required',
+        'Tailored for working faculty members, scientists, engineers and industry experts',
+        'Mandatory No Objection Certificate (NOC) and Employer Relieving / Leave Undertaking',
         'Flexible research scheduling while fulfilling rigorous university coursework',
         'Joint co-supervisors permitted from recognized industry/research organizations',
       ],
@@ -107,9 +113,9 @@ export const PROGRAMME_OPTIONS = {
   ],
 };
 
-// 4. Departments and Research Disciplines
+// 4. Departments and Research Disciplines (Including Economics)
 export const RESEARCH_DISCIPLINES_INTRO =
-  "Applications may be invited in the following broad areas, subject to the University's approved research programmes and recognized supervisors.";
+  "Applications are invited across the following approved academic departments and research disciplines, subject to recognized supervisor availability and research infrastructure:";
 
 export const RESEARCH_DISCIPLINES = [
   {
@@ -118,15 +124,17 @@ export const RESEARCH_DISCIPLINES = [
     name: 'Computer Science and Engineering',
     category: 'Engineering & Technology',
     image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80',
-    description: 'Artificial Intelligence, Machine Learning, Data Science, Cybersecurity, Networks and Software Engineering.',
+    description: 'Artificial Intelligence, Machine Learning, Data Science, Cybersecurity, Cloud Computing, Networks and Software Engineering.',
     researchAreas: [
-      'Artificial Intelligence',
-      'Machine Learning',
-      'Data Science',
-      'Cybersecurity',
-      'Networks and Software Engineering',
+      'Artificial Intelligence & Deep Learning',
+      'Machine Learning & Data Mining',
+      'Cybersecurity & Cryptography',
+      'Computer Networks & Cloud Computing',
+      'Natural Language Processing & Computer Vision',
+      'Software Architecture & Distributed Systems',
     ],
-    eligibility: "Relevant Master's degree meeting prescribed minimum marks or equivalent grade.",
+    eligibility: "M.Tech / M.E. / M.S. in CSE / IT / AI / DS or relevant field with at least 55% marks (50% for SC/ST/OBC non-creamy layer/PwD/EWS) or equivalent grade.",
+    hasSyllabus: true,
   },
   {
     id: 'ece',
@@ -134,13 +142,16 @@ export const RESEARCH_DISCIPLINES = [
     name: 'Electronics and Communication Engineering',
     category: 'Engineering & Technology',
     image: 'https://rvrnriuniversity.edu.in/wp-content/uploads/2026/01/B.Tech-Electronics-Communication-Engineering.webp',
-    description: 'Signal Processing, Communication Systems, Embedded Systems and VLSI.',
+    description: 'Signal Processing, Wireless Communications, Embedded Systems, VLSI Design, and IoT Architectures.',
     researchAreas: [
-      'Signal Processing',
-      'Communication Systems',
-      'Embedded Systems and VLSI',
+      'Digital Signal & Image Processing',
+      'Wireless Communications & 5G/6G Networks',
+      'VLSI Design & Embedded Systems',
+      'Antenna Design & Microwave Engineering',
+      'Internet of Things (IoT) & Sensor Networks',
     ],
-    eligibility: "Relevant Master's degree meeting prescribed minimum marks or equivalent grade.",
+    eligibility: "M.Tech / M.E. in ECE / Communication / VLSI / Embedded Systems or allied branch with minimum 55% marks (50% for reserved categories).",
+    hasSyllabus: true,
   },
   {
     id: 'eee',
@@ -148,13 +159,16 @@ export const RESEARCH_DISCIPLINES = [
     name: 'Electrical and Electronics Engineering',
     category: 'Engineering & Technology',
     image: 'https://rvrnriuniversity.edu.in/wp-content/uploads/2026/01/B.Tech-Electrical-Electronics-Engineering.webp',
-    description: 'Power Systems, Renewable Energy and Control Systems.',
+    description: 'Power Systems, Renewable Energy conversion, Smart Grids, Power Electronics, and Electric Vehicle Drives.',
     researchAreas: [
-      'Power Systems',
-      'Renewable Energy',
-      'Control Systems',
+      'Power Systems & Grid Modernization',
+      'Renewable Energy (Solar/Wind) & Microgrids',
+      'Power Electronics & Industrial Drives',
+      'Electric Vehicle (EV) Technology & Battery Storage',
+      'Modern Control Systems & Automation',
     ],
-    eligibility: "Relevant Master's degree meeting prescribed minimum marks or equivalent grade.",
+    eligibility: "M.Tech / M.E. in EEE / Power Systems / Power Electronics / Energy Systems or allied field with minimum 55% marks (50% for reserved categories).",
+    hasSyllabus: true,
   },
   {
     id: 'me',
@@ -162,13 +176,16 @@ export const RESEARCH_DISCIPLINES = [
     name: 'Mechanical Engineering',
     category: 'Engineering & Technology',
     image: 'https://rvrnriuniversity.edu.in/wp-content/uploads/2026/01/B.Tech-Mechanical-Engineering.webp',
-    description: 'Manufacturing, Thermal Engineering, Design and Industrial Automation.',
+    description: 'Thermal Engineering, Manufacturing, Machine Design, CAD/CAM/Robotics, and Materials Science.',
     researchAreas: [
-      'Manufacturing',
-      'Thermal Engineering',
-      'Design and Industrial Automation',
+      'Thermal & Fluid Engineering',
+      'Advanced Manufacturing & Additive Technologies',
+      'Machine Design, Mechanics & Vibrations',
+      'Robotics, Automation & Mechatronics',
+      'Composite Materials & Nanotechnology',
     ],
-    eligibility: "Relevant Master's degree meeting prescribed minimum marks or equivalent grade.",
+    eligibility: "M.Tech / M.E. in Mechanical / Production / Thermal / CAD/CAM or allied discipline with minimum 55% marks (50% for reserved categories).",
+    hasSyllabus: true,
   },
   {
     id: 'ce',
@@ -176,13 +193,16 @@ export const RESEARCH_DISCIPLINES = [
     name: 'Civil Engineering',
     category: 'Engineering & Technology',
     image: 'https://rvrnriuniversity.edu.in/wp-content/uploads/2026/01/B.Tech-Civil-Engineering.webp',
-    description: 'Structural Engineering, Environmental Engineering and Construction Management.',
+    description: 'Structural Engineering, Geotechnical Engineering, Environmental Engineering, and Sustainable Construction.',
     researchAreas: [
-      'Structural Engineering',
-      'Environmental Engineering',
-      'Construction Management',
+      'Structural Engineering & Earthquake Dynamics',
+      'Geotechnical & Foundation Engineering',
+      'Environmental Engineering & Water Resources',
+      'Transportation & Highway Engineering',
+      'Sustainable Construction Materials & Management',
     ],
-    eligibility: "Relevant Master's degree meeting prescribed minimum marks or equivalent grade.",
+    eligibility: "M.Tech / M.E. in Civil / Structural / Geotechnical / Environmental Engineering with minimum 55% marks (50% for reserved categories).",
+    hasSyllabus: true,
   },
   {
     id: 'mba',
@@ -190,14 +210,34 @@ export const RESEARCH_DISCIPLINES = [
     name: 'Management Studies',
     category: 'Management & Commerce',
     image: 'https://rvrnriuniversity.edu.in/wp-content/uploads/2026/01/Master-of-Business-Administration.webp',
-    description: 'Finance, Marketing, Human Resources, Operations and Business Analytics.',
+    description: 'Finance, Marketing, Human Resources, Supply Chain, Operations, and Business Analytics.',
     researchAreas: [
-      'Finance',
-      'Marketing',
-      'Human Resources',
-      'Operations and Business Analytics',
+      'Financial Management & Capital Markets',
+      'Marketing Strategies & Consumer Analytics',
+      'Human Resource Management & Organizational Behavior',
+      'Operations & Supply Chain Optimization',
+      'Business Analytics & Strategic Management',
     ],
-    eligibility: "Relevant Master's degree meeting prescribed minimum marks or equivalent grade.",
+    eligibility: "Master of Business Administration (MBA) / M.Com / PGDM (AICTE approved equivalent) with minimum 55% marks (50% for reserved categories).",
+    hasSyllabus: true,
+  },
+  {
+    id: 'econ',
+    code: 'ECON',
+    name: 'Economics',
+    category: 'Humanities & Social Sciences',
+    image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=800&q=80',
+    description: 'Microeconomics, Macroeconomics, Econometrics, Developmental Economics, Public Finance, and Agricultural Economics.',
+    researchAreas: [
+      'Microeconomic Theory & Behavioral Economics',
+      'Macroeconomic Policy, Inflation & Growth Models',
+      'Econometric Modeling & Quantitative Economics',
+      'Development Economics & Poverty Alleviation',
+      'Public Finance, Taxation & Fiscal Federalism',
+      'Agricultural Economics & Rural Development',
+    ],
+    eligibility: "Master's degree in Economics / Applied Economics / Econometrics / Development Economics with at least 55% marks (50% for SC/ST/OBC non-creamy layer/PwD/EWS) or equivalent grade from a recognized University.",
+    hasSyllabus: true,
   },
   {
     id: 'math',
@@ -205,14 +245,16 @@ export const RESEARCH_DISCIPLINES = [
     name: 'Mathematics',
     category: 'Sciences & Humanities',
     image: 'https://rvrnriuniversity.edu.in/wp-content/uploads/2026/01/B.Tech-Data-Science.webp',
-    description: 'Applied Mathematics, Optimization, Statistics and Computational Mathematics.',
+    description: 'Applied Mathematics, Fluid Dynamics, Differential Equations, Optimization, and Computational Statistics.',
     researchAreas: [
-      'Applied Mathematics',
-      'Optimization',
-      'Statistics',
-      'Computational Mathematics',
+      'Applied Mathematics & Mathematical Modeling',
+      'Fluid Dynamics & Heat Transfer Analysis',
+      'Differential Equations & Numerical Methods',
+      'Optimization Techniques & Operations Research',
+      'Probability, Statistics & Stochastic Processes',
     ],
-    eligibility: "Relevant Master's degree meeting prescribed minimum marks or equivalent grade.",
+    eligibility: "M.Sc. in Mathematics / Applied Mathematics / Statistics with minimum 55% marks (50% for reserved categories).",
+    hasSyllabus: true,
   },
   {
     id: 'phy',
@@ -220,13 +262,16 @@ export const RESEARCH_DISCIPLINES = [
     name: 'Physics',
     category: 'Sciences & Humanities',
     image: 'https://rvrnriuniversity.edu.in/wp-content/uploads/2026/01/Digitally-advanced-NRI-University.webp',
-    description: 'Applied Physics, Materials and Computational Physics.',
+    description: 'Condensed Matter Physics, Materials Science, Nanotechnology, and Computational Physics.',
     researchAreas: [
-      'Applied Physics',
-      'Materials',
-      'Computational Physics',
+      'Condensed Matter & Solid State Physics',
+      'Materials Science & Advanced Nanomaterials',
+      'Renewable Energy Materials & Solar Cells',
+      'Spectroscopy & Optoelectronic Devices',
+      'Computational Physics & Simulation',
     ],
-    eligibility: "Relevant Master's degree meeting prescribed minimum marks or equivalent grade.",
+    eligibility: "M.Sc. in Physics / Applied Physics / Materials Science with minimum 55% marks (50% for reserved categories).",
+    hasSyllabus: true,
   },
   {
     id: 'chem',
@@ -234,13 +279,16 @@ export const RESEARCH_DISCIPLINES = [
     name: 'Chemistry',
     category: 'Sciences & Humanities',
     image: 'https://rvrnriuniversity.edu.in/wp-content/uploads/2026/01/M.Pharm-Pharmacology.webp',
-    description: 'Analytical Chemistry, Materials Chemistry and Environmental Chemistry.',
+    description: 'Organic Synthesis, Medicinal Chemistry, Analytical Chemistry, Catalysis, and Environmental Chemistry.',
     researchAreas: [
-      'Analytical Chemistry',
-      'Materials Chemistry',
-      'Environmental Chemistry',
+      'Organic Synthesis & Medicinal Chemistry',
+      'Coordination Chemistry & Green Catalysis',
+      'Analytical Chemistry & Spectroscopy',
+      'Polymer Chemistry & Nanocomposites',
+      'Environmental Chemistry & Water Remediation',
     ],
-    eligibility: "Relevant Master's degree meeting prescribed minimum marks or equivalent grade.",
+    eligibility: "M.Sc. in Chemistry / Organic / Inorganic / Physical / Analytical Chemistry with minimum 55% marks (50% for reserved categories).",
+    hasSyllabus: true,
   },
   {
     id: 'pharm',
@@ -248,26 +296,42 @@ export const RESEARCH_DISCIPLINES = [
     name: 'Pharmacy',
     category: 'Pharmaceutical Sciences',
     image: 'https://rvrnriuniversity.edu.in/wp-content/uploads/2026/01/M.Pharm-Pharmaceutics.webp',
-    description: 'Pharmaceutical Sciences, Pharmaceutics and Pharmacology.',
+    description: 'Pharmaceutics, Drug Delivery Systems, Pharmacology, Pharmaceutical Chemistry, and Pharmacognosy.',
     researchAreas: [
-      'Pharmaceutical Sciences',
-      'Pharmaceutics',
-      'Pharmacology',
+      'Novel Drug Delivery Systems (NDDS) & Nanomedicine',
+      'Pharmacology & Toxicology Studies',
+      'Pharmaceutical Chemistry & Molecular Modeling',
+      'Phytochemistry & Herbal Drug Standardization',
+      'Clinical Pharmacy & Pharmacovigilance',
     ],
-    eligibility: "Relevant Master's degree meeting prescribed minimum marks or equivalent grade.",
+    eligibility: "M.Pharmacy degree in Pharmaceutics / Pharmacology / Pharmaceutical Chemistry / allied specialization recognized by PCI with at least 55% marks (50% for reserved categories).",
+    hasSyllabus: true,
   },
 ];
 
-// 5. Eligibility for Admission
+// 5. Eligibility Criteria (Comprehensive UGC Guidelines)
 export const ELIGIBILITY_CRITERIA = {
   header:
-    "Candidates seeking admission to the Ph.D. programme must satisfy the applicable eligibility requirements under the University's approved Ph.D. regulations and prevailing UGC regulations.",
-  points: [
-    "A relevant Master's degree or equivalent qualification from a recognized institution, meeting the prescribed minimum marks or equivalent grade.",
-    'Candidates belonging to categories eligible for relaxation may receive the relaxation prescribed under the applicable regulations.',
-    'Candidates applying for interdisciplinary research must have qualifications relevant to the proposed research area and meet the University\'s requirements.',
-    'Any provision for direct admission after a four-year undergraduate degree must be applied only where permitted by the applicable UGC regulations and adopted University rules.',
-    'Part-time applicants must meet the applicable eligibility requirements and submit employer permission or a No Objection Certificate wherever required.',
+    "Candidates seeking admission to the Ph.D. programme must satisfy the eligibility criteria prescribed under University regulations in compliance with University Grants Commission (Minimum Standards and Procedures for Award of Ph.D. Degree) Regulations.",
+  generalRequirements: [
+    "Master's Degree: Candidates must possess a Master's degree or a professional degree declared equivalent to the Master's degree by the corresponding statutory regulatory body, with at least 55% marks in aggregate or its equivalent grade 'B' in the UGC 7-point scale.",
+    'Category Relaxation: A relaxation of 5% marks (from 55% to 50%), or an equivalent relaxation of grade, is allowed for candidates belonging to SC/ST/OBC (non-creamy layer)/Differently-Abled/Economically Weaker Section (EWS) and other categories as per UGC norms.',
+    'Four-Year Undergraduate Degree Provision: Candidates with a 4-year / 8-semester Bachelor’s degree programme with a minimum of 75% marks in aggregate or equivalent grade are eligible, subject to UGC notifications and university regulations.',
+    'Part-Time Ph.D. Eligibility: Part-time candidates must be in regular employment with educational institutions, research organizations, government departments, or recognized industries, and must submit a mandatory No Objection Certificate (NOC) and service certificate from their employer.',
+    'Interdisciplinary Research: Candidates applying for interdisciplinary research must satisfy the qualifications relevant to the proposed discipline and obtain approval from the Departmental Research Committee (DRC).',
+  ],
+  requiredDocumentsList: [
+    'Recent passport-size photograph and digital signature',
+    'SSC / Class 10 Certificate (Date of birth verification)',
+    'Intermediate / 10+2 / Diploma Certificate',
+    "Bachelor's Degree Certificate and consolidated/semester grade mark sheets",
+    "Master's Degree Certificate and consolidated grade transcripts",
+    'Valid Scorecard/Certificate of UGC-NET / CSIR-NET / GATE / SLET / SET / GPAT (if claiming exemption)',
+    'Category / Community / EWS Certificate (issued by competent revenue authority, if applicable)',
+    'No Objection Certificate (NOC) from employer (mandatory for all Part-Time applicants)',
+    'Aadhaar Card / Government Identity Proof',
+    'Brief Research Proposal / Statement of Purpose (indicative 500–1000 words)',
+    'Application fee payment transaction receipt / UTR slip',
   ],
 };
 
@@ -275,306 +339,391 @@ export const ELIGIBILITY_CRITERIA = {
 export const ADMISSION_PROCEDURE = [
   {
     step: 1,
-    title: 'Online registration',
+    title: 'Online Application & Profile Submission',
     description:
-      "Candidates register through the University's Ph.D. admissions portal and enter their personal, educational and research-related details.",
+      "Candidates submit their online application through the university admissions portal, providing personal, educational, research background details, and discipline preferences.",
   },
   {
     step: 2,
-    title: 'Application fee payment',
+    title: 'Application Fee Payment & Verification',
     description:
-      'Candidates pay the prescribed application fee through the approved online payment gateway and retain the transaction receipt.',
+      'Candidates remit the prescribed application fee through the approved online payment gateway / net banking and enter transaction reference (UTR) in the application form.',
   },
   {
     step: 3,
-    title: 'Application scrutiny',
+    title: 'Scrutiny of Applications & Qualifications',
     description:
-      'The admissions office verifies the application, educational qualifications, supporting documents and eligibility.',
+      'The Directorate of Research & Development and Departmental Research Committees (DRC) scrutinize academic credentials, minimum marks, eligibility, and document authenticity.',
   },
   {
     step: 4,
-    title: 'Entrance examination or applicable exemption',
+    title: 'University Ph.D. Selection Test (or Exemption)',
     description:
-      'Eligible candidates appear for the University entrance examination unless they qualify for an exemption under the applicable regulations.',
+      'Eligible candidates appear for the University Entrance Examination comprising Part A (Research) and Part B (Department). Candidates qualifying UGC-NET, CSIR-NET (JRF), GATE, SLET, SET, or GPAT may be granted exemption as per approved rules.',
   },
   {
     step: 5,
-    title: 'Interview and research presentation',
+    title: 'Research Proposal Presentation & Interview',
     description:
-      'Shortlisted candidates attend an interview before the designated selection committee and present their proposed research topic, objectives and methodology.',
+      'Qualified and exempted candidates present their research proposal and defend their research competence before the Departmental Research Committee (DRC).',
   },
   {
     step: 6,
-    title: 'Merit list and provisional selection',
+    title: 'Merit List Declaration & Supervisor Allocation',
     description:
-      'Candidates are selected according to the applicable selection criteria, merit, supervisor availability and approved research capacity.',
+      'A consolidated merit list is prepared taking into account entrance performance (or qualifying national exam), interview evaluation, research feasibility, and recognized supervisor vacancies.',
   },
   {
     step: 7,
-    title: 'Admission and registration',
+    title: 'Provisional Admission & Coursework Registration',
     description:
-      'Selected candidates complete admission formalities, pay the prescribed admission and programme fees, and undertake coursework and registration requirements.',
+      'Provisionally selected candidates complete admission verification, pay prescribed fees, and register for mandatory doctoral coursework and research colloquiums.',
   },
 ];
 
-// 7. Ph.D. Entrance Examination
+// 7. Ph.D. Selection Test & Examination Architecture
 export const ENTRANCE_EXAMINATION = {
-  intro: 'The entrance examination is proposed to consist of two parts.',
+  intro:
+    'The University Ph.D. Entrance Examination is structured into two comprehensive sections assessing research acumen and department-specific mastery.',
+  totalDuration: '120 Minutes (2.0 Hours)',
+  durationNotes:
+    'Total examination duration is 120 Minutes (2.0 Hours) conducted in a single test session for both Part A and Part B.',
+  totalMarks: 75,
+  markingNote:
+    'Proposed 75 Marks architecture (25 Marks Part A + 50 Marks Part B). Final marks distribution, question formats (MCQs / descriptive), and qualifying thresholds are subject to formal confirmation by the University Academic Council.',
+  qualifyingCriteria:
+    'Qualifying marks are proposed as 50% in aggregate (45% for SC/ST/OBC non-creamy layer/Differently-Abled/EWS candidates), in accordance with UGC guidelines.',
   pattern: [
     {
       component: 'Part A – Research Aptitude and Methodology',
       marks: 25,
-      description: 'Research Methodology and Research Aptitude assessment.',
+      weightage: '33.3%',
+      description: 'Foundational research methodology, research design, statistical reasoning, ethics, and analytical ability (Common to all disciplines).',
     },
     {
       component: 'Part B – Subject-Specific Knowledge',
       marks: 50,
-      description: 'Discipline-relevant subject examination based on department syllabus.',
+      weightage: '66.7%',
+      description: 'Domain-specific curriculum covering core theoretical and applied topics of the selected department / discipline.',
     },
   ],
-  totalMarks: 75,
   partACoverage: [
-    'Research fundamentals, types and approaches',
-    'Identification of research problems and formulation of hypotheses',
-    'Research design, sampling techniques and data collection',
-    'Statistical analysis and interpretation of results',
-    'Literature review and research gap identification',
-    'Research ethics, plagiarism and publication ethics',
-    'Academic writing, citations and referencing',
-    'Basics of research tools and data analysis',
+    'Research fundamentals, philosophical approaches, and types of research',
+    'Identification of research problem, literature review, and hypothesis formulation',
+    'Research design, sampling techniques, measurement scales, and data collection',
+    'Statistical analysis, hypothesis testing (parametric & non-parametric tests), correlation and regression',
+    'Data interpretation, graphical visualization, and computational research tools (SPSS/R/Python)',
+    'Research & Publication Ethics (RPE), UGC anti-plagiarism guidelines, Turnitin/Urkund',
+    'Academic thesis structure, peer-reviewed journals, WoS/Scopus indexing, and standard citation formats (IEEE, APA)',
   ],
   partBCoverageText:
-    "This section assesses the candidate's knowledge of the discipline relevant to the proposed Ph.D. research area. The syllabus will differ by department and must be made available as a downloadable PDF on the respective department page.",
+    "Part B assesses advanced subject knowledge tailored to the specific department or discipline applied for (e.g. Computer Science, Electronics, Mechanical, Management, Economics, Mathematics, Physics, Chemistry, Pharmacy). Detailed department syllabi are provided below with individual PDF download facilities.",
   disclaimer:
-    'The above is the working examination pattern discussed earlier, not a statement of a mandatory UGC-prescribed paper structure. The University must formally approve the question format, duration, qualifying criteria, marking scheme and selection weightage before publishing them.',
-  instructions: [
-    'Examination date, reporting time and venue or online examination instructions.',
-    'Hall-ticket download facility.',
-    'Candidate identity verification requirements.',
-    'Examination duration, question format and negative-marking policy, if applicable.',
-    'Qualifying marks and result publication procedure.',
-    'Contact details for examination-related queries.',
+    'The 75-mark two-part pattern is the proposed working framework. The University Academic Council reserves the right to issue the final ratified examination pattern, duration, and question distribution.',
+  candidateGuidelines: [
+    'Candidates must download their official Hall Ticket from the admissions portal prior to the examination.',
+    'Valid photo identity proof (Aadhaar Card, Voter ID, Passport, or PAN) must be produced at the examination center.',
+    'Reporting time is 45 minutes prior to the scheduled examination commencement.',
+    'Calculators or electronic communication devices are strictly prohibited unless explicitly permitted for numerical disciplines.',
+    'Results and interview shortlists will be published on the official University website.',
   ],
 };
 
-// 8. Entrance Examination Exemptions
+// 8. Entrance Examination Exemptions (Including SLET, SET, GPAT)
 export const EXEMPTION_CRITERIA = {
   header:
-    "Candidates holding eligible national-level examination qualifications may be considered for exemption from the University entrance test in accordance with the applicable UGC regulations and the University's approved rules.",
-  qualifications: [
-    'UGC-NET, including JRF or other eligible NET categories.',
-    'CSIR-NET.',
-    'GATE.',
-    'Other recognized national-level examinations, where applicable to the discipline.',
-    "Any other examination or category explicitly permitted under the University's approved regulations.",
+    "Candidates possessing recognized national-level examination qualifications may be considered for exemption from appearing in the written entrance test, subject to verification and approved University regulations:",
+  recognizedExaminations: [
+    {
+      exam: 'UGC-NET / UGC-CSIR NET (including JRF)',
+      scope: 'Candidates who have qualified UGC-NET or CSIR-NET (Junior Research Fellowship or Lectureship / Assistant Professor categories).',
+      status: 'Recognized for Written Test Exemption',
+    },
+    {
+      exam: 'GATE (Graduate Aptitude Test in Engineering)',
+      scope: 'Candidates with a valid GATE score in engineering, technology, or science disciplines relevant to the Ph.D. domain.',
+      status: 'Recognized for Written Test Exemption',
+    },
+    {
+      exam: 'SLET / SET (State Level / State Eligibility Test)',
+      scope: 'Candidates who have qualified SLET / SET (including APSET, TSSET, and other recognized State Eligibility Tests) in the relevant subject.',
+      status: 'Recognized for Written Test Exemption',
+    },
+    {
+      exam: 'GPAT (Graduate Pharmacy Aptitude Test)',
+      scope: 'Candidates who have qualified GPAT with a valid scorecard for doctoral admissions in Pharmacy and Pharmaceutical Sciences.',
+      status: 'Recognized for Written Test Exemption',
+    },
+    {
+      exam: 'National Doctoral Fellowships (ICMR / ICAR / DST-INSPIRE / NBHM)',
+      scope: 'Scholars awarded national fellowships through competitive national tests for pursuing full-time doctoral research.',
+      status: 'Recognized for Written Test Exemption',
+    },
   ],
   importantNote:
-    'Exemption should not be presented as automatic for every NET or GATE qualification. The applicable category, validity, subject relevance, documentary evidence and interview requirements must be verified. Candidates qualifying under an exempted category should follow the prescribed interview and selection process.',
+    'Mandatory Scrutiny & Interview Requirement: Exemption applies exclusively to the written entrance examination (Part A & Part B). All exempted candidates MUST appear for the Research Proposal Presentation and Personal Interview before the Departmental Research Committee (DRC). Exemption eligibility is subject to documentary verification of score validity, qualifying year, and subject relevance.',
 };
 
 // 9. Interview and Research Proposal Presentation
 export const INTERVIEW_PRESENTATION = {
   header:
-    'Shortlisted candidates will be invited to attend an interview before the designated University committee.',
+    'Shortlisted candidates (both written test qualified and exempted) must attend an interview and research presentation before the Departmental Research Committee (DRC).',
   assessmentPoints: [
-    "The candidate's academic background and subject knowledge.",
-    'Understanding of the proposed research problem.',
-    'Identification of the research gap and significance of the study.',
-    'Familiarity with relevant literature.',
-    'Proposed research objectives, methodology and feasibility.',
-    'Analytical skills and ability to undertake independent research.',
-    'Availability of appropriate supervision and research facilities.',
+    "Candidate's depth of subject knowledge and academic preparation in the chosen discipline.",
+    'Relevance, clarity, and viability of the proposed research problem.',
+    'Identification of research gaps through thorough review of literature.',
+    'Feasibility of proposed research methodology, experimental design, and analytical tools.',
+    'Availability of recognized research supervisors and required laboratory/computational infrastructure.',
+    'Potential of the proposed research to contribute to new knowledge or technological innovation.',
   ],
   candidateInstructions:
-    'Candidates should bring their original certificates or verified documents as instructed, along with a brief research proposal and any supporting presentation requested by the University.',
+    'Candidates must bring self-attested original certificates, verified document copies, a brief written research proposal (3–5 pages), and a concise slide presentation (10–12 slides) highlighting proposed research objectives and methodology.',
   scheduleNote:
-    'The website should publish the interview schedule, reporting instructions, evaluation criteria and final selection procedure after approval.',
+    'The detailed interview schedule, DRC panel timings, and reporting instructions will be communicated via email and portal notifications.',
 };
 
-// 10. Ph.D. Fee Structure
+// 10. Ph.D. Fee Structure (Proposed & Configurable)
 export const FEE_STRUCTURE = {
   note:
-    'The following fee particulars were discussed earlier and can be presented on the website, subject to confirmation against the University\'s final approved fee notification.',
+    'The proposed fee schedule for Ph.D. admissions 2026–2027 is outlined below, subject to final official circular from the University Finance Committee.',
   table: [
     {
-      component: 'Admission fee',
+      component: 'Admission Fee (One-Time)',
       fullTime: '₹10,000',
       partTime: '₹10,000',
+      remarks: 'Payable at the time of provisional admission',
     },
     {
-      component: 'Annual programme fee',
+      component: 'Annual Programme / Tuition Fee',
       fullTime: '₹20,000',
       partTime: '₹15,000',
+      remarks: 'Payable annually at the commencement of each academic year',
     },
     {
-      component: 'Application fee',
-      fullTime: 'To be approved',
-      partTime: 'To be approved',
+      component: 'Application Fee',
+      fullTime: 'To be notified',
+      partTime: 'To be notified',
+      remarks: 'Online application processing fee as per official circular',
     },
     {
-      component: 'Coursework / examination fee',
+      component: 'Pre-Ph.D. Coursework & Examination Fee',
       fullTime: 'As notified',
       partTime: 'As notified',
+      remarks: 'Per course registration / examination session',
     },
     {
-      component: 'Thesis submission / evaluation fee',
+      component: 'Thesis Evaluation & Viva-Voce Fee',
       fullTime: 'As notified',
       partTime: 'As notified',
+      remarks: 'Payable prior to final thesis submission',
     },
     {
-      component: 'Other applicable charges',
+      component: 'Caution Deposit (Refundable)',
       fullTime: 'As notified',
       partTime: 'As notified',
+      remarks: 'Subject to university rules upon completion',
     },
   ],
   footerNote:
-    'The admission fee and annual fees shown above are the previously discussed amounts. The University should confirm whether the admission fee is one-time, when annual fees become payable, and whether any additional charges apply.',
+    'Fees once paid are non-refundable except caution deposits under university rules. Exact application fee and payment instructions will be updated upon final administrative notification.',
 };
 
-// 11. Online Ph.D. Application Form Specifications
-export const ONLINE_FORM_DETAILS = {
-  title: 'Ph.D. Admission Application — 2026–2027',
-  notice:
-    'Illustrative form preview. This form does not submit data to the University or process payments.',
-  sections: [
+// 11. Online Ph.D. Application Guide & Workflow
+export const ONLINE_APPLICATION_GUIDE = {
+  title: 'Ph.D. Online Application & Payment Procedure',
+  summary:
+    'Applicants must complete the verified 7-step online application form, upload mandatory self-attested documents, remit the fee, and obtain an application acknowledgement number.',
+  steps: [
     {
-      section: 'A. Programme Details',
-      fields: ['Admission category (Full-Time / Part-Time)', 'Department / discipline (Select discipline)'],
+      step: '1',
+      title: 'Personal & Programme Details',
+      desc: 'Select Full-Time / Part-Time mode, choose department/discipline, and enter candidate profile, category, and communication address.',
     },
     {
-      section: 'B. Candidate Details',
-      fields: ['Full Name, Father/Guardian Name, Date of Birth, Gender, Category, Mobile, Email, Aadhaar, Permanent & Correspondence Address'],
+      step: '2',
+      title: 'Academics & Qualifying Exams',
+      desc: 'Enter detailed educational qualifications from SSC, Intermediate, UG to Master’s degree, including marks, percentages, board/university, and NET/GATE/SLET/SET/GPAT scores.',
     },
     {
-      section: 'C. Educational Qualifications',
-      fields: ['Post-Graduation (Master’s), Under-Graduation (Bachelor’s), Intermediate / 10+2, SSC / 10th with marks, percentage, board/university and year'],
+      step: '3',
+      title: 'Professional Experience & Publications',
+      desc: 'Add teaching, industry, or research experience, along with research publications in indexed journals, books, or patents.',
     },
     {
-      section: 'D. Research Information',
-      fields: ['Proposed Research Area, Topic Title, Brief Synopsis / Abstract, Exemption Category (NET/JRF/GATE) if applicable, Experience & Publications'],
+      step: '4',
+      title: 'Research Proposal & Referees',
+      desc: 'Specify proposed research area, tentative topic, brief synopsis, and names of two academic/professional referees.',
     },
-  ],
-  declarationPayment:
-    "The production portal should include a declaration of the accuracy of submitted information, consent to the University's admission terms, document uploads, application fee payment, transaction verification and application acknowledgement.",
-  requiredUploads: [
-    'Recent photograph and signature, if required.',
-    'Government-approved identity proof.',
-    "Bachelor's and Master's degree certificates.",
-    'Semester-wise or consolidated mark sheets.',
-    'NET/JRF/GATE or other qualifying examination certificates, where applicable.',
-    'Category certificate, where applicable.',
-    "Employer's NOC or permission letter for part-time candidates, where required.",
-    'Research proposal or statement of purpose, if required.',
-    'Other documents specified in the admission notification.',
-  ],
-  paymentWorkflow: [
-    'Candidate completes the application form.',
-    'The portal validates mandatory fields.',
-    'The candidate pays the approved application fee through the payment gateway.',
-    'The portal verifies the payment response.',
-    'A unique application number and acknowledgement are generated.',
-    'The candidate downloads the submitted application and payment receipt.',
-    'The admissions office can view applications, payment status, eligibility and document verification status through an administrative dashboard.',
+    {
+      step: '5',
+      title: 'Document Uploads',
+      desc: 'Upload clear scanned PDFs or images of certificates, degree transcripts, identity proof, employer NOC (if part-time), and fee payment slip.',
+    },
+    {
+      step: '6',
+      title: 'Fee Payment Slip & Verification',
+      desc: 'Upload the payment receipt / UTR transaction slip of the prescribed application fee paid via official university net banking / online gateway.',
+    },
+    {
+      step: '7',
+      title: 'Digital Declaration & Irrevocable Submission',
+      desc: 'Review all entered data in the comprehensive summary accordion, accept the legal declaration, type your digital signature, and submit.',
+    },
   ],
 };
 
-// 12. Website Downloads and Important Links
+// 12. Website Downloads and Important Documents (Genuine Document Downloads Only)
 export const WEBSITE_DOWNLOADS_LINKS = [
   {
+    id: 'notification',
     title: 'Ph.D. Admission Notification 2026–2027',
-    purpose: 'Official admission announcement',
-    type: 'Notification',
-    downloadId: 'notification',
+    purpose: 'Official admission circular, intake details, and university guidelines',
+    category: 'Notification',
+    status: 'Official Summary (PDF)',
+    actionType: 'regulations-pdf',
   },
   {
-    title: 'Ph.D. Regulations',
-    purpose: 'Approved regulations governing admission, coursework, supervision and thesis submission',
-    type: 'Regulations',
-    downloadId: 'regulations',
+    id: 'syllabus-part-a',
+    title: 'Entrance Examination Syllabus — Part A (Research Aptitude)',
+    purpose: 'Complete 8-unit syllabus covering research fundamentals, statistics & publication ethics',
+    category: 'Syllabus',
+    status: 'Download Document (PDF)',
+    actionType: 'part-a-pdf',
   },
   {
-    title: 'Detailed Eligibility Guidelines',
-    purpose: 'Qualification, marks and relaxation criteria',
-    type: 'Guidelines',
-    downloadId: 'eligibility',
+    id: 'syllabus-all-depts',
+    title: 'Department-Wise Ph.D. Syllabi — Part B (All 11 Disciplines)',
+    purpose: 'Subject-specific syllabi for CSE, ECE, EEE, ME, CE, MBA, ECON, Math, Physics, Chemistry & Pharmacy',
+    category: 'Syllabus',
+    status: 'Part B Syllabus Explorer',
+    actionType: 'scroll-part-b',
   },
   {
-    title: 'Department-wise Ph.D. Syllabi',
-    purpose: 'Part A and Part B syllabus PDFs',
-    type: 'Syllabus',
-    downloadId: 'syllabus',
-  },
-  {
-    title: 'Ph.D. Fee Structure',
-    purpose: 'Approved application, admission and annual fees',
-    type: 'Finance',
-    downloadId: 'fee-structure',
-  },
-  {
-    title: 'Entrance Examination Guidelines',
-    purpose: 'Pattern, duration, marks and instructions',
-    type: 'Examination',
-    downloadId: 'entrance-guidelines',
-  },
-  {
-    title: 'Application User Guide',
-    purpose: 'Instructions for completing the online form',
-    type: 'Guide',
-    downloadId: 'user-guide',
-  },
-  {
-    title: 'Research Proposal Guidelines',
-    purpose: 'Format and preparation requirements',
-    type: 'Guidelines',
-    downloadId: 'proposal-guidelines',
-  },
-  {
-    title: 'Recognized Research Supervisors',
-    purpose: 'Approved supervisors and research areas',
-    type: 'Academic',
-    downloadId: 'supervisors',
-  },
-  {
-    title: 'Important Dates',
-    purpose: 'Application, examination, result and interview schedule',
-    type: 'Schedule',
-    downloadId: 'dates',
-  },
-  {
-    title: 'Contact the Ph.D. Admissions Office',
-    purpose: 'Official email, telephone and helpdesk information',
-    type: 'Contact',
-    downloadId: 'contact',
+    id: 'regulations',
+    title: 'Ph.D. Academic Regulations & Guidelines',
+    purpose: 'Rules governing doctoral coursework, supervisory committees, evaluation & thesis submission',
+    category: 'Regulations',
+    status: 'Official Regulations (PDF)',
+    actionType: 'regulations-pdf',
   },
 ];
 
-// 13. Suggested Website Menu
+// 13. Streamlined Website Navigation Menu
 export const SUGGESTED_MENU = [
   { label: 'Home', href: '#home' },
   {
-    label: 'Ph.D. Programmes',
+    label: 'Programmes',
     href: '#programmes',
     children: [
       { label: 'Full-Time Ph.D.', href: '#programmes' },
       { label: 'Part-Time Ph.D.', href: '#programmes' },
     ],
   },
-  { label: 'Departments & Research Areas', href: '#departments' },
-  { label: 'Eligibility Criteria', href: '#eligibility' },
-  { label: 'Admission Procedure', href: '#procedure' },
-  { label: 'Entrance Examination', href: '#entrance-exam' },
-  { label: 'Syllabus Downloads', href: '#syllabus' },
-  { label: 'NET / JRF / GATE Exemptions', href: '#exemptions' },
-  { label: 'Interview & Selection', href: '#interview' },
-  { label: 'Fee Structure', href: '#fee-structure' },
-  { label: 'Ph.D. Regulations', href: '#downloads' },
-  { label: 'Pay Fee & Apply Online', href: '#apply-online', isCta: true },
-  { label: 'Application Status', href: 'status' },
+  { label: 'Departments', href: '#departments' },
+  { label: 'Eligibility', href: '#eligibility' },
+  { label: 'Selection & Exam', href: '#selection-exam' },
+  { label: 'Part A Syllabus', href: '#part-a-syllabus' },
+  { label: 'Part B Syllabus', href: '#part-b-syllabus' },
+  { label: 'Exemptions', href: '#exemptions' },
   { label: 'Downloads', href: '#downloads' },
-  { label: 'Contact Admissions Office', href: '#contact' },
+  { label: 'Contact', href: '#contact' },
+  { label: 'Application Status', href: 'status' },
+  { label: 'Pay Fee & Apply', href: '#apply-online', isCta: true },
 ];
 
-// 14. Administrative Dashboard Requirements
+// 14. Department Syllabi Details (Including Economics)
+export const DEPARTMENT_SYLLABI = {
+  cse: {
+    name: 'Computer Science and Engineering',
+    code: 'CSE',
+    category: 'Engineering & Technology',
+    partA: 'Research Aptitude & Methodology (25 Marks)',
+    partB: 'Algorithms, Architecture, Database Systems, Networks, AI/ML, Cybersecurity & Cloud (50 Marks)',
+    hasSyllabus: true,
+  },
+  ece: {
+    name: 'Electronics and Communication Engineering',
+    code: 'ECE',
+    category: 'Engineering & Technology',
+    partA: 'Research Aptitude & Methodology (25 Marks)',
+    partB: 'Signals & Systems, Digital Signal Processing, Communications, Embedded Systems & VLSI (50 Marks)',
+    hasSyllabus: true,
+  },
+  eee: {
+    name: 'Electrical and Electronics Engineering',
+    code: 'EEE',
+    category: 'Engineering & Technology',
+    partA: 'Research Aptitude & Methodology (25 Marks)',
+    partB: 'Electric Circuits, Electrical Machines, Power Systems, Control Systems, Power Electronics & Renewable Energy (50 Marks)',
+    hasSyllabus: true,
+  },
+  me: {
+    name: 'Mechanical Engineering',
+    code: 'ME',
+    category: 'Engineering & Technology',
+    partA: 'Research Aptitude & Methodology (25 Marks)',
+    partB: 'Applied Mechanics, Machine Design, Fluid & Thermal Sciences, Manufacturing & Operations Research (50 Marks)',
+    hasSyllabus: true,
+  },
+  ce: {
+    name: 'Civil Engineering',
+    code: 'CE',
+    category: 'Engineering & Technology',
+    partA: 'Research Aptitude & Methodology (25 Marks)',
+    partB: 'Structural Analysis & Design, Geotechnical Engineering, Water Resources, Environmental & Transportation (50 Marks)',
+    hasSyllabus: true,
+  },
+  mba: {
+    name: 'Management Studies',
+    code: 'MBA',
+    category: 'Management & Commerce',
+    partA: 'Research Aptitude & Methodology (25 Marks)',
+    partB: 'Management Principles, OB, Marketing Management, Corporate Finance, HRM & Business Analytics (50 Marks)',
+    hasSyllabus: true,
+  },
+  econ: {
+    name: 'Economics',
+    code: 'ECON',
+    category: 'Humanities & Social Sciences',
+    partA: 'Research Aptitude & Methodology (25 Marks)',
+    partB: 'Microeconomics, Macroeconomics, Econometrics & Statistics, Development Economics, Public Finance & Indian Economy (50 Marks)',
+    hasSyllabus: true,
+  },
+  math: {
+    name: 'Mathematics',
+    code: 'MATH',
+    category: 'Sciences & Humanities',
+    partA: 'Research Aptitude & Methodology (25 Marks)',
+    partB: 'Real & Complex Analysis, Linear & Abstract Algebra, Differential Equations, Numerical Methods & Statistics (50 Marks)',
+    hasSyllabus: true,
+  },
+  phy: {
+    name: 'Physics',
+    code: 'PHY',
+    category: 'Sciences & Humanities',
+    partA: 'Research Aptitude & Methodology (25 Marks)',
+    partB: 'Classical & Quantum Mechanics, Electrodynamics, Solid State Physics, Electronics & Nuclear Physics (50 Marks)',
+    hasSyllabus: true,
+  },
+  chem: {
+    name: 'Chemistry',
+    code: 'CHEM',
+    category: 'Sciences & Humanities',
+    partA: 'Research Aptitude & Methodology (25 Marks)',
+    partB: 'Inorganic & Coordination Chemistry, Organic Synthesis & Mechanisms, Physical Chemistry & Spectroscopy (50 Marks)',
+    hasSyllabus: true,
+  },
+  pharm: {
+    name: 'Pharmacy',
+    code: 'PHARM',
+    category: 'Pharmaceutical Sciences',
+    partA: 'Research Aptitude & Methodology (25 Marks)',
+    partB: 'Pharmaceutics & NDDS, Pharmacology & Toxicology, Pharmaceutical Chemistry & Analysis, Pharmacognosy (50 Marks)',
+    hasSyllabus: true,
+  },
+};
+
+// Administrative Dashboard Specifications (Internal Reference)
 export const ADMIN_DASHBOARD_SPECS = [
   'View and filter applications by discipline and admission category.',
   'Verify application fee payments and issue acknowledgements.',
@@ -587,7 +736,7 @@ export const ADMIN_DASHBOARD_SPECS = [
   'Maintain role-based access, audit logs and secure handling of candidate information.',
 ];
 
-// 15. Final Implementation Checklist
+// Implementation Checklist (Internal Governance)
 export const IMPLEMENTATION_CHECKLIST = [
   'Final list of Ph.D. disciplines and recognized research supervisors.',
   'Eligibility criteria and qualifying marks for each discipline.',
@@ -600,57 +749,3 @@ export const IMPLEMENTATION_CHECKLIST = [
   'Online application privacy notice and secure document storage.',
   'Official admission notification and final schedule.',
 ];
-
-// Department Syllabi Details
-export const DEPARTMENT_SYLLABI = {
-  cse: {
-    name: 'Computer Science and Engineering',
-    partA: 'Research Aptitude & Methodology (25 Marks)',
-    partB: 'AI, Machine Learning, Data Science, Cybersecurity, Networks & Software Engineering (50 Marks)',
-  },
-  ece: {
-    name: 'Electronics and Communication Engineering',
-    partA: 'Research Aptitude & Methodology (25 Marks)',
-    partB: 'Signal Processing, Communication Systems, Embedded Systems and VLSI (50 Marks)',
-  },
-  eee: {
-    name: 'Electrical and Electronics Engineering',
-    partA: 'Research Aptitude & Methodology (25 Marks)',
-    partB: 'Power Systems, Renewable Energy and Control Systems (50 Marks)',
-  },
-  me: {
-    name: 'Mechanical Engineering',
-    partA: 'Research Aptitude & Methodology (25 Marks)',
-    partB: 'Manufacturing, Thermal Engineering, Design and Industrial Automation (50 Marks)',
-  },
-  ce: {
-    name: 'Civil Engineering',
-    partA: 'Research Aptitude & Methodology (25 Marks)',
-    partB: 'Structural Engineering, Environmental Engineering and Construction Management (50 Marks)',
-  },
-  mba: {
-    name: 'Management Studies',
-    partA: 'Research Aptitude & Methodology (25 Marks)',
-    partB: 'Finance, Marketing, Human Resources, Operations and Business Analytics (50 Marks)',
-  },
-  math: {
-    name: 'Mathematics',
-    partA: 'Research Aptitude & Methodology (25 Marks)',
-    partB: 'Applied Mathematics, Optimization, Statistics and Computational Mathematics (50 Marks)',
-  },
-  phy: {
-    name: 'Physics',
-    partA: 'Research Aptitude & Methodology (25 Marks)',
-    partB: 'Applied Physics, Materials and Computational Physics (50 Marks)',
-  },
-  chem: {
-    name: 'Chemistry',
-    partA: 'Research Aptitude & Methodology (25 Marks)',
-    partB: 'Analytical Chemistry, Materials Chemistry and Environmental Chemistry (50 Marks)',
-  },
-  pharm: {
-    name: 'Pharmacy',
-    partA: 'Research Aptitude & Methodology (25 Marks)',
-    partB: 'Pharmaceutical Sciences, Pharmaceutics and Pharmacology (50 Marks)',
-  },
-};

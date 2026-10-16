@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { hasUserFilledAnyField } from '../data/initialFormState';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
@@ -125,6 +126,10 @@ export const dbService = {
 
   // Save draft
   async saveDraft(formData) {
+    if (!hasUserFilledAnyField(formData)) {
+      return null;
+    }
+
     const appNumber = formData.applicationNumber || `DRAFT-${Date.now().toString().slice(-6)}`;
     const draftRecord = {
       id: formData.id || crypto.randomUUID(),
@@ -384,6 +389,7 @@ export const dbService = {
 
   // Get single application
   async getApplication(idOrNumber) {
+    let app = null;
     if (isSupabaseConfigured()) {
       try {
         const { data, error } = await supabase
@@ -391,18 +397,35 @@ export const dbService = {
           .select('*')
           .or(`id.eq.${idOrNumber},application_number.eq.${idOrNumber}`)
           .single();
-        if (!error && data) return data;
+        if (!error && data) app = data;
       } catch (err) {
         // Fall back to local
       }
     }
-    const apps = getLocalApps();
-    return apps.find((a) => a.id === idOrNumber || a.application_number === idOrNumber) || null;
+    if (!app) {
+      const apps = getLocalApps();
+      app = apps.find((a) => a.id === idOrNumber || a.application_number === idOrNumber) || null;
+    }
+    if (app) {
+      const isDraft = app.status === 'draft' || String(app.application_number || '').startsWith('DRAFT-') || !app.submitted_at;
+      if (isDraft && app.status !== 'approved' && app.status !== 'rejected' && app.status !== 'under_review') {
+        if (!hasUserFilledAnyField(app)) return null;
+      }
+    }
+    return app;
   },
 
   // Get all applications with search and filters
   async getApplications(options = {}) {
     const { status, programme, admissionCategory, searchQuery } = options;
+
+    const isNonEmptyDraftOrSubmitted = (a) => {
+      const isDraft = a.status === 'draft' || String(a.application_number || '').startsWith('DRAFT-') || !a.submitted_at;
+      if (isDraft && a.status !== 'approved' && a.status !== 'rejected' && a.status !== 'under_review') {
+        return hasUserFilledAnyField(a);
+      }
+      return true;
+    };
 
     if (isSupabaseConfigured()) {
       try {
@@ -426,7 +449,7 @@ export const dbService = {
 
         const { data, error } = await query;
         if (!error && data) {
-          return data;
+          return data.filter(isNonEmptyDraftOrSubmitted);
         }
         if (error && isTableMissingError(error)) {
           console.warn('[Supabase] applications table not found in Supabase. Reading from local store.');
@@ -438,6 +461,9 @@ export const dbService = {
 
     // Local fallback
     let apps = getLocalApps();
+
+    // Only include drafts if user has filled at least one field
+    apps = apps.filter(isNonEmptyDraftOrSubmitted);
 
     if (status && status !== 'all') {
       apps = apps.filter((a) => a.status === status);

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UNIVERSITY_INFO, SUGGESTED_MENU } from '../data/portalData';
+import { SUGGESTED_MENU } from '../data/portalData';
 
 export default function Header({ currentView, setCurrentView, onOpenStatus }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

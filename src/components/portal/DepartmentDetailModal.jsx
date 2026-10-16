@@ -1,4 +1,5 @@
 import React from 'react';
+import { generateDepartmentSyllabusPDF } from '../../lib/syllabusPdfGenerator';
 
 export default function DepartmentDetailModal({ department, isOpen, onClose, onApply }) {
   if (!isOpen || !department) return null;
@@ -79,10 +80,10 @@ export default function DepartmentDetailModal({ department, isOpen, onClose, onA
             </div>
             <button
               type="button"
-              onClick={() => alert(`Downloading official ${department.name} Ph.D. syllabus...`)}
-              className="btn-secondary text-xs px-3 py-1.5 flex items-center gap-1.5 text-brand-900 shrink-0 self-start sm:self-auto"
+              onClick={() => generateDepartmentSyllabusPDF(department)}
+              className="btn-secondary text-xs px-3 py-1.5 flex items-center gap-1.5 text-brand-900 shrink-0 self-start sm:self-auto cursor-pointer"
             >
-              Download Syllabus
+              Download Syllabus PDF
             </button>
           </div>
         </div>

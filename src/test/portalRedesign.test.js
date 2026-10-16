@@ -14,6 +14,7 @@ import {
   generateDepartmentSyllabusPDF,
   generateRegulationsSummaryPDF,
 } from '../lib/syllabusPdfGenerator';
+import { generateApplicationPDF } from '../lib/pdfGenerator';
 
 describe('Ph.D. Portal Redesign & Data Integrity Verification', () => {
   it('1. should include Economics and 11 disciplines in approved research departments', () => {
@@ -174,4 +175,64 @@ describe('Ph.D. Portal Redesign & Data Integrity Verification', () => {
       expect(hasUserFilledAnyField(draft)).toBe(true);
     }
   });
+
+  it('11. should append uploaded documents into the generated application PDF for admin downloads', async () => {
+    // 1. Application without enclosures
+    const basicApp = {
+      id: 'test-app-001',
+      application_number: 'NRIIT-PHD-2026-99999',
+      applicant_name: 'Aditi Sharma',
+      status: 'submitted',
+      personal_details: { fullName: 'Aditi Sharma', email: 'aditi@example.com' },
+      document_metadata: {},
+    };
+    const basicDoc = await generateApplicationPDF(basicApp);
+    const basicPageCount = basicDoc.internal.getNumberOfPages();
+    expect(basicPageCount).toBeGreaterThan(0);
+
+    // 2. Application with uploaded documents (e.g. SSC certificate, Aadhaar card, Fee receipt)
+    // Small valid 1x1 transparent PNG dataUrl
+    const samplePngDataUrl =
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+
+    const appWithDocs = {
+      id: 'test-app-002',
+      application_number: 'NRIIT-PHD-2026-88888',
+      applicant_name: 'Rahul Verma',
+      status: 'submitted',
+      personal_details: { fullName: 'Rahul Verma', email: 'rahul@example.com' },
+      document_metadata: {
+        sscCertificate: {
+          fileName: 'ssc_marks_memo.png',
+          dataUrl: samplePngDataUrl,
+          contentType: 'image/png',
+        },
+        aadharCard: {
+          fileName: 'aadhar_card.png',
+          dataUrl: samplePngDataUrl,
+          contentType: 'image/png',
+        },
+        feeReceipt: {
+          fileName: 'fee_receipt.png',
+          dataUrl: samplePngDataUrl,
+          contentType: 'image/png',
+        },
+      },
+    };
+
+    const docWithDocs = await generateApplicationPDF(appWithDocs);
+    const docWithDocsPageCount = docWithDocs.internal.getNumberOfPages();
+
+    // The PDF with enclosures should contain Annexure overview page + 3 document pages
+    expect(docWithDocsPageCount).toBeGreaterThanOrEqual(basicPageCount + 4);
+
+    // Verify blob and arraybuffer output
+    const blob = docWithDocs.output('blob');
+    expect(blob).toBeInstanceOf(Blob);
+    expect(blob.size).toBeGreaterThan(1000);
+
+    const arrayBuffer = docWithDocs.output('arraybuffer');
+    expect(arrayBuffer.byteLength).toBeGreaterThan(1000);
+  });
 });
+

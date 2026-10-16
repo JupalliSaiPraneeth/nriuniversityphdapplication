@@ -1,5 +1,194 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { PDFDocument } from 'pdf-lib';
+import { dbService } from './supabase';
+import { DOCUMENT_SPECS } from '../data/initialFormState';
+
+// Helper to determine natural dimensions of an image
+function getImageNaturalDimensions(src) {
+  if (typeof window === 'undefined') return Promise.resolve(null);
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () =>
+      resolve({ width: img.naturalWidth || img.width, height: img.naturalHeight || img.height });
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
+
+// Convert base64 data URL to Uint8Array for pdf-lib
+function base64ToUint8Array(base64Str) {
+  const pure = base64Str.includes(',') ? base64Str.split(',')[1] : base64Str;
+  const binaryString = atob(pure);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
+
+// Convert ArrayBuffer to Data URL
+function arrayBufferToDataUrl(arrayBuffer, contentType = 'image/jpeg') {
+  const bytes = new Uint8Array(arrayBuffer);
+  let binary = '';
+  const len = bytes.byteLength;
+  const chunkSize = 8192;
+  for (let i = 0; i < len; i += chunkSize) {
+    const chunk = bytes.subarray(i, Math.min(i + chunkSize, len));
+    binary += String.fromCharCode.apply(null, chunk);
+  }
+  return `data:${contentType};base64,${btoa(binary)}`;
+}
+
+// Fetch image via HTML Image element and canvas (handles CORS/browser decode)
+async function fetchImageViaCanvas(url) {
+  if (typeof window === 'undefined') return null;
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth || img.width;
+        canvas.height = img.naturalHeight || img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+        resolve(dataUrl);
+      } catch (err) {
+        resolve(null);
+      }
+    };
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
+}
+
+// Resolve uploaded document content from dataUrl, storagePath, or localStorage
+async function resolveDocumentContent(meta, docKey, applicationId) {
+  if (!meta) return null;
+
+  // 1. Direct dataUrl
+  if (meta.dataUrl && typeof meta.dataUrl === 'string' && meta.dataUrl.length > 50) {
+    return {
+      dataUrl: meta.dataUrl,
+      fileName: meta.fileName || `${docKey}`,
+      contentType:
+        meta.contentType ||
+        (meta.dataUrl.startsWith('data:application/pdf') ? 'application/pdf' : 'image/jpeg'),
+    };
+  }
+
+  // 2. Storage path
+  const storagePath = meta.storagePath || meta.path;
+  if (storagePath) {
+    if (typeof storagePath === 'string' && storagePath.startsWith('local://')) {
+      const docKeyStorage = storagePath.replace('local://', '');
+      if (typeof localStorage !== 'undefined') {
+        try {
+          const raw = localStorage.getItem('nriit_phd_documents_v1');
+          if (raw) {
+            const docs = JSON.parse(raw);
+            const found = docs[docKeyStorage];
+            if (found?.dataUrl) {
+              return {
+                dataUrl: found.dataUrl,
+                fileName: meta.fileName || found.fileName || docKey,
+                contentType:
+                  meta.contentType ||
+                  found.contentType ||
+                  (found.dataUrl.startsWith('data:application/pdf')
+                    ? 'application/pdf'
+                    : 'image/jpeg'),
+              };
+            }
+          }
+        } catch (e) {
+          console.warn('Error reading local docs for PDF enclosure:', e);
+        }
+      }
+    }
+
+    try {
+      const url = await dbService.getDocumentUrl(storagePath);
+      if (url) {
+        if (url.startsWith('data:')) {
+          return {
+            dataUrl: url,
+            fileName: meta.fileName || docKey,
+            contentType:
+              meta.contentType ||
+              (url.startsWith('data:application/pdf') ? 'application/pdf' : 'image/jpeg'),
+          };
+        }
+        if (url.startsWith('http://') || url.startsWith('https://')) {
+          try {
+            const res = await fetch(url);
+            if (res.ok) {
+              const arrayBuffer = await res.arrayBuffer();
+              const ct = res.headers.get('content-type') || meta.contentType || '';
+              const isPdf =
+                ct.toLowerCase().includes('pdf') ||
+                meta.fileName?.toLowerCase().endsWith('.pdf') ||
+                docKey.toLowerCase().includes('pdf');
+              const dataUrl = !isPdf ? arrayBufferToDataUrl(arrayBuffer, ct || 'image/jpeg') : null;
+              return {
+                arrayBuffer,
+                dataUrl,
+                fileName: meta.fileName || docKey,
+                contentType:
+                  ct || (isPdf ? 'application/pdf' : 'image/jpeg'),
+              };
+            }
+          } catch (fetchErr) {
+            console.warn(`Direct fetch failed for ${docKey}, attempting canvas fallback:`, fetchErr);
+            // Canvas fallback for browser CORS
+            const canvasDataUrl = await fetchImageViaCanvas(url);
+            if (canvasDataUrl) {
+              return {
+                dataUrl: canvasDataUrl,
+                fileName: meta.fileName || docKey,
+                contentType: 'image/jpeg',
+              };
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.warn(`Could not resolve storagePath ${storagePath}:`, err);
+    }
+  }
+
+  // 3. Fallback: search localStorage directly by ID and docKey
+  if (typeof localStorage !== 'undefined') {
+    try {
+      const raw = localStorage.getItem('nriit_phd_documents_v1');
+      if (raw) {
+        const docs = JSON.parse(raw);
+        const candidates = [`${applicationId}_${docKey}`, docKey];
+        for (const k of candidates) {
+          if (docs[k]?.dataUrl) {
+            return {
+              dataUrl: docs[k].dataUrl,
+              fileName: meta.fileName || docs[k].fileName || docKey,
+              contentType:
+                meta.contentType ||
+                docs[k].contentType ||
+                (docs[k].dataUrl.startsWith('data:application/pdf')
+                  ? 'application/pdf'
+                  : 'image/jpeg'),
+            };
+          }
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  return null;
+}
 
 // Institutional Information
 const INSTITUTION = {
@@ -827,6 +1016,263 @@ export async function generateApplicationPDF(application, photoDataUrl = null) {
   doc.text(`Signature of Candidate: ${sigName}`, pageWidth - margin, currentY, { align: 'right' });
 
   // ==========================================
+  // SECTION 14: ENCLOSED UPLOADED DOCUMENTS
+  // ==========================================
+  const docMetaObj = application.document_metadata || application.documentMetadata || {};
+  const applicationId = application.id || application.application_number || '';
+  const applicantName = personal.fullName || application.applicant_name || 'Candidate';
+
+  // Base document specs sequence
+  const documentOrder = [
+    { key: 'sscCertificate', label: '10th / SSC Certificate (Date of Birth Proof)' },
+    { key: 'interCertificate', label: 'Intermediate / 10+2 / Diploma Certificate' },
+    { key: 'ugDegree', label: "Bachelor's Degree & Consolidated Marksheets" },
+    { key: 'pgDegree', label: "Master's Degree & Consolidated Marksheets" },
+    { key: 'expCertificates', label: 'Experience Certificate(s)' },
+    { key: 'examCard', label: 'GATE / NET / SLET / Score Card' },
+    { key: 'categoryCertificate', label: 'Category / Community Certificate' },
+    { key: 'aadharCard', label: 'Aadhaar Card (Identity Proof)' },
+    { key: 'feeReceipt', label: 'Application Fee Payment Transaction Slip' },
+    { key: 'photo', label: 'Recent Passport Size Photograph' },
+  ];
+
+  // Include any extra documents uploaded
+  const extraKeys = Object.keys(docMetaObj).filter(
+    (k) => !documentOrder.some((item) => item.key === k)
+  );
+  for (const k of extraKeys) {
+    documentOrder.push({
+      key: k,
+      label: docMetaObj[k]?.fileName || k.replace(/([A-Z])/g, ' $1'),
+    });
+  }
+
+  // Resolve all available uploaded document contents in parallel
+  const resolvedDocsResults = await Promise.all(
+    documentOrder.map(async (item) => {
+      const meta = docMetaObj[item.key];
+      if (!meta) return null;
+      try {
+        const data = await resolveDocumentContent(meta, item.key, applicationId);
+        if (data) {
+          return {
+            ...item,
+            ...data,
+          };
+        }
+      } catch (docErr) {
+        console.warn(`Could not resolve document ${item.key}:`, docErr);
+      }
+      return null;
+    })
+  );
+  const resolvedDocs = resolvedDocsResults.filter(Boolean);
+
+  const pdfDocsToMerge = [];
+
+  if (resolvedDocs.length > 0) {
+    // 1. Add Annexure Overview / Checklist Page
+    doc.addPage();
+    let annexY = drawPageHeader(8, 'ANNEXURE: ENCLOSED UPLOADED DOCUMENTS');
+
+    doc.setFillColor(7, 40, 73);
+    doc.rect(margin, annexY, contentWidth, 7, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(255, 255, 255);
+    doc.text('ANNEXURE · VERIFIED APPLICANT ENCLOSURES & UPLOADED CERTIFICATES', margin + 3, annexY + 4.8);
+
+    annexY += 10;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(...THEME.darkText);
+    doc.text(
+      `The following ${resolvedDocs.length} original document attachment(s) have been submitted by the candidate with Application No: ${appNumber}. Each document is reproduced in this file as received:`,
+      margin,
+      annexY
+    );
+    annexY += 4;
+
+    const annexTableRows = resolvedDocs.map((d, idx) => {
+      const isPdf =
+        d.contentType?.includes('pdf') ||
+        d.fileName?.toLowerCase().endsWith('.pdf') ||
+        (d.dataUrl && d.dataUrl.startsWith('data:application/pdf'));
+      return [
+        idx + 1,
+        d.label,
+        d.fileName || 'document',
+        isPdf ? 'PDF Document' : 'Scanned Image (JPG/PNG)',
+        'Attached & Verified',
+      ];
+    });
+
+    autoTable(doc, {
+      startY: annexY,
+      head: [['#', 'Document Enclosure Description', 'Uploaded File Name', 'Format', 'Status']],
+      body: annexTableRows,
+      theme: 'grid',
+      headStyles: {
+        fillColor: THEME.headerFill,
+        textColor: THEME.darkText,
+        fontSize: 7,
+        fontStyle: 'bold',
+        lineColor: THEME.borderColor,
+        lineWidth: 0.2,
+      },
+      bodyStyles: {
+        fontSize: 6.8,
+        textColor: THEME.darkText,
+        cellPadding: 1.5,
+        lineColor: THEME.borderColor,
+        lineWidth: 0.2,
+      },
+      columnStyles: {
+        0: { cellWidth: 10, halign: 'center' },
+        1: { cellWidth: 70 },
+        2: { cellWidth: 50 },
+        3: { cellWidth: 26, halign: 'center' },
+        4: { cellWidth: 26, halign: 'center', fontStyle: 'bold' },
+      },
+      margin: tableMargin,
+    });
+
+    // 2. Render each document
+    for (const docItem of resolvedDocs) {
+      const isPdf =
+        docItem.contentType?.toLowerCase().includes('pdf') ||
+        docItem.fileName?.toLowerCase().endsWith('.pdf') ||
+        (docItem.dataUrl && docItem.dataUrl.startsWith('data:application/pdf'));
+
+      const effectiveDataUrl =
+        docItem.dataUrl ||
+        (!isPdf && docItem.arrayBuffer
+          ? arrayBufferToDataUrl(docItem.arrayBuffer, docItem.contentType || 'image/jpeg')
+          : null);
+
+      if (!isPdf && effectiveDataUrl) {
+        // Render Image Document page in jsPDF
+        doc.addPage();
+        drawPageHeader(8, `ENCLOSURE: ${docItem.label}`);
+
+        doc.setFillColor(241, 245, 249);
+        doc.setDrawColor(203, 213, 225);
+        doc.rect(margin, 20, contentWidth, 12, 'FD');
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8.5);
+        doc.setTextColor(7, 40, 73);
+        doc.text(`ENCLOSURE: ${docItem.label.toUpperCase()}`, margin + 3, 25);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(6.5);
+        doc.setTextColor(71, 85, 105);
+        doc.text(
+          `Candidate: ${applicantName} | Application No: ${appNumber} | File: ${docItem.fileName || 'enclosure.img'}`,
+          margin + 3,
+          29.5
+        );
+
+        const frameY = 34;
+        const maxW = contentWidth; // 182 mm
+        const maxH = pageHeight - frameY - 14; // ~249 mm
+
+        doc.setFillColor(248, 250, 252);
+        doc.setDrawColor(226, 232, 240);
+        doc.rect(margin, frameY, maxW, maxH, 'FD');
+
+        try {
+          const dims = await getImageNaturalDimensions(effectiveDataUrl);
+          let drawW = maxW - 4;
+          let drawH = maxH - 4;
+          let drawX = margin + 2;
+          let drawY = frameY + 2;
+
+          if (dims && dims.width > 0 && dims.height > 0) {
+            const imgAspect = dims.width / dims.height;
+            const frameAspect = (maxW - 4) / (maxH - 4);
+
+            if (imgAspect > frameAspect) {
+              drawW = maxW - 4;
+              drawH = drawW / imgAspect;
+              drawX = margin + 2;
+              drawY = frameY + 2 + ((maxH - 4) - drawH) / 2;
+            } else {
+              drawH = maxH - 4;
+              drawW = drawH * imgAspect;
+              drawX = margin + 2 + ((maxW - 4) - drawW) / 2;
+              drawY = frameY + 2;
+            }
+          }
+
+          let format = 'JPEG';
+          if (effectiveDataUrl.startsWith('data:image/png')) {
+            format = 'PNG';
+          } else if (effectiveDataUrl.startsWith('data:image/webp')) {
+            format = 'WEBP';
+          }
+          try {
+            doc.addImage(effectiveDataUrl, format, drawX, drawY, drawW, drawH, undefined, 'FAST');
+          } catch (formatErr) {
+            doc.addImage(effectiveDataUrl, undefined, drawX, drawY, drawW, drawH, undefined, 'FAST');
+          }
+        } catch (imgErr) {
+          console.warn('Could not add enclosure image to PDF:', imgErr);
+        }
+      } else if (isPdf) {
+        // Collect for pdf-lib merging
+        pdfDocsToMerge.push(docItem);
+
+        // Add enclosure divider page
+        doc.addPage();
+        drawPageHeader(8, `ENCLOSURE: ${docItem.label}`);
+
+        doc.setFillColor(241, 245, 249);
+        doc.setDrawColor(203, 213, 225);
+        doc.rect(margin, 20, contentWidth, 13, 'FD');
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8.5);
+        doc.setTextColor(7, 40, 73);
+        doc.text(`ENCLOSURE: ${docItem.label.toUpperCase()}`, margin + 3, 25.5);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(6.5);
+        doc.setTextColor(71, 85, 105);
+        doc.text(
+          `Candidate: ${applicantName} | Application No: ${appNumber} | Attached PDF: ${docItem.fileName || 'document.pdf'}`,
+          margin + 3,
+          30
+        );
+
+        // Callout box
+        doc.setFillColor(254, 243, 199);
+        doc.setDrawColor(245, 158, 11);
+        doc.rect(margin, 38, contentWidth, 22, 'FD');
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8.5);
+        doc.setTextColor(146, 64, 14);
+        doc.text('ORIGINAL PDF DOCUMENT ENCLOSURE', margin + 4, 45);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7);
+        doc.setTextColor(180, 83, 9);
+        doc.text(
+          'The candidate uploaded a multi-page PDF document for this enclosure requirement.',
+          margin + 4,
+          50.5
+        );
+        doc.text(
+          'The complete original document page(s) follow immediately after this sheet.',
+          margin + 4,
+          55
+        );
+      }
+    }
+  }
+
+  // ==========================================
   // RUNNING FOOTERS ON ALL PAGES
   // ==========================================
   const totalPages = doc.internal.getNumberOfPages();
@@ -842,6 +1288,71 @@ export async function generateApplicationPDF(application, photoDataUrl = null) {
     doc.text('Application for Ph.D. Admission', margin, pageHeight - 6.5);
     doc.text(`Application No: ${appNumber}`, pageWidth / 2, pageHeight - 6.5, { align: 'center' });
     doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin, pageHeight - 6.5, { align: 'right' });
+  }
+
+  // Merge any PDF attachments using pdf-lib
+  if (pdfDocsToMerge.length > 0) {
+    try {
+      const jsPdfArrayBuffer = doc.output('arraybuffer');
+      const mergedPdf = await PDFDocument.load(jsPdfArrayBuffer);
+
+      for (const pdfItem of pdfDocsToMerge) {
+        let srcBytes = pdfItem.arrayBuffer;
+        if (!srcBytes && pdfItem.dataUrl) {
+          srcBytes = base64ToUint8Array(pdfItem.dataUrl);
+        }
+
+        if (srcBytes) {
+          try {
+            const attachedDoc = await PDFDocument.load(srcBytes, { ignoreEncryption: true });
+            const copiedPages = await mergedPdf.copyPages(attachedDoc, attachedDoc.getPageIndices());
+            for (const p of copiedPages) {
+              mergedPdf.addPage(p);
+            }
+          } catch (loadErr) {
+            console.warn(`Could not load attached PDF ${pdfItem.label}:`, loadErr);
+          }
+        }
+      }
+
+      const finalPdfBytes = await mergedPdf.save();
+
+      // Wrap doc.save and doc.output to return merged finalPdfBytes
+      doc.save = function (fileName) {
+        const blob = new Blob([finalPdfBytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName || `NRIIT-PHD-${appNumber}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+      };
+
+      const originalOutput = doc.output.bind(doc);
+      doc.output = function (type, options) {
+        if (type === 'blob') {
+          return new Blob([finalPdfBytes], { type: 'application/pdf' });
+        }
+        if (type === 'bloburl') {
+          const blob = new Blob([finalPdfBytes], { type: 'application/pdf' });
+          return URL.createObjectURL(blob);
+        }
+        if (type === 'arraybuffer') {
+          return finalPdfBytes.buffer;
+        }
+        if (type === 'dataurlnewwindow') {
+          const blob = new Blob([finalPdfBytes], { type: 'application/pdf' });
+          const url = URL.createObjectURL(blob);
+          window.open(url, '_blank');
+          return url;
+        }
+        return originalOutput(type, options);
+      };
+    } catch (mergeErr) {
+      console.warn('Failed to merge PDF documents with pdf-lib, falling back to jsPDF:', mergeErr);
+    }
   }
 
   return doc;

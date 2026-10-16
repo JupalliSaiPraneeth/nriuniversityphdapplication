@@ -31,6 +31,7 @@ export default function AdminDashboard({ onBackToForm }) {
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState(null);
   const [isGeneratingPreviewPdf, setIsGeneratingPreviewPdf] = useState(false);
   const [pdfPreviewError, setPdfPreviewError] = useState(null);
+  const [downloadingAppId, setDownloadingAppId] = useState(null);
 
   // Deletion state
   const [appToDelete, setAppToDelete] = useState(null);
@@ -265,6 +266,8 @@ export default function AdminDashboard({ onBackToForm }) {
 
   // Download PDF from Admin
   const handleDownloadAppPdf = async (app) => {
+    if (!app) return;
+    setDownloadingAppId(app.id || app.application_number);
     try {
       const photoDataUrl = app.personal_details?.photoDataUrl || null;
       const doc = await generateApplicationPDF(app, photoDataUrl);
@@ -273,6 +276,8 @@ export default function AdminDashboard({ onBackToForm }) {
     } catch (err) {
       console.error('Error generating PDF:', err);
       alert('Could not generate PDF. Please ensure valid submission data.');
+    } finally {
+      setDownloadingAppId(null);
     }
   };
 
@@ -682,11 +687,12 @@ export default function AdminDashboard({ onBackToForm }) {
                     </button>
                     <button
                       type="button"
+                      disabled={downloadingAppId === (app.id || app.application_number)}
                       onClick={() => handleDownloadAppPdf(app)}
-                      className="px-2.5 py-1.5 bg-white border border-slate-200 text-slate-700 hover:text-brand-900 rounded text-xs font-semibold transition"
-                      title="PDF"
+                      className="px-2.5 py-1.5 bg-white border border-slate-200 text-slate-700 hover:text-brand-900 rounded text-xs font-semibold transition disabled:opacity-50"
+                      title="Download Application PDF"
                     >
-                      PDF
+                      {downloadingAppId === (app.id || app.application_number) ? 'Saving...' : 'PDF'}
                     </button>
                     <button
                       type="button"
@@ -790,11 +796,12 @@ export default function AdminDashboard({ onBackToForm }) {
                         </button>
                         <button
                           type="button"
+                          disabled={downloadingAppId === (app.id || app.application_number)}
                           onClick={() => handleDownloadAppPdf(app)}
-                          className="px-2 py-0.5 text-slate-700 hover:text-brand-900 rounded hover:bg-slate-100 text-xs font-semibold transition"
+                          className="px-2 py-0.5 text-slate-700 hover:text-brand-900 rounded hover:bg-slate-100 text-xs font-semibold transition disabled:opacity-50"
                           title="Download Application PDF"
                         >
-                          PDF
+                          {downloadingAppId === (app.id || app.application_number) ? 'Saving...' : 'PDF'}
                         </button>
                         <button
                           type="button"
@@ -905,11 +912,19 @@ export default function AdminDashboard({ onBackToForm }) {
                 )}
                 <button
                   type="button"
+                  disabled={downloadingAppId === (selectedApp?.id || selectedApp?.application_number)}
                   onClick={() => handleDownloadAppPdf(selectedApp)}
-                  className="px-2.5 py-1 bg-brand-800 hover:bg-brand-700 text-white text-xs font-semibold rounded transition"
-                  title="Download Application PDF"
+                  className="px-2.5 py-1 bg-brand-800 hover:bg-brand-700 text-white text-xs font-semibold rounded transition flex items-center gap-1.5 disabled:opacity-75"
+                  title="Download Application PDF with all attachments"
                 >
-                  Download PDF
+                  {downloadingAppId === (selectedApp?.id || selectedApp?.application_number) ? (
+                    <>
+                      <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                      <span>Downloading PDF...</span>
+                    </>
+                  ) : (
+                    'Download PDF'
+                  )}
                 </button>
                 <button
                   type="button"

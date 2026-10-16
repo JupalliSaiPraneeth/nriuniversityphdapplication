@@ -22,6 +22,46 @@ import {
   generateRegulationsSummaryPDF,
 } from '../../lib/syllabusPdfGenerator';
 
+// 7-Stage Ph.D. Selection Flowchart Steps
+const FLOWCHART_STEPS = [
+  {
+    step: 1,
+    title: 'Online Application & Profile Submission',
+    desc: 'Candidates submit their online application through the admissions portal with academic & research details.',
+  },
+  {
+    step: 2,
+    title: 'Application Fee Payment & Verification',
+    desc: 'Candidates remit prescribed fee online and enter the transaction reference (UTR) in the application.',
+  },
+  {
+    step: 3,
+    title: 'Scrutiny of Applications & Qualifications',
+    desc: 'Directorate of Research & DRC scrutinize academic credentials, eligibility, and document authenticity.',
+  },
+  {
+    step: 4,
+    title: 'University Ph.D. Selection Test (or Exemption)',
+    desc: 'Entrance examination (Part A Research + Part B Department). Candidates with NET/GATE/SLET are exempt.',
+    isExemptible: true,
+  },
+  {
+    step: 5,
+    title: 'Research Proposal Presentation & Interview',
+    desc: 'Candidates present research proposal and defend research competence before the DRC panel.',
+  },
+  {
+    step: 6,
+    title: 'Merit List Declaration & Supervisor Allocation',
+    desc: 'Consolidated merit list declared and recognized research supervisor vacancies allocated.',
+  },
+  {
+    step: 7,
+    title: 'Provisional Admission & Coursework Registration',
+    desc: 'Document verification, admission fee payment, and mandatory doctoral coursework registration.',
+  },
+];
+
 export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenAdmin: _onOpenAdmin }) {
   const [selectedDept, setSelectedDept] = useState(null);
   const [selectedSyllabusDept, setSelectedSyllabusDept] = useState('econ');
@@ -470,33 +510,153 @@ export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenAdmin
             </div>
 
             <div className="p-4 sm:p-5 space-y-4">
-              {/* 7 Stages Grid */}
-              <div className="space-y-2">
-                <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#1E1D1D]">
-                  7-Stage Ph.D. Selection Journey
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
-                  {ADMISSION_PROCEDURE.map((proc) => (
-                    <div
-                      key={proc.step}
-                      className="p-3 bg-[#FAF7F5] border border-slate-200 rounded-none space-y-1 hover:border-[#EC691F] transition text-xs"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="w-5 h-5 rounded-full bg-[#1E1D1D] text-[#EC691F] font-black text-[10px] flex items-center justify-center">
-                          {proc.step}
-                        </span>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">
-                          Stage {proc.step}
-                        </span>
+              {/* 7-Step Simple Flowchart */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between pb-1 border-b border-stone-200">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#EC691F]"></span>
+                    <h3 className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-[#1E1D1D]">
+                      Ph.D. Selection Process Flow Chart
+                    </h3>
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-500">7 Sequential Steps</span>
+                </div>
+
+                <div className="bg-[#FAF7F5] border border-stone-200 p-3.5 sm:p-5 space-y-3">
+                  {/* Row 1: Steps 1 to 4 */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                    {FLOWCHART_STEPS.slice(0, 4).map((item, idx) => (
+                      <div key={item.step} className="flex flex-col lg:flex-row items-stretch lg:items-center gap-2">
+                        <div className="flex-1 bg-white border border-stone-200 hover:border-[#EC691F] p-3 shadow-xs transition flex flex-col justify-between h-full">
+                          <div>
+                            <div className="flex items-center justify-between">
+                              <span className="w-5 h-5 rounded-full bg-[#1E1D1D] text-[#EC691F] font-black text-[10px] flex items-center justify-center">
+                                {item.step}
+                              </span>
+                              <span className="text-[10px] font-bold text-slate-400 uppercase">
+                                Stage {item.step}
+                              </span>
+                            </div>
+                            <h4 className="font-bold text-slate-900 text-xs pt-1.5 leading-snug">
+                              {item.title}
+                            </h4>
+                            <p className="text-slate-600 text-[11px] leading-relaxed mt-1">
+                              {item.desc}
+                            </p>
+                          </div>
+                          {item.isExemptible && (
+                            <div className="mt-2 pt-1.5 border-t border-dashed border-amber-200">
+                              <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 inline-block">
+                                ⚡ NET / GATE: Skip to Stage 5
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        {idx < 3 && (
+                          <div className="hidden lg:flex items-center justify-center text-[#EC691F] shrink-0" aria-hidden="true">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                          </div>
+                        )}
+                        {/* Mobile Down Arrow between steps */}
+                        <div className="lg:hidden flex justify-center py-0.5 text-[#EC691F]" aria-hidden="true">
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                          </svg>
+                        </div>
                       </div>
-                      <h4 className="font-bold text-slate-900 text-xs pt-0.5">
-                        {proc.title}
-                      </h4>
-                      <p className="text-slate-600 text-[11px] leading-relaxed">
-                        {proc.description}
-                      </p>
+                    ))}
+                  </div>
+
+                  {/* Downward Row Transition Connector (Desktop) */}
+                  <div className="hidden lg:flex justify-end pr-8 py-0.5" aria-hidden="true">
+                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#EC691F]">
+                      <span>Proceed to Proposal Defense & Interview</span>
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                      </svg>
                     </div>
-                  ))}
+                  </div>
+
+                  {/* Row 2: Steps 5 to 7 */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                    {FLOWCHART_STEPS.slice(4, 7).map((item, idx) => (
+                      <div key={item.step} className="flex flex-col lg:flex-row items-stretch lg:items-center gap-2">
+                        <div
+                          className={`flex-1 p-3 shadow-xs transition flex flex-col justify-between h-full border ${
+                            item.step === 7
+                              ? 'bg-emerald-50/20 border-emerald-300 hover:border-emerald-500'
+                              : 'bg-white border-stone-200 hover:border-[#EC691F]'
+                          }`}
+                        >
+                          <div>
+                            <div className="flex items-center justify-between">
+                              <span
+                                className={`w-5 h-5 rounded-full font-black text-[10px] flex items-center justify-center ${
+                                  item.step === 7
+                                    ? 'bg-emerald-600 text-white'
+                                    : 'bg-[#1E1D1D] text-[#EC691F]'
+                                }`}
+                              >
+                                {item.step}
+                              </span>
+                              <span
+                                className={`text-[10px] font-bold uppercase ${
+                                  item.step === 7 ? 'text-emerald-700 font-extrabold' : 'text-slate-400'
+                                }`}
+                              >
+                                {item.step === 7 ? 'Stage 7 · Final' : `Stage ${item.step}`}
+                              </span>
+                            </div>
+                            <h4 className="font-bold text-slate-900 text-xs pt-1.5 leading-snug">
+                              {item.title}
+                            </h4>
+                            <p className="text-slate-600 text-[11px] leading-relaxed mt-1">
+                              {item.desc}
+                            </p>
+                          </div>
+                          {item.step === 7 && (
+                            <div className="mt-2 pt-1.5 border-t border-emerald-200">
+                              <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/80 px-1.5 py-0.5 rounded border border-emerald-300 inline-block">
+                                ✓ Admission & Enrolment Cleared
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        {idx < 2 && (
+                          <div className="hidden lg:flex items-center justify-center text-[#EC691F] shrink-0" aria-hidden="true">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                          </div>
+                        )}
+                        {/* Mobile Down Arrow for Steps 5 & 6 */}
+                        {idx < 2 && (
+                          <div className="lg:hidden flex justify-center py-0.5 text-[#EC691F]" aria-hidden="true">
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Footnote */}
+                  <div className="pt-2 border-t border-stone-200 text-[11px] text-slate-600 flex items-center justify-between flex-wrap gap-2">
+                    <p>
+                      <strong className="text-slate-900">Exemption Note:</strong> Candidates qualifying UGC-NET, CSIR-NET (JRF), GATE, SLET, SET, or GPAT are exempted from Stage 4 (Entrance Exam) and proceed directly to Stage 5.
+                    </p>
+                    <button
+                      onClick={onOpenForm}
+                      type="button"
+                      className="text-[#EC691F] hover:text-[#d45612] font-bold text-xs inline-flex items-center gap-1"
+                    >
+                      <span>Start Application</span>
+                      <span aria-hidden="true">→</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 

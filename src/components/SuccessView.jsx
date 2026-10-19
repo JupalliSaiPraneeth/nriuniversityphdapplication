@@ -2,9 +2,15 @@ import React, { useEffect, useState } from 'react';
 import confetti from 'canvas-confetti';
 import { generateApplicationPDF } from '../lib/pdfGenerator';
 
-export default function SuccessView({ submittedRecord, onStartNew }) {
+export default function SuccessView({ submittedRecord, onStartNew, onBackToPortal, onOpenEdit }) {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const isUpdated = Boolean(
+    submittedRecord?.updated_at &&
+    submittedRecord?.created_at &&
+    submittedRecord.updated_at !== submittedRecord.created_at
+  );
 
   useEffect(() => {
     try {
@@ -70,11 +76,15 @@ export default function SuccessView({ submittedRecord, onStartNew }) {
         {/* Top Header Banner */}
         <div className="bg-brand-950 text-white p-4 sm:p-5 text-center">
           <div className="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-300 font-bold text-xs rounded-full border border-emerald-400 mb-2">
-            SUBMISSION RECORDED
+            {isUpdated ? 'APPLICATION REVISED & SAVED' : 'SUBMISSION RECORDED'}
           </div>
-          <h1 className="text-lg sm:text-xl font-bold tracking-tight">Application Successfully Submitted</h1>
+          <h1 className="text-lg sm:text-xl font-bold tracking-tight">
+            {isUpdated ? 'Application Successfully Updated' : 'Application Successfully Submitted'}
+          </h1>
           <p className="text-brand-200 text-xs mt-1 max-w-md mx-auto leading-relaxed">
-            Your application for Ph.D. Admission at Dr RVR NRI Institute of Technology has been officially recorded.
+            {isUpdated
+              ? 'Your updated Ph.D. application details and documents have been recorded in the admissions repository.'
+              : 'Your application for Ph.D. Admission at Dr RVR NRI Institute of Technology has been officially recorded.'}
           </p>
         </div>
 
@@ -154,6 +164,30 @@ export default function SuccessView({ submittedRecord, onStartNew }) {
               Print Preview
             </button>
           </div>
+
+          {/* Edit Application via Email OTP Action */}
+          {onOpenEdit && (
+            <div className="bg-amber-50/80 border border-amber-200 rounded-xl p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+              <div className="flex items-start gap-2.5">
+                <div>
+                  <h4 className="text-xs font-bold text-amber-950">
+                    Need to Make Corrections or Add Documents?
+                  </h4>
+                  <p className="text-[11px] text-amber-800 leading-relaxed mt-0.5">
+                    You can edit your submitted application anytime. Simply verify your email with an OTP to re-open the form.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={onOpenEdit}
+                className="self-start sm:self-auto px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white font-bold text-xs rounded-lg shadow-2xs transition flex items-center gap-1.5 shrink-0 cursor-pointer"
+              >
+                <span>Edit Application Details →</span>
+              </button>
+            </div>
+          )}
 
           {/* Instructions & Next steps */}
           <div className="bg-blue-50/60 border border-blue-200/80 rounded-lg p-3 text-xs text-blue-900 space-y-1">

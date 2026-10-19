@@ -406,16 +406,16 @@ export async function generateApplicationPDF(application, photoDataUrl = null) {
   currentY = drawSectionTitle('1. APPLICATION & PERSONAL DETAILS', currentY);
 
   const personalRows = [
+    ["Candidate's Full Name", personal.fullName || '—'],
     ['Application Number', appNumber],
-    ['Ph.D. Programme / Subject', personal.programme || '—'],
-    ['Specialization / Research Area', personal.specialization || '—'],
-    ['Admission Category (Full-Time / Part-Time)', personal.admissionCategory || '—'],
-    ['Mode of Admission', personal.modeOfAdmission || '—'],
-    ['Full Name', personal.fullName || '—'],
     ["Father's / Mother's / Guardian's Name", personal.guardianName || '—'],
     ['Date of Birth', personal.dateOfBirth || '—'],
     ['Gender', personal.gender || '—'],
     ['Category', personal.category || '—'],
+    ['Ph.D. Programme / Subject', personal.programme || '—'],
+    ['Specialization / Research Area', personal.specialization || '—'],
+    ['Admission Category', personal.admissionCategory || '—'],
+    ...(personal.modeOfAdmission ? [['Mode of Admission', personal.modeOfAdmission]] : []),
     ['Email ID', personal.email || '—'],
     ['Mobile Number', personal.mobileNumber || '—'],
     ['Emergency Contact Number', personal.emergencyContact || '—'],
@@ -689,8 +689,8 @@ export async function generateApplicationPDF(application, photoDataUrl = null) {
     currentY += 6;
   }
 
-  // --- SECTION 7: RESEARCH PUBLICATIONS ---
-  currentY = drawSectionTitle('7. RESEARCH PUBLICATIONS', currentY);
+  // --- SECTION 7: RESEARCH PUBLICATIONS (Optional) ---
+  currentY = drawSectionTitle('7. RESEARCH PUBLICATIONS (Optional)', currentY);
 
   const pubList = publications.length > 0 ? publications : [{}];
   const pubRows = pubList.map((item, index) => [
@@ -739,8 +739,8 @@ export async function generateApplicationPDF(application, photoDataUrl = null) {
 
   currentY = doc.lastAutoTable.finalY + 3;
 
-  // --- SECTION 8: BOOKS / PATENTS / OTHER RESEARCH OUTPUTS ---
-  currentY = drawSectionTitle('8. BOOKS / PATENTS / OTHER RESEARCH OUTPUTS', currentY);
+  // --- SECTION 8: BOOKS / PATENTS / OTHER RESEARCH OUTPUTS (Optional) ---
+  currentY = drawSectionTitle('8. BOOKS / PATENTS / OTHER RESEARCH OUTPUTS (Optional)', currentY);
 
   const bpList = booksPatents.length > 0 ? booksPatents : [{}];
   const bpRows = bpList.map((item, index) => [
@@ -787,8 +787,8 @@ export async function generateApplicationPDF(application, photoDataUrl = null) {
 
   currentY = doc.lastAutoTable.finalY + 3;
 
-  // --- SECTION 9: PROFESSIONAL MEMBERSHIPS / FELLOWSHIPS / AWARDS ---
-  currentY = drawSectionTitle('9. PROFESSIONAL MEMBERSHIPS / FELLOWSHIPS / AWARDS', currentY);
+  // --- SECTION 9: PROFESSIONAL MEMBERSHIPS / FELLOWSHIPS / AWARDS (Optional) ---
+  currentY = drawSectionTitle('9. PROFESSIONAL MEMBERSHIPS / FELLOWSHIPS / AWARDS (Optional)', currentY);
 
   const memList = memberships.length > 0 ? memberships : [{}];
   const memRows = memList.map((item, index) => [

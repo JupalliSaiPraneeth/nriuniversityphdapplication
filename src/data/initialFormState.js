@@ -1,18 +1,20 @@
 export const PROGRAMME_OPTIONS = [
-  'Computer Science and Engineering (CSE)',
-  'Artificial Intelligence & Data Science (AI & DS)',
-  'Information Technology (IT)',
-  'Electronics and Communication Engineering (ECE)',
-  'Electrical and Electronics Engineering (EEE)',
-  'Mechanical Engineering (ME)',
-  'Civil Engineering (CE)',
-  'Master of Business Administration (MBA)',
-  'Economics',
-  'Mathematics',
+  'CSE & Allied',
+  'ECE',
+  'EEE',
+  'Civil',
+  'Mechanical',
+  'Pharm.D',
+  'Pharm.D (Post Baccalaureate)',
   'Physics',
   'Chemistry',
-  'Pharmacy',
+  'Maths',
   'English',
+  'Management',
+  'Economics',
+  'Allied Health & Paramedical Sciences',
+  'Biotechnology / Medical Biotechnology',
+  'Agriculture',
 ];
 
 export const ADMISSION_CATEGORIES = [
@@ -131,7 +133,7 @@ export const getInitialFormData = () => ({
     programme: '',
     specialization: '',
     admissionCategory: 'Full-Time',
-    modeOfAdmission: 'Regular / Entrance Examination',
+    modeOfAdmission: '',
     fullName: '',
     guardianName: '',
     dateOfBirth: '',
@@ -221,7 +223,6 @@ export const hasUserFilledAnyField = (data) => {
   if (pd.photoDataUrl && String(pd.photoDataUrl).trim()) return true;
   if (pd.category && pd.category !== 'General / OC') return true;
   if (pd.admissionCategory && pd.admissionCategory !== 'Full-Time') return true;
-  if (pd.modeOfAdmission && pd.modeOfAdmission !== 'Regular / Entrance Examination') return true;
 
   // Address details
   if (ad.permanentAddress && String(ad.permanentAddress).trim()) return true;
@@ -342,5 +343,272 @@ export const hasUserFilledAnyField = (data) => {
   if (dec.accepted === true) return true;
 
   return false;
+};
+
+export const validateDOB = (dobString) => {
+  if (!dobString || !String(dobString).trim()) {
+    return { valid: false, error: 'Please provide date of birth.' };
+  }
+  const parts = String(dobString).trim().split('-');
+  if (parts.length !== 3) {
+    return { valid: false, error: 'Please enter a valid date of birth.' };
+  }
+  const year = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10) - 1;
+  const day = parseInt(parts[2], 10);
+  const dob = new Date(year, month, day);
+  if (isNaN(dob.getTime()) || dob.getFullYear() !== year || dob.getMonth() !== month || dob.getDate() !== day) {
+    return { valid: false, error: 'Please enter a valid calendar date.' };
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (dob >= today) {
+    return { valid: false, error: 'Date of birth cannot be today or in the future.' };
+  }
+
+  let age = today.getFullYear() - year;
+  const monthDiff = today.getMonth() - month;
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < day)) {
+    age--;
+  }
+
+  if (age < 20) {
+    return {
+      valid: false,
+      age,
+      error: `Candidate must be at least 20 years of age for Ph.D. admission (current age: ${age} years).`,
+    };
+  }
+
+  if (age > 100) {
+    return { valid: false, error: 'Please enter a valid date of birth.' };
+  }
+
+  return { valid: true, age };
+};
+
+export const validateYear = (
+  yearStr,
+  { minYear = 1950, maxYear = new Date().getFullYear(), isRequired = false, label = 'Year' } = {}
+) => {
+  if (!yearStr || !String(yearStr).trim()) {
+    return isRequired ? { valid: false, error: `${label} is required.` } : { valid: true };
+  }
+  const clean = String(yearStr).trim();
+  if (!/^\d{4}$/.test(clean)) {
+    return { valid: false, error: `${label} must be a 4-digit number (e.g. 2022).` };
+  }
+  const y = parseInt(clean, 10);
+  if (y > maxYear) {
+    return { valid: false, error: `${label} cannot be in the future (max: ${maxYear}).` };
+  }
+  if (y < minYear) {
+    return { valid: false, error: `${label} cannot be earlier than ${minYear}.` };
+  }
+  return { valid: true, year: y };
+};
+
+export const validateFromTo = (fromToStr, { isRequired = false } = {}) => {
+  if (!fromToStr || !String(fromToStr).trim()) {
+    return isRequired ? { valid: false, error: 'Duration (From–To) is required.' } : { valid: true };
+  }
+  const s = String(fromToStr).trim();
+  const parts = s.split(/[\–\—\-]|\bto\b/i).map((p) => p.trim()).filter(Boolean);
+  if (parts.length < 2) {
+    return { valid: false, error: 'Format must be: MM/YYYY – MM/YYYY or MM/YYYY – Present' };
+  }
+
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth() + 1;
+
+  const parsePart = (str) => {
+    if (/^(present|till\s*date|now|current|continuing)$/i.test(str)) {
+      return { isPresent: true, year: currentYear, month: currentMonth };
+    }
+    const mmYyyy = str.match(/^(\d{1,2})[\/\-\.](\d{4})$/);
+    if (mmYyyy) {
+      const month = parseInt(mmYyyy[1], 10);
+      const year = parseInt(mmYyyy[2], 10);
+      if (month < 1 || month > 12) return { error: `Invalid month '${mmYyyy[1]}'` };
+      return { year, month };
+    }
+    const yyyy = str.match(/^(\d{4})$/);
+    if (yyyy) {
+      return { year: parseInt(yyyy[1], 10), month: 1 };
+    }
+    return { error: `Invalid date '${str}'. Use MM/YYYY or YYYY.` };
+  };
+
+  const start = parsePart(parts[0]);
+  if (start.error) return { valid: false, error: start.error };
+
+  const end = parsePart(parts[1]);
+  if (end.error) return { valid: false, error: end.error };
+
+  if (start.year > currentYear) {
+    return { valid: false, error: `Start year cannot be in the future (${start.year}).` };
+  }
+  if (!end.isPresent && end.year > currentYear) {
+    return { valid: false, error: `End year cannot be in the future (${end.year}).` };
+  }
+  if (start.year < 1960) {
+    return { valid: false, error: 'Start year cannot be earlier than 1960.' };
+  }
+
+  const startVal = start.year * 12 + start.month;
+  const endVal = end.year * 12 + end.month;
+  if (startVal > endVal) {
+    return { valid: false, error: 'Start date cannot be later than end date.' };
+  }
+
+  return { valid: true };
+};
+
+export const validatePercentageOrCGPA = (
+  val,
+  { isRequired = false, label = '% / CGPA' } = {}
+) => {
+  if (!val || !String(val).trim()) {
+    return isRequired ? { valid: false, error: `${label} is required.` } : { valid: true };
+  }
+  const clean = String(val).trim();
+
+  // Check ratio / fraction format (e.g. 8.5/10, 750/1000, 3.8/4)
+  const ratioMatch = clean.match(/^(\d+(?:\.\d+)?)\s*[\/]\s*(\d+(?:\.\d+)?)$/);
+  if (ratioMatch) {
+    const num = parseFloat(ratioMatch[1]);
+    const den = parseFloat(ratioMatch[2]);
+    if (isNaN(num) || isNaN(den) || den <= 0) {
+      return { valid: false, error: `${label} contains an invalid scale.` };
+    }
+    if (num > den) {
+      return { valid: false, error: `${label} cannot exceed maximum scale (${num} > ${den}).` };
+    }
+    if (num < 0) {
+      return { valid: false, error: `${label} cannot be negative.` };
+    }
+    const equiv = (num / den) * 100;
+    if (equiv < 30) {
+      return { valid: false, error: `${label} (${num}/${den} = ${equiv.toFixed(1)}%) is below minimum eligible score.` };
+    }
+    return { valid: true, value: num, scale: den, percentage: equiv };
+  }
+
+  // Remove trailing %, cgpa, gpa, marks, grade
+  const sanitized = clean
+    .replace(/%/g, '')
+    .replace(/\b(cgpa|gpa|marks|grade)\b/gi, '')
+    .trim();
+
+  if (!/^\d+(\.\d+)?$/.test(sanitized)) {
+    return { valid: false, error: `${label} must be a valid number (e.g. 82.5% or 8.5 CGPA).` };
+  }
+
+  const num = parseFloat(sanitized);
+  if (isNaN(num) || num < 0) {
+    return { valid: false, error: `${label} cannot be negative.` };
+  }
+  if (num > 100) {
+    return { valid: false, error: `${label} cannot exceed 100%.` };
+  }
+  if (num < 3.0) {
+    return { valid: false, error: `${label} is too low. For CGPA enter ≥ 3.0; for percentage enter ≥ 35%.` };
+  }
+  if (num > 10.0 && num < 30.0) {
+    return { valid: false, error: `${label} must be either a CGPA (up to 10.0) or percentage (30%–100%).` };
+  }
+
+  return { valid: true, value: num };
+};
+
+/**
+ * Maps a database or stored application record back into form state for editing.
+ */
+export const mapRecordToFormData = (record) => {
+  if (!record) return getInitialFormData();
+  const init = getInitialFormData();
+
+  const pd = record.personalDetails || record.personal_details || {};
+  const ad = record.addressDetails || record.address_details || {};
+
+  return {
+    ...init,
+    id: record.id || init.id,
+    applicationNumber: record.application_number || record.applicationNumber || '',
+    createdAt: record.created_at || record.createdAt,
+    submittedAt: record.submitted_at || record.submittedAt,
+    status: record.status || 'submitted',
+    personalDetails: {
+      ...init.personalDetails,
+      ...pd,
+      fullName: pd.fullName || record.applicant_name || init.personalDetails.fullName,
+      email: pd.email || record.applicant_email || init.personalDetails.email,
+      mobileNumber: pd.mobileNumber || record.applicant_phone || init.personalDetails.mobileNumber,
+      programme: pd.programme || record.programme || init.personalDetails.programme,
+      specialization: pd.specialization || record.specialization || init.personalDetails.specialization,
+      admissionCategory: pd.admissionCategory || record.admission_category || init.personalDetails.admissionCategory,
+    },
+    addressDetails: {
+      ...init.addressDetails,
+      ...ad,
+    },
+    educationalQualifications:
+      (record.educational_qualifications && record.educational_qualifications.length > 0)
+        ? record.educational_qualifications
+        : (record.educationalQualifications && record.educationalQualifications.length > 0)
+        ? record.educationalQualifications
+        : init.educationalQualifications,
+    eligibilityExaminations:
+      (record.eligibility_examinations && record.eligibility_examinations.length > 0)
+        ? record.eligibility_examinations
+        : (record.eligibilityExaminations && record.eligibilityExaminations.length > 0)
+        ? record.eligibilityExaminations
+        : init.eligibilityExaminations,
+    professionalExperience:
+      (record.professional_experience && record.professional_experience.length > 0)
+        ? record.professional_experience
+        : (record.professionalExperience && record.professionalExperience.length > 0)
+        ? record.professionalExperience
+        : init.professionalExperience,
+    researchExposure: record.research_exposure || record.researchExposure || '',
+    researchPublications:
+      (record.research_publications && record.research_publications.length > 0)
+        ? record.research_publications
+        : (record.researchPublications && record.researchPublications.length > 0)
+        ? record.researchPublications
+        : init.researchPublications,
+    booksPatentsOutputs:
+      (record.books_patents_outputs && record.booksPatentsOutputs?.length > 0)
+        ? record.books_patents_outputs
+        : (record.booksPatentsOutputs && record.booksPatentsOutputs.length > 0)
+        ? record.booksPatentsOutputs
+        : init.booksPatentsOutputs,
+    membershipsAwards:
+      (record.memberships_awards && record.memberships_awards.length > 0)
+        ? record.memberships_awards
+        : (record.membershipsAwards && record.membershipsAwards.length > 0)
+        ? record.membershipsAwards
+        : init.membershipsAwards,
+    conferencesWorkshops:
+      (record.conferences_workshops && record.conferences_workshops.length > 0)
+        ? record.conferences_workshops
+        : (record.conferencesWorkshops && record.conferencesWorkshops.length > 0)
+        ? record.conferencesWorkshops
+        : init.conferencesWorkshops,
+    references:
+      (record.references_data && record.references_data.length > 0)
+        ? record.references_data
+        : (record.references && record.references.length > 0)
+        ? record.references
+        : init.references,
+    documentMetadata: record.document_metadata || record.documentMetadata || {},
+    declaration: {
+      ...init.declaration,
+      ...(record.declaration || {}),
+      accepted: true,
+    },
+  };
 };
 

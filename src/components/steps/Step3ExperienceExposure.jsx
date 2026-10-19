@@ -1,4 +1,5 @@
 import React from 'react';
+import { validateFromTo } from '../../data/initialFormState';
 
 export default function Step3ExperienceExposure({ formData, setFormData }) {
   const experience = formData.professionalExperience;
@@ -49,7 +50,7 @@ export default function Step3ExperienceExposure({ formData, setFormData }) {
               <span className="w-6 h-6 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-xs font-bold">
                 5
               </span>
-              5. PROFESSIONAL / TEACHING EXPERIENCE
+              PROFESSIONAL / TEACHING EXPERIENCE
             </h2>
             <p className="text-[11px] text-slate-500">
               List teaching, industry, or research experience in chronological order
@@ -128,8 +129,17 @@ export default function Step3ExperienceExposure({ formData, setFormData }) {
                       placeholder="MM/YYYY – MM/YYYY"
                       value={item.fromTo}
                       onChange={(e) => handleExpChange(idx, 'fromTo', e.target.value)}
-                      className="form-input text-xs py-1.5 text-center"
+                      className={`form-input text-xs py-1.5 text-center font-mono ${
+                        item.fromTo && !validateFromTo(item.fromTo).valid
+                          ? '!border-red-500 !ring-red-200 focus:!border-red-500'
+                          : ''
+                      }`}
                     />
+                    {item.fromTo && !validateFromTo(item.fromTo).valid && (
+                      <span className="text-[10px] text-red-600 block mt-0.5 leading-tight">
+                        {validateFromTo(item.fromTo).error}
+                      </span>
+                    )}
                   </div>
 
                   <div>
@@ -190,8 +200,22 @@ export default function Step3ExperienceExposure({ formData, setFormData }) {
                       placeholder="MM/YYYY – MM/YYYY"
                       value={item.fromTo}
                       onChange={(e) => handleExpChange(idx, 'fromTo', e.target.value)}
-                      className="form-input text-xs py-1 text-center"
+                      className={`form-input text-xs py-1 text-center font-mono ${
+                        item.fromTo && !validateFromTo(item.fromTo).valid
+                          ? '!border-red-500 !ring-red-200 focus:!border-red-500'
+                          : ''
+                      }`}
+                      title={
+                        item.fromTo && !validateFromTo(item.fromTo).valid
+                          ? validateFromTo(item.fromTo).error
+                          : ''
+                      }
                     />
+                    {item.fromTo && !validateFromTo(item.fromTo).valid && (
+                      <span className="text-[9px] text-red-600 block mt-0.5 leading-tight">
+                        {validateFromTo(item.fromTo).error}
+                      </span>
+                    )}
                   </td>
                   <td className="py-1 px-1">
                     <input
@@ -236,7 +260,7 @@ export default function Step3ExperienceExposure({ formData, setFormData }) {
             <span className="w-6 h-6 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-xs font-bold">
               6
             </span>
-            6. RESEARCH EXPOSURE / AREA OF INTEREST (IF ANY)
+            RESEARCH EXPOSURE / AREA OF INTEREST (IF ANY)
           </h2>
           <p className="text-[11px] text-slate-500">
             Describe your research exposure, motivation, prospective problem domain, or previous projects

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { SUGGESTED_MENU } from '../data/portalData';
 
-export default function Header({ currentView, setCurrentView, onOpenStatus }) {
+export default function Header({ currentView, setCurrentView, onOpenForm, onOpenStatus, onOpenEdit }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
 
@@ -13,8 +13,12 @@ export default function Header({ currentView, setCurrentView, onOpenStatus }) {
       return;
     }
     if (isCta || href === '#apply-online') {
-      setCurrentView('form');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (onOpenForm) {
+        onOpenForm();
+      } else {
+        setCurrentView('form');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
       return;
     }
     if (currentView !== 'portal') {
@@ -79,19 +83,8 @@ export default function Header({ currentView, setCurrentView, onOpenStatus }) {
 
           {/* Right Action Buttons */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* If currently filling form, show Back to Portal */}
-            {currentView === 'form' ? (
-              <button
-                type="button"
-                onClick={() => {
-                  setCurrentView('portal');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                className="px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold rounded-md border border-slate-300 text-slate-700 bg-white hover:bg-slate-50 transition shadow-xs flex items-center gap-1 cursor-pointer shrink-0"
-              >
-                ← <span className="hidden sm:inline">Back to</span> Website
-              </button>
-            ) : (
+            {/* Portal Action Buttons (shown when on portal or admin view) */}
+            {currentView !== 'form' && (
               <>
                 {/* Application Status Modal trigger */}
                 <button
@@ -103,12 +96,28 @@ export default function Header({ currentView, setCurrentView, onOpenStatus }) {
                   <span>Status</span>
                 </button>
 
+                {/* Edit Application via OTP Modal trigger */}
+                {onOpenEdit && (
+                  <button
+                    type="button"
+                    onClick={onOpenEdit}
+                    className="hidden lg:inline-flex px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs font-semibold rounded-md border border-amber-300 text-amber-900 bg-amber-50 hover:bg-amber-100 transition shadow-2xs items-center gap-1 cursor-pointer shrink-0"
+                    title="Edit previously submitted application via Email OTP"
+                  >
+                    <span>Edit Form</span>
+                  </button>
+                )}
+
                 {/* PROMINENT APPLICATION FORM BUTTON - Central User Requirement (Desktop/Tablet) */}
                 <button
                   type="button"
                   onClick={() => {
-                    setCurrentView('form');
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    if (onOpenForm) {
+                      onOpenForm();
+                    } else {
+                      setCurrentView('form');
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
                   }}
                   className="hidden sm:inline-flex relative group px-3 sm:px-4 md:px-5 py-1.5 sm:py-2 text-xs md:text-sm font-extrabold rounded-md bg-[#EC691F] hover:bg-[#d95a14] active:scale-[0.98] text-white shadow-xs hover:shadow transition-all items-center gap-1 cursor-pointer border border-[#d95a14] shrink-0 uppercase tracking-wide"
                   title="Click to Open 7-Step Ph.D. Online Application Form"
@@ -211,22 +220,27 @@ export default function Header({ currentView, setCurrentView, onOpenStatus }) {
       )}
 
       {/* 5. Mobile Navigation Dropdown */}
+      {/* 5. Mobile Navigation Dropdown */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-white border-t border-slate-200 px-4 py-3 space-y-3 shadow-2xl animate-fadeIn text-xs max-h-[85vh] overflow-y-auto">
+        <div className="lg:hidden bg-white border-t border-slate-200 px-3 py-1.5 space-y-1 shadow-2xl animate-fadeIn text-xs max-h-[92vh] overflow-y-auto">
           {/* Quick CTA inside Mobile Menu */}
-          <div className="p-2.5 rounded-lg bg-[#FAF7F5] border border-orange-200 flex items-center justify-between">
+          <div className="px-2.5 py-1 rounded bg-[#FAF7F5] border border-orange-200 flex items-center justify-between">
             <div>
-              <p className="font-bold text-[#1E1D1D] text-xs">Ph.D. Admissions 2026–2027</p>
-              <p className="text-[11px] text-slate-500">Apply for Full-Time or Part-Time Doctoral Study</p>
+              <p className="font-bold text-[#1E1D1D] text-xs leading-tight">Ph.D. Admissions 2026–2027</p>
+              <p className="text-[10px] text-slate-500 leading-none">Full-Time / Part-Time Doctoral Study</p>
             </div>
             <button
               type="button"
               onClick={() => {
                 setMobileMenuOpen(false);
-                setCurrentView('form');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                if (onOpenForm) {
+                  onOpenForm();
+                } else {
+                  setCurrentView('form');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
               }}
-              className="px-3 py-1.5 bg-[#EC691F] hover:bg-[#d95a14] text-white font-bold rounded text-xs shadow-xs"
+              className="px-2.5 py-1 bg-[#EC691F] hover:bg-[#d95a14] text-white font-bold rounded text-xs shadow-xs shrink-0 cursor-pointer"
             >
               Apply Form
             </button>
@@ -235,24 +249,24 @@ export default function Header({ currentView, setCurrentView, onOpenStatus }) {
           {/* Nav Links */}
           <div className="divide-y divide-slate-100">
             {navItems.map((item) => (
-              <div key={item.label} className="py-1.5">
+              <div key={item.label} className="py-0.5">
                 <button
                   type="button"
                   onClick={() => handleNavClick(item.href, item.isCta)}
-                  className={`w-full text-left font-bold py-1 flex items-center justify-between ${
-                    item.isCta ? 'text-[#EC691F] font-black' : 'text-slate-800'
+                  className={`w-full text-left font-bold py-0.5 flex items-center justify-between transition-colors cursor-pointer ${
+                    item.isCta ? 'text-[#EC691F] font-black' : 'text-slate-800 hover:text-[#EC691F]'
                   }`}
                 >
                   <span>{item.label}</span>
                 </button>
                 {item.children && (
-                  <div className="pl-3 py-1 space-y-1 bg-slate-50 rounded mt-1">
+                  <div className="flex items-center gap-3 pl-2.5 py-0.5 text-slate-600 text-[11px] font-semibold">
                     {item.children.map((sub) => (
                       <button
                         key={sub.label}
                         type="button"
                         onClick={() => handleNavClick(sub.href)}
-                        className="w-full text-left py-1 text-slate-600 hover:text-[#EC691F] text-[11px] font-medium"
+                        className="hover:text-[#EC691F] transition-colors py-0 cursor-pointer"
                       >
                         • {sub.label}
                       </button>
@@ -263,28 +277,30 @@ export default function Header({ currentView, setCurrentView, onOpenStatus }) {
             ))}
           </div>
 
-          <div className="flex flex-col gap-2 pt-2 border-t border-slate-200">
+          {/* Bottom Quick Actions (Check Status & Edit Form OTP) */}
+          <div className="grid grid-cols-2 gap-1.5 pt-1 border-t border-slate-200">
             <button
               type="button"
               onClick={() => {
                 setMobileMenuOpen(false);
                 onOpenStatus();
               }}
-              className="w-full py-2 bg-slate-100 text-slate-700 font-semibold rounded text-xs flex items-center justify-center gap-1.5 border border-slate-200"
+              className="w-full py-1 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded text-xs flex items-center justify-center border border-slate-200 cursor-pointer"
             >
-              Check Application Status
+              Check Status
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                setCurrentView('form');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              className="w-full py-2.5 bg-[#EC691F] hover:bg-[#d95a14] text-white font-bold rounded text-xs flex items-center justify-center gap-1.5 shadow"
-            >
-              Start Ph.D. Application Form
-            </button>
+            {onOpenEdit && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenEdit();
+                }}
+                className="w-full py-1 px-2 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold rounded text-xs flex items-center justify-center border border-amber-200 cursor-pointer"
+              >
+                Edit Form (OTP)
+              </button>
+            )}
           </div>
         </div>
       )}

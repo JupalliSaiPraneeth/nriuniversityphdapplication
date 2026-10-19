@@ -7,7 +7,7 @@ import {
   ELIGIBILITY_CRITERIA,
   SUGGESTED_MENU,
 } from '../data/portalData';
-import { PROGRAMME_OPTIONS, getInitialFormData, hasUserFilledAnyField } from '../data/initialFormState';
+import { PROGRAMME_OPTIONS, getInitialFormData, hasUserFilledAnyField, validateDOB, validateYear, validateFromTo, validatePercentageOrCGPA } from '../data/initialFormState';
 import { dbService } from '../lib/supabase';
 import {
   generatePartAResearchSyllabusPDF,
@@ -29,11 +29,17 @@ describe('Ph.D. Portal Redesign & Data Integrity Verification', () => {
     expect(econ.eligibility).toContain('Economics');
   });
 
-  it('2. should include Economics and Pharmacy in form PROGRAMME_OPTIONS for applicant registration', () => {
+  it('2. should include the updated Ph.D. Programme / Subject options in form PROGRAMME_OPTIONS', () => {
+    expect(PROGRAMME_OPTIONS).toContain('CSE & Allied');
+    expect(PROGRAMME_OPTIONS).toContain('ECE');
+    expect(PROGRAMME_OPTIONS).toContain('Pharm.D');
+    expect(PROGRAMME_OPTIONS).toContain('Pharm.D (Post Baccalaureate)');
+    expect(PROGRAMME_OPTIONS).toContain('Management');
     expect(PROGRAMME_OPTIONS).toContain('Economics');
-    expect(PROGRAMME_OPTIONS).toContain('Pharmacy');
-    expect(PROGRAMME_OPTIONS).toContain('Computer Science and Engineering (CSE)');
-    expect(PROGRAMME_OPTIONS).toContain('Master of Business Administration (MBA)');
+    expect(PROGRAMME_OPTIONS).toContain('Allied Health & Paramedical Sciences');
+    expect(PROGRAMME_OPTIONS).toContain('Biotechnology / Medical Biotechnology');
+    expect(PROGRAMME_OPTIONS).toContain('Agriculture');
+    expect(PROGRAMME_OPTIONS.length).toBe(16);
   });
 
   it('3. should have Department Syllabi configured for all disciplines including Economics', () => {
@@ -233,6 +239,83 @@ describe('Ph.D. Portal Redesign & Data Integrity Verification', () => {
 
     const arrayBuffer = docWithDocs.output('arraybuffer');
     expect(arrayBuffer.byteLength).toBeGreaterThan(1000);
+  });
+
+  it('12. should validate Date of Birth: reject empty, future dates, and applicants under 20', () => {
+    // Empty / missing
+    expect(validateDOB('').valid).toBe(false);
+    expect(validateDOB(null).valid).toBe(false);
+
+    // Future dates
+    expect(validateDOB('2099-12-31').valid).toBe(false);
+    expect(validateDOB('2099-12-31').error).toContain('cannot be today or in the future');
+
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    expect(validateDOB(tomorrowStr).valid).toBe(false);
+    expect(validateDOB(tomorrowStr).error).toContain('cannot be today or in the future');
+
+    // Recent date (e.g. user screenshot 2026-10-13 where candidate is 0 years old)
+    expect(validateDOB('2026-10-13').valid).toBe(false);
+    expect(validateDOB('2026-10-13').error).toContain('at least 20 years of age');
+
+    // Under minimum Ph.D. age (e.g. 15 years old)
+    const recentYear = new Date().getFullYear() - 15;
+    expect(validateDOB(`${recentYear}-01-01`).valid).toBe(false);
+    expect(validateDOB(`${recentYear}-01-01`).error).toContain('at least 20 years of age');
+
+    // Valid applicant (e.g. 1998-05-15)
+    const validResult = validateDOB('1998-05-15');
+    expect(validResult.valid).toBe(true);
+    expect(validResult.age).toBeGreaterThanOrEqual(25);
+  });
+
+  it('13. should validate Year and From-To duration in table columns', () => {
+    // Year validation
+    expect(validateYear('', { isRequired: true }).valid).toBe(false);
+    expect(validateYear('20', { isRequired: true }).valid).toBe(false);
+    expect(validateYear('abc', { isRequired: true }).valid).toBe(false);
+    expect(validateYear('2099', { isRequired: true }).valid).toBe(false);
+    expect(validateYear('1940', { isRequired: true, minYear: 1950 }).valid).toBe(false);
+    expect(validateYear('2022', { isRequired: true }).valid).toBe(true);
+
+    // From-To experience validation
+    expect(validateFromTo('', { isRequired: true }).valid).toBe(false);
+    expect(validateFromTo('2020').valid).toBe(false);
+    expect(validateFromTo('06/2018 - 05/2022').valid).toBe(true);
+    expect(validateFromTo('08/2021 – Present').valid).toBe(true);
+    expect(validateFromTo('2019 - 2023').valid).toBe(true);
+    expect(validateFromTo('06/2024 - 05/2020').valid).toBe(false); // start > end
+    expect(validateFromTo('06/2024 - 05/2020').error).toContain('cannot be later');
+    expect(validateFromTo('06/2099 - Present').valid).toBe(false); // start in future
+    expect(validateFromTo('14/2020 - 05/2022').valid).toBe(false); // invalid month
+  });
+
+  it('14. should validate % / CGPA column with percentages, CGPA, and ratio scales', () => {
+    // Valid percentage formats
+    expect(validatePercentageOrCGPA('82.5%').valid).toBe(true);
+    expect(validatePercentageOrCGPA('75').valid).toBe(true);
+    expect(validatePercentageOrCGPA('100%').valid).toBe(true);
+    expect(validatePercentageOrCGPA('65.4%').valid).toBe(true);
+
+    // Valid CGPA formats
+    expect(validatePercentageOrCGPA('8.5').valid).toBe(true);
+    expect(validatePercentageOrCGPA('9.2 / 10').valid).toBe(true);
+    expect(validatePercentageOrCGPA('8.5/10').valid).toBe(true);
+    expect(validatePercentageOrCGPA('8.5 CGPA').valid).toBe(true);
+    expect(validatePercentageOrCGPA('3.8/4').valid).toBe(true);
+    expect(validatePercentageOrCGPA('750/1000').valid).toBe(true);
+
+    // Invalid formats
+    expect(validatePercentageOrCGPA('', { isRequired: true }).valid).toBe(false);
+    expect(validatePercentageOrCGPA('105%').valid).toBe(false);
+    expect(validatePercentageOrCGPA('150').valid).toBe(false);
+    expect(validatePercentageOrCGPA('-5%').valid).toBe(false);
+    expect(validatePercentageOrCGPA('abc').valid).toBe(false);
+    expect(validatePercentageOrCGPA('11/10').valid).toBe(false);
+    expect(validatePercentageOrCGPA('15').valid).toBe(false); // between 10 and 30
+    expect(validatePercentageOrCGPA('1.5').valid).toBe(false); // below 3.0
   });
 });
 

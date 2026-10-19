@@ -5,7 +5,6 @@ import {
   IMPORTANT_DATES_DISCLAIMER,
   PROGRAMME_OPTIONS,
   RESEARCH_DISCIPLINES,
-  RESEARCH_DISCIPLINES_INTRO,
   ELIGIBILITY_CRITERIA,
   ADMISSION_PROCEDURE,
   ENTRANCE_EXAMINATION,
@@ -62,7 +61,7 @@ const FLOWCHART_STEPS = [
   },
 ];
 
-export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenAdmin: _onOpenAdmin }) {
+export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenEdit, onOpenAdmin: _onOpenAdmin }) {
   const [selectedDept, setSelectedDept] = useState(null);
   const [selectedSyllabusDept, setSelectedSyllabusDept] = useState('econ');
   const [contactSuccess, setContactSuccess] = useState(false);
@@ -203,31 +202,50 @@ export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenAdmin
       <section id="important-dates" className="bg-[#FAF7F5] border-b border-stone-200 py-6 sm:py-8">
         <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-none shadow-xs border border-slate-200 overflow-hidden">
-            <div className="bg-[#1E1D1D] text-white p-3.5 sm:p-4 border-b border-[#EC691F] flex flex-col md:flex-row md:items-center justify-between gap-2">
-              <div>
-                <span className="text-[#EC691F] text-xs font-bold uppercase tracking-wider block">
-                  Admission Schedule
-                </span>
-                <h2 className="text-base sm:text-xl font-extrabold tracking-tight">
-                  Important Dates & Admission Notifications
-                </h2>
-              </div>
+            <div className="bg-[#1E1D1D] text-white py-2 px-3.5 sm:px-4 border-b border-[#EC691F] flex items-center justify-between">
+              <span className="text-[#EC691F] text-xs font-bold uppercase tracking-wider">
+                Admission Schedule
+              </span>
+              <h2 className="sr-only">
+                Important Dates & Admission Notifications
+              </h2>
               <span className="text-xs text-slate-300">
                 Academic Year 2026–2027
               </span>
             </div>
 
-            <div className="p-4 sm:p-5 space-y-3">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs sm:text-sm min-w-[500px]">
-                  <thead className="bg-[#FAF7F5] text-[#1E1D1D] uppercase font-bold text-xs border-b border-stone-200">
+            <div className="p-3.5 sm:p-5 space-y-3">
+              {/* Mobile View: Clean Structured Cards (Zero Cutoff) */}
+              <div className="sm:hidden border border-slate-200 divide-y divide-slate-200 bg-white">
+                {IMPORTANT_DATES.map((item, idx) => (
+                  <div key={idx} className="p-3 space-y-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="font-semibold text-slate-800 text-xs flex items-start gap-1.5 flex-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#EC691F] shrink-0 mt-1" />
+                        <span>{item.activity}</span>
+                      </div>
+                      <span className={`text-[11px] font-bold shrink-0 ${item.badgeColor}`}>
+                        {item.status}
+                      </span>
+                    </div>
+                    <div className="pl-3 text-xs font-bold text-[#1E1D1D]">
+                      {item.date}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop / Tablet Table View */}
+              <div className="hidden sm:block overflow-x-auto">
+                <table className="w-full text-left text-xs sm:text-sm">
+                  <thead className="bg-[#FAF7F5] text-[#1E1D1D] uppercase font-bold text-xs">
                     <tr>
                       <th className="py-2.5 px-3 sm:px-4">Admission Milestone / Activity</th>
                       <th className="py-2.5 px-3 sm:px-4">Scheduled Date</th>
                       <th className="py-2.5 px-3 sm:px-4 text-right">Status / Stage</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-200">
+                  <tbody>
                     {IMPORTANT_DATES.map((item, idx) => (
                       <tr key={idx} className="hover:bg-slate-50 transition">
                         <td className="py-3 px-3 sm:px-4 font-semibold text-slate-800 flex items-center gap-2">
@@ -239,7 +257,7 @@ export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenAdmin
                         </td>
                         <td className="py-3 px-3 sm:px-4 text-right">
                           <span
-                            className={`inline-block px-2.5 py-0.5 rounded text-[11px] font-bold border ${item.badgeColor}`}
+                            className={`inline-block text-xs font-bold ${item.badgeColor}`}
                           >
                             {item.status}
                           </span>
@@ -250,8 +268,8 @@ export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenAdmin
                 </table>
               </div>
 
-              <div className="p-3 bg-amber-50 border border-amber-200 text-amber-900 text-xs rounded-none leading-relaxed flex items-start gap-2">
-                <span className="font-bold text-amber-800 shrink-0">Official Schedule Notice:</span>
+              <div className="p-3 bg-amber-50 border border-amber-200 text-amber-900 text-xs leading-relaxed">
+                <strong className="font-bold text-amber-800 block mb-0.5">Official Schedule Notice:</strong>
                 <span>{IMPORTANT_DATES_DISCLAIMER}</span>
               </div>
             </div>
@@ -264,25 +282,22 @@ export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenAdmin
       {/* ========================================================= */}
       <section id="programmes" className="bg-white border-b border-stone-200 py-6 sm:py-8">
         <div className="max-w-7xl 2xl:max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
-          <div className="border-b border-slate-200 pb-2.5">
+          <div className="border-b border-slate-200 pb-2">
             <span className="text-[#EC691F] text-xs font-bold uppercase tracking-wider block">
               Admission Categories
             </span>
             <h2 className="text-base sm:text-2xl font-extrabold text-[#1E1D1D] tracking-tight">
               Ph.D. Programme Options & Research Tracks
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600 mt-1">
-              {PROGRAMME_OPTIONS.intro}
-            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border border-slate-200 divide-y md:divide-y-0 md:divide-x divide-slate-200">
             {PROGRAMME_OPTIONS.options.map((option) => (
               <div
                 key={option.id}
-                className={`bg-white rounded-none border border-slate-200 p-4 sm:p-5 shadow-xs space-y-3 flex flex-col justify-between ${option.accentColor}`}
+                className={`bg-white rounded-none p-3.5 sm:p-4 shadow-xs space-y-2.5 flex flex-col justify-between ${option.accentColor}`}
               >
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#EC691F] bg-orange-50 px-2.5 py-0.5 rounded border border-orange-200">
                       {option.badge}
@@ -301,11 +316,11 @@ export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenAdmin
                     {option.description}
                   </p>
 
-                  <div className="pt-2 border-t border-slate-100 space-y-1.5">
+                  <div className="pt-1.5 border-t border-slate-100 space-y-1">
                     <strong className="text-[11px] font-bold text-slate-800 uppercase tracking-wider block">
                       Key Highlights & Governance:
                     </strong>
-                    <ul className="space-y-1 text-xs text-slate-600">
+                    <ul className="space-y-0.5 text-xs text-slate-600">
                       {option.highlights.map((h, i) => (
                         <li key={i} className="flex items-start gap-1.5">
                           <span className="text-[#EC691F] font-bold shrink-0">•</span>
@@ -316,7 +331,7 @@ export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenAdmin
                   </div>
                 </div>
 
-                <div className="pt-3">
+                <div className="pt-2">
                   <button
                     type="button"
                     onClick={onOpenForm}
@@ -344,9 +359,6 @@ export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenAdmin
               <h2 className="text-base sm:text-2xl font-extrabold text-[#1E1D1D] tracking-tight">
                 Academic Departments & Research Disciplines
               </h2>
-              <p className="text-xs sm:text-sm text-slate-600 mt-0.5">
-                {RESEARCH_DISCIPLINES_INTRO}
-              </p>
             </div>
             <span className="text-xs font-bold text-slate-700 bg-white px-3 py-1 rounded border border-slate-200 self-start md:self-auto shrink-0">
               11 Approved Research Disciplines
@@ -430,28 +442,22 @@ export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenAdmin
               <span className="text-[#EC691F] text-xs font-bold uppercase tracking-wider block">
                 Academic Qualifications & Regulations
               </span>
-              <h2 className="text-base sm:text-xl font-extrabold tracking-tight">
+              <h2 className="text-base sm:text-xl font-extrabold tracking-tight text-white">
                 Ph.D. Eligibility Criteria & Minimum Marks
               </h2>
-              <p className="text-xs text-slate-300 mt-0.5">
-                In strict compliance with UGC (Minimum Standards and Procedures for Award of Ph.D. Degree) Regulations
-              </p>
             </div>
 
-            <div className="p-4 sm:p-5 space-y-4">
-              <div className="p-3 bg-[#FAF7F5] border border-orange-200 text-xs sm:text-sm text-slate-800 leading-relaxed">
-                {ELIGIBILITY_CRITERIA.header}
-              </div>
+            <div className="p-3 sm:p-3.5 space-y-2.5">
 
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#1E1D1D]">
                   Statutory Eligibility Standards (UGC Guidelines)
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                <div className="border border-slate-200 divide-y divide-slate-200 bg-white">
                   {ELIGIBILITY_CRITERIA.generalRequirements.map((req, idx) => (
                     <div
                       key={idx}
-                      className="p-3 bg-white border border-slate-200 rounded-none shadow-2xs flex items-start gap-2.5 text-xs"
+                      className="py-2 px-3 flex items-start gap-2.5 text-xs hover:bg-slate-50/50 transition"
                     >
                       <span className="w-5 h-5 rounded-full bg-[#EC691F] text-white font-bold flex items-center justify-center shrink-0 text-[10px] mt-0.5">
                         {idx + 1}
@@ -464,14 +470,14 @@ export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenAdmin
                 </div>
               </div>
 
-              <div className="space-y-2 pt-2">
+              <div className="space-y-1 pt-0.5">
                 <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#1E1D1D]">
                   Required Scrutiny Documents Checklist
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 bg-[#FAF7F5] p-3 border border-slate-200 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-0 border-t border-l border-slate-200 bg-[#FAF7F5] text-xs">
                   {ELIGIBILITY_CRITERIA.requiredDocumentsList.map((doc, idx) => (
-                    <div key={idx} className="flex items-start gap-2 text-slate-700">
-                      <span className="text-emerald-600 font-bold shrink-0">✓</span>
+                    <div key={idx} className="flex items-start gap-2 text-slate-700 py-2 px-3 border-r border-b border-slate-200">
+                      <span className="text-emerald-600 font-bold shrink-0 text-sm">✓</span>
                       <span>{doc}</span>
                     </div>
                   ))}
@@ -493,12 +499,9 @@ export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenAdmin
                 <span className="text-[#EC691F] text-xs font-bold uppercase tracking-wider block">
                   Comprehensive Selection Architecture
                 </span>
-                <h2 className="text-base sm:text-xl font-extrabold tracking-tight">
+                <h2 className="text-base sm:text-xl font-extrabold tracking-tight text-white">
                   Selection Process & Entrance Examination Pattern
                 </h2>
-                <p className="text-xs text-slate-300 mt-0.5">
-                  7-Stage Admission Roadmap and Proposed Examination Structure
-                </p>
               </div>
 
               <div className="bg-white/10 px-3.5 py-1.5 rounded border border-[#EC691F] text-right self-start md:self-auto">
@@ -522,17 +525,14 @@ export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenAdmin
                   <span className="text-[11px] font-bold text-slate-500">7 Sequential Steps</span>
                 </div>
 
-                <div className="bg-[#FAF7F5] border border-stone-200 p-3.5 sm:p-5 space-y-3">
+                <div className="bg-[#FAF7F5] border border-stone-200 p-2.5 sm:p-3.5 space-y-2">
                   {/* Row 1: Steps 1 to 4 */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1.5">
                     {FLOWCHART_STEPS.slice(0, 4).map((item, idx) => (
-                      <div key={item.step} className="flex flex-col lg:flex-row items-stretch lg:items-center gap-2">
-                        <div className="flex-1 bg-white border border-stone-200 hover:border-[#EC691F] p-3 shadow-xs transition flex flex-col justify-between h-full">
+                      <div key={item.step} className="flex flex-col lg:flex-row items-stretch lg:items-center gap-1.5">
+                        <div className="flex-1 bg-white border border-stone-200 hover:border-[#EC691F] p-2.5 sm:p-3 shadow-xs transition flex flex-col justify-between h-full">
                           <div>
-                            <div className="flex items-center justify-between">
-                              <span className="w-5 h-5 rounded-full bg-[#1E1D1D] text-[#EC691F] font-black text-[10px] flex items-center justify-center">
-                                {item.step}
-                              </span>
+                            <div className="flex items-center justify-end">
                               <span className="text-[10px] font-bold text-slate-400 uppercase">
                                 Stage {item.step}
                               </span>
@@ -545,9 +545,9 @@ export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenAdmin
                             </p>
                           </div>
                           {item.isExemptible && (
-                            <div className="mt-2 pt-1.5 border-t border-dashed border-amber-200">
+                            <div className="mt-1.5 pt-1 border-t border-dashed border-amber-200">
                               <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 inline-block">
-                                ⚡ NET / GATE: Skip to Stage 5
+                                NET / GATE: Skip to Stage 5
                               </span>
                             </div>
                           )}
@@ -580,27 +580,18 @@ export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenAdmin
                   </div>
 
                   {/* Row 2: Steps 5 to 7 */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1.5">
                     {FLOWCHART_STEPS.slice(4, 7).map((item, idx) => (
                       <div key={item.step} className="flex flex-col lg:flex-row items-stretch lg:items-center gap-2">
                         <div
-                          className={`flex-1 p-3 shadow-xs transition flex flex-col justify-between h-full border ${
+                          className={`flex-1 p-2.5 sm:p-3 shadow-xs transition flex flex-col justify-between h-full border ${
                             item.step === 7
                               ? 'bg-emerald-50/20 border-emerald-300 hover:border-emerald-500'
                               : 'bg-white border-stone-200 hover:border-[#EC691F]'
                           }`}
                         >
                           <div>
-                            <div className="flex items-center justify-between">
-                              <span
-                                className={`w-5 h-5 rounded-full font-black text-[10px] flex items-center justify-center ${
-                                  item.step === 7
-                                    ? 'bg-emerald-600 text-white'
-                                    : 'bg-[#1E1D1D] text-[#EC691F]'
-                                }`}
-                              >
-                                {item.step}
-                              </span>
+                            <div className="flex items-center justify-end">
                               <span
                                 className={`text-[10px] font-bold uppercase ${
                                   item.step === 7 ? 'text-emerald-700 font-extrabold' : 'text-slate-400'
@@ -617,7 +608,7 @@ export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenAdmin
                             </p>
                           </div>
                           {item.step === 7 && (
-                            <div className="mt-2 pt-1.5 border-t border-emerald-200">
+                            <div className="mt-1.5 pt-1 border-t border-emerald-200">
                               <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/80 px-1.5 py-0.5 rounded border border-emerald-300 inline-block">
                                 ✓ Admission & Enrolment Cleared
                               </span>
@@ -671,7 +662,35 @@ export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenAdmin
                   </span>
                 </div>
 
-                <div className="overflow-x-auto border border-slate-200">
+                {/* Mobile View: Clean Structured Cards (Zero Cutoff) */}
+                <div className="sm:hidden border border-slate-200 divide-y divide-slate-200 bg-white">
+                  {ENTRANCE_EXAMINATION.pattern.map((p, idx) => (
+                    <div key={idx} className="p-3 space-y-1.5">
+                      <div className="flex items-start justify-between gap-2">
+                        <h4 className="font-bold text-[#1E1D1D] text-xs flex-1">
+                          {p.component}
+                        </h4>
+                        <div className="text-right shrink-0">
+                          <span className="font-black text-sm text-[#EC691F] block">{p.marks} Marks</span>
+                          <span className="text-[10px] text-slate-500 font-semibold">{p.weightage}</span>
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-600 leading-relaxed">
+                        {p.description}
+                      </p>
+                    </div>
+                  ))}
+                  <div className="p-3 bg-orange-50/70 flex items-center justify-between font-bold text-xs text-[#1E1D1D]">
+                    <div>
+                      <span className="uppercase block font-extrabold">Total Written Examination</span>
+                      <span className="text-[11px] text-slate-600 font-normal">{ENTRANCE_EXAMINATION.totalDuration}</span>
+                    </div>
+                    <span className="text-base font-black text-[#EC691F]">{ENTRANCE_EXAMINATION.totalMarks} Marks</span>
+                  </div>
+                </div>
+
+                {/* Desktop / Tablet Table View */}
+                <div className="hidden sm:block overflow-x-auto border border-slate-200">
                   <table className="w-full text-left text-xs sm:text-sm min-w-[500px]">
                     <thead className="bg-[#FAF7F5] text-[#1E1D1D] uppercase font-bold text-xs border-b border-stone-200">
                       <tr>
@@ -713,9 +732,9 @@ export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenAdmin
                   </table>
                 </div>
 
-                <div className="p-3 bg-amber-50 border border-amber-200 text-amber-950 text-xs flex items-start gap-2">
-                  <strong className="font-bold text-amber-900 shrink-0">Official Note:</strong>
-                  <span>{ENTRANCE_EXAMINATION.disclaimer} Qualifying marks are proposed at {ENTRANCE_EXAMINATION.qualifyingCriteria}</span>
+                <div className="p-3 bg-amber-50 border border-amber-200 text-amber-950 text-xs leading-relaxed">
+                  <strong className="font-bold text-amber-900 block mb-0.5">Official Note:</strong>
+                  <span>{ENTRANCE_EXAMINATION.disclaimer} {ENTRANCE_EXAMINATION.qualifyingCriteria}</span>
                 </div>
               </div>
             </div>
@@ -736,9 +755,6 @@ export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenAdmin
               <h2 className="text-base sm:text-2xl font-extrabold text-[#1E1D1D] tracking-tight">
                 Part A – Research Aptitude and Methodology Syllabus
               </h2>
-              <p className="text-xs sm:text-sm text-slate-600 mt-0.5">
-                Evaluates foundational research philosophy, problem formulation, statistics, and publication ethics
-              </p>
             </div>
 
             <button
@@ -751,9 +767,9 @@ export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenAdmin
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border-t border-l border-slate-200 text-xs">
             {ENTRANCE_EXAMINATION.partACoverage.map((item, idx) => (
-              <div key={idx} className="p-3 bg-[#FAF7F5] border border-slate-200 rounded-none shadow-2xs space-y-1">
+              <div key={idx} className="py-2 px-3 bg-[#FAF7F5] border-r border-b border-slate-200 space-y-1">
                 <span className="font-bold text-[#EC691F] block text-[11px]">Unit {idx + 1}:</span>
                 <p className="text-slate-800 font-medium leading-relaxed">{item}</p>
               </div>
@@ -775,9 +791,6 @@ export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenAdmin
               <h2 className="text-base sm:text-2xl font-extrabold text-[#1E1D1D] tracking-tight">
                 Part B – Department-Wise Ph.D. Entrance Syllabi
               </h2>
-              <p className="text-xs sm:text-sm text-slate-600 mt-0.5">
-                Select your academic discipline to inspect and download the official domain curriculum PDF
-              </p>
             </div>
             <span className="text-xs font-bold text-slate-700 bg-white px-2.5 py-1 rounded border border-slate-200 self-start sm:self-auto shrink-0">
               11 Department Syllabi Available
@@ -785,28 +798,53 @@ export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenAdmin
           </div>
 
           {/* Department switcher */}
-          <div className="flex flex-wrap gap-1.5 bg-white p-3 border border-slate-200 shadow-2xs">
-            {Object.keys(DEPARTMENT_SYLLABI).map((key) => {
-              const d = DEPARTMENT_SYLLABI[key];
-              const isSelected = selectedSyllabusDept === key;
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setSelectedSyllabusDept(key)}
-                  className={`px-3 py-1.5 rounded text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${isSelected
-                    ? 'bg-[#EC691F] text-white shadow-xs'
-                    : 'bg-[#FAF7F5] text-slate-700 hover:bg-slate-200 border border-slate-200'
-                    }`}
-                >
-                  <span>{d.name}</span>
-                  <span className={`text-[10px] px-1 py-0.2 rounded font-black ${isSelected ? 'bg-white/20 text-white' : 'bg-white text-slate-500 border border-slate-200'
-                    }`}>
-                    {d.code}
-                  </span>
-                </button>
-              );
-            })}
+          <div className="bg-white p-3 border border-slate-200 shadow-2xs space-y-2">
+            {/* Mobile View: Quick Dropdown & Horizontal Scroll Chips */}
+            <div className="sm:hidden space-y-2">
+              <label htmlFor="mobile-syllabus-dept-select" className="block text-[11px] font-bold text-slate-600">
+                Select Department / Discipline Syllabus:
+              </label>
+              <select
+                id="mobile-syllabus-dept-select"
+                value={selectedSyllabusDept}
+                onChange={(e) => setSelectedSyllabusDept(e.target.value)}
+                className="w-full bg-[#FAF7F5] border border-slate-300 rounded px-3 py-2 text-xs font-bold text-[#1E1D1D] focus:outline-none focus:border-[#EC691F] cursor-pointer"
+              >
+                {Object.keys(DEPARTMENT_SYLLABI).map((key) => {
+                  const d = DEPARTMENT_SYLLABI[key];
+                  return (
+                    <option key={key} value={key}>
+                      {d.name} ({d.code})
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+
+            {/* Desktop / Tablet: Full Pill Grid */}
+            <div className="hidden sm:flex flex-wrap gap-1.5">
+              {Object.keys(DEPARTMENT_SYLLABI).map((key) => {
+                const d = DEPARTMENT_SYLLABI[key];
+                const isSelected = selectedSyllabusDept === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setSelectedSyllabusDept(key)}
+                    className={`px-3 py-1.5 rounded text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${isSelected
+                      ? 'bg-[#EC691F] text-white shadow-xs'
+                      : 'bg-[#FAF7F5] text-slate-700 hover:bg-slate-200 border border-slate-200'
+                      }`}
+                  >
+                    <span>{d.name}</span>
+                    <span className={`text-[10px] px-1 py-0.2 rounded font-black ${isSelected ? 'bg-white/20 text-white' : 'bg-white text-slate-500 border border-slate-200'
+                      }`}>
+                      {d.code}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Active Department Syllabus Card */}
@@ -876,7 +914,7 @@ export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenAdmin
               <span className="text-[#EC691F] text-xs font-bold uppercase tracking-wider block">
                 National / State Level Equivalencies
               </span>
-              <h2 className="text-base sm:text-xl font-extrabold tracking-tight">
+              <h2 className="text-base sm:text-xl font-extrabold tracking-tight text-white">
                 Recognized Entrance Examinations & Exemption Guidelines
               </h2>
             </div>
@@ -886,7 +924,7 @@ export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenAdmin
                 {EXEMPTION_CRITERIA.header}
               </p>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {EXEMPTION_CRITERIA.recognizedExaminations.map((ex, idx) => (
                   <div
                     key={idx}
@@ -909,7 +947,7 @@ export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenAdmin
               </div>
 
               <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-950 text-xs rounded-none leading-relaxed flex items-start gap-2.5">
-                <span className="text-rose-700 font-bold text-sm shrink-0">⚠</span>
+                <span className="w-4 h-4 rounded-full bg-rose-100 text-rose-800 flex items-center justify-center font-bold text-xs shrink-0">!</span>
                 <div>
                   <strong className="font-bold text-rose-800 block mb-0.5">
                     Mandatory Scrutiny & Interview Appearance:
@@ -974,6 +1012,15 @@ export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenAdmin
                 >
                   <span>Track Existing Application</span>
                 </button>
+                {onOpenEdit && (
+                  <button
+                    type="button"
+                    onClick={() => onOpenEdit()}
+                    className="px-4 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 font-semibold text-xs rounded border border-amber-400/40 transition cursor-pointer flex items-center gap-1.5"
+                  >
+                    <span>Edit Application via OTP</span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -1020,7 +1067,7 @@ export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenAdmin
                 <span className="text-[#EC691F] text-xs font-bold uppercase tracking-wider block">
                   Official Institutional Repository
                 </span>
-                <h2 className="text-base sm:text-xl font-extrabold tracking-tight">
+                <h2 className="text-base sm:text-xl font-extrabold tracking-tight text-white">
                   Official Downloads & Academic Documents
                 </h2>
               </div>
@@ -1082,7 +1129,7 @@ export default function UniversityPortal({ onOpenForm, onOpenStatus, onOpenAdmin
               <span className="text-[#EC691F] text-xs font-bold uppercase tracking-wider block">
                 Directorate of Research & Development
               </span>
-              <h2 className="text-base sm:text-xl font-extrabold tracking-tight">
+              <h2 className="text-base sm:text-xl font-extrabold tracking-tight text-white">
                 Contact the Ph.D. Admissions Office
               </h2>
             </div>

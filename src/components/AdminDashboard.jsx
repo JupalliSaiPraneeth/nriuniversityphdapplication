@@ -954,8 +954,8 @@ export default function AdminDashboard({ onBackToForm }) {
             {/* Modal Navigation Tabs */}
             <div className="flex border-b border-slate-200 bg-slate-50 px-2 sm:px-3 text-xs font-semibold overflow-x-auto no-scrollbar whitespace-nowrap shrink-0">
               {[
-                { id: 'pdf', label: '📄 PDF Application Preview' },
-                { id: 'documents', label: '📁 Attached Documents' },
+                { id: 'pdf', label: 'PDF Application Preview' },
+                { id: 'documents', label: 'Attached Documents' },
                 { id: 'personal', label: '1 & 2. Personal/Address' },
                 { id: 'academics', label: '3 & 4. Academics/Exams' },
                 { id: 'experience', label: '5 & 6. Experience/Exposure' },
@@ -1076,10 +1076,12 @@ export default function AdminDashboard({ onBackToForm }) {
                     <span className="text-slate-400 block font-medium text-[10px]">Admission Category:</span>
                     <span className="font-semibold text-slate-800">{selectedApp.personal_details?.admissionCategory || '—'}</span>
                   </div>
-                  <div className="p-2 bg-slate-50 rounded">
-                    <span className="text-slate-400 block font-medium text-[10px]">Mode of Admission:</span>
-                    <span className="font-semibold text-slate-800">{selectedApp.personal_details?.modeOfAdmission || '—'}</span>
-                  </div>
+                  {selectedApp.personal_details?.modeOfAdmission && (
+                    <div className="p-2 bg-slate-50 rounded">
+                      <span className="text-slate-400 block font-medium text-[10px]">Mode of Admission:</span>
+                      <span className="font-semibold text-slate-800">{selectedApp.personal_details.modeOfAdmission}</span>
+                    </div>
+                  )}
                   <div className="p-2 bg-slate-50 rounded">
                     <span className="text-slate-400 block font-medium text-[10px]">Guardian Name:</span>
                     <span className="font-semibold text-slate-800">{selectedApp.personal_details?.guardianName || '—'}</span>

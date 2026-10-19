@@ -1,5 +1,5 @@
 import React from 'react';
-import { OUTPUT_TYPE_OPTIONS } from '../../data/initialFormState';
+import { OUTPUT_TYPE_OPTIONS, validateYear } from '../../data/initialFormState';
 
 export default function Step4PublicationsOutputs({ formData, setFormData }) {
   const publications = formData.researchPublications;
@@ -97,7 +97,7 @@ export default function Step4PublicationsOutputs({ formData, setFormData }) {
               <span className="w-6 h-6 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-xs font-bold">
                 7
               </span>
-              7. RESEARCH PUBLICATIONS
+              RESEARCH PUBLICATIONS <span className="text-xs font-normal text-slate-500 font-sans tracking-normal">(Optional)</span>
             </h2>
             <p className="text-[11px] text-slate-500">
               Journal / Conference publications (SCI, Scopus, UGC-CARE indexed)
@@ -162,12 +162,23 @@ export default function Step4PublicationsOutputs({ formData, setFormData }) {
                     <label className="form-label text-[11px]">Year</label>
                     <input
                       type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       maxLength={4}
                       placeholder="YYYY"
                       value={item.year}
-                      onChange={(e) => handlePubChange(idx, 'year', e.target.value)}
-                      className="form-input text-xs py-1.5 text-center font-mono"
+                      onChange={(e) => handlePubChange(idx, 'year', e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      className={`form-input text-xs py-1.5 text-center font-mono ${
+                        item.year && !validateYear(item.year, { minYear: 1970 }).valid
+                          ? '!border-red-500 !ring-red-200 focus:!border-red-500'
+                          : ''
+                      }`}
                     />
+                    {item.year && !validateYear(item.year, { minYear: 1970 }).valid && (
+                      <span className="text-[10px] text-red-600 block mt-0.5 leading-tight">
+                        {validateYear(item.year, { minYear: 1970 }).error}
+                      </span>
+                    )}
                   </div>
 
                   <div>
@@ -236,12 +247,28 @@ export default function Step4PublicationsOutputs({ formData, setFormData }) {
                   <td className="py-1 px-1">
                     <input
                       type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       maxLength={4}
                       placeholder="YYYY"
                       value={item.year}
-                      onChange={(e) => handlePubChange(idx, 'year', e.target.value)}
-                      className="form-input text-xs py-1 text-center"
+                      onChange={(e) => handlePubChange(idx, 'year', e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      className={`form-input text-xs py-1 text-center font-mono ${
+                        item.year && !validateYear(item.year, { minYear: 1970 }).valid
+                          ? '!border-red-500 !ring-red-200 focus:!border-red-500'
+                          : ''
+                      }`}
+                      title={
+                        item.year && !validateYear(item.year, { minYear: 1970 }).valid
+                          ? validateYear(item.year, { minYear: 1970 }).error
+                          : ''
+                      }
                     />
+                    {item.year && !validateYear(item.year, { minYear: 1970 }).valid && (
+                      <span className="text-[9px] text-red-600 block mt-0.5 leading-tight">
+                        {validateYear(item.year, { minYear: 1970 }).error}
+                      </span>
+                    )}
                   </td>
                   <td className="py-1 px-1">
                     <input
@@ -286,7 +313,7 @@ export default function Step4PublicationsOutputs({ formData, setFormData }) {
               <span className="w-6 h-6 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-xs font-bold">
                 8
               </span>
-              8. BOOKS / PATENTS / OTHER RESEARCH OUTPUTS
+              BOOKS / PATENTS / OTHER RESEARCH OUTPUTS <span className="text-xs font-normal text-slate-500 font-sans tracking-normal">(Optional)</span>
             </h2>
             <p className="text-[11px] text-slate-500">
               Authored books, edited books, published or granted patents, and copyright registrations
@@ -356,12 +383,23 @@ export default function Step4PublicationsOutputs({ formData, setFormData }) {
                     <label className="form-label text-[11px]">Year</label>
                     <input
                       type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       maxLength={4}
                       placeholder="YYYY"
                       value={item.year}
-                      onChange={(e) => handleBpChange(idx, 'year', e.target.value)}
-                      className="form-input text-xs py-1.5 text-center font-mono"
+                      onChange={(e) => handleBpChange(idx, 'year', e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      className={`form-input text-xs py-1.5 text-center font-mono ${
+                        item.year && !validateYear(item.year, { minYear: 1970 }).valid
+                          ? '!border-red-500 !ring-red-200 focus:!border-red-500'
+                          : ''
+                      }`}
                     />
+                    {item.year && !validateYear(item.year, { minYear: 1970 }).valid && (
+                      <span className="text-[10px] text-red-600 block mt-0.5 leading-tight">
+                        {validateYear(item.year, { minYear: 1970 }).error}
+                      </span>
+                    )}
                   </div>
 
                   <div>
@@ -423,12 +461,28 @@ export default function Step4PublicationsOutputs({ formData, setFormData }) {
                   <td className="py-1 px-1">
                     <input
                       type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       maxLength={4}
                       placeholder="YYYY"
                       value={item.year}
-                      onChange={(e) => handleBpChange(idx, 'year', e.target.value)}
-                      className="form-input text-xs py-1 text-center"
+                      onChange={(e) => handleBpChange(idx, 'year', e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      className={`form-input text-xs py-1 text-center font-mono ${
+                        item.year && !validateYear(item.year, { minYear: 1970 }).valid
+                          ? '!border-red-500 !ring-red-200 focus:!border-red-500'
+                          : ''
+                      }`}
+                      title={
+                        item.year && !validateYear(item.year, { minYear: 1970 }).valid
+                          ? validateYear(item.year, { minYear: 1970 }).error
+                          : ''
+                      }
                     />
+                    {item.year && !validateYear(item.year, { minYear: 1970 }).valid && (
+                      <span className="text-[9px] text-red-600 block mt-0.5 leading-tight">
+                        {validateYear(item.year, { minYear: 1970 }).error}
+                      </span>
+                    )}
                   </td>
                   <td className="py-1 px-1">
                     <input
@@ -464,7 +518,7 @@ export default function Step4PublicationsOutputs({ formData, setFormData }) {
               <span className="w-6 h-6 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-xs font-bold">
                 9
               </span>
-              9. PROFESSIONAL MEMBERSHIPS / FELLOWSHIPS / AWARDS
+              PROFESSIONAL MEMBERSHIPS / FELLOWSHIPS / AWARDS <span className="text-xs font-normal text-slate-500 font-sans tracking-normal">(Optional)</span>
             </h2>
             <p className="text-[11px] text-slate-500">
               IEEE, ACM, CSI, IETE, ISTE, fellowship grants, best researcher awards, etc.
@@ -529,12 +583,23 @@ export default function Step4PublicationsOutputs({ formData, setFormData }) {
                     <label className="form-label text-[11px]">Year</label>
                     <input
                       type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       maxLength={4}
                       placeholder="YYYY"
                       value={item.year}
-                      onChange={(e) => handleMemChange(idx, 'year', e.target.value)}
-                      className="form-input text-xs py-1.5 text-center font-mono"
+                      onChange={(e) => handleMemChange(idx, 'year', e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      className={`form-input text-xs py-1.5 text-center font-mono ${
+                        item.year && !validateYear(item.year, { minYear: 1970 }).valid
+                          ? '!border-red-500 !ring-red-200 focus:!border-red-500'
+                          : ''
+                      }`}
                     />
+                    {item.year && !validateYear(item.year, { minYear: 1970 }).valid && (
+                      <span className="text-[10px] text-red-600 block mt-0.5 leading-tight">
+                        {validateYear(item.year, { minYear: 1970 }).error}
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -591,12 +656,28 @@ export default function Step4PublicationsOutputs({ formData, setFormData }) {
                   <td className="py-1 px-1">
                     <input
                       type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       maxLength={4}
                       placeholder="YYYY"
                       value={item.year}
-                      onChange={(e) => handleMemChange(idx, 'year', e.target.value)}
-                      className="form-input text-xs py-1 text-center"
+                      onChange={(e) => handleMemChange(idx, 'year', e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      className={`form-input text-xs py-1 text-center font-mono ${
+                        item.year && !validateYear(item.year, { minYear: 1970 }).valid
+                          ? '!border-red-500 !ring-red-200 focus:!border-red-500'
+                          : ''
+                      }`}
+                      title={
+                        item.year && !validateYear(item.year, { minYear: 1970 }).valid
+                          ? validateYear(item.year, { minYear: 1970 }).error
+                          : ''
+                      }
                     />
+                    {item.year && !validateYear(item.year, { minYear: 1970 }).valid && (
+                      <span className="text-[9px] text-red-600 block mt-0.5 leading-tight">
+                        {validateYear(item.year, { minYear: 1970 }).error}
+                      </span>
+                    )}
                   </td>
                   <td className="py-1 px-1">
                     <input

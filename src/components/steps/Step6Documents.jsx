@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { DOCUMENT_SPECS } from '../../data/initialFormState';
 
 export default function Step6Documents({
@@ -8,6 +8,15 @@ export default function Step6Documents({
   setFileObjects,
 }) {
   const fileInputRefs = useRef({});
+  const [copiedKey, setCopiedKey] = useState(null);
+
+  const handleCopy = (text, key) => {
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(text);
+      setCopiedKey(key);
+      setTimeout(() => setCopiedKey(null), 2000);
+    }
+  };
 
   const handleFileSelect = (docKey, file) => {
     if (!file) return;
@@ -78,7 +87,7 @@ export default function Step6Documents({
               <span className="w-6 h-6 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-xs font-bold">
                 12
               </span>
-              12. DOCUMENTS TO BE ENCLOSED
+              DOCUMENTS TO BE ENCLOSED
             </h2>
             <p className="text-[11px] text-slate-500">
               Upload clear self-attested copies of certificates (PDF, JPG, PNG up to 5MB each)
@@ -95,8 +104,8 @@ export default function Step6Documents({
           Please attach scanned copies of self-attested certificates. Mandatory enclosures are indicated with an asterisk (*). Optional enclosures (experience, qualifying exam card, category certificate) should be enclosed if claimed in earlier sections.
         </div>
 
-        {/* Upload grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-2.5">
+        {/* Upload grid - 2 columns, 5 pairs of 2 = 10 items perfectly balanced */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
           {DOCUMENT_SPECS.map((spec) => {
             const hasFile = !!fileObjects[spec.key] || !!formData.documentMetadata[spec.key];
             const fileInfo = formData.documentMetadata[spec.key] || (fileObjects[spec.key] ? {
@@ -107,39 +116,124 @@ export default function Step6Documents({
             return (
               <div
                 key={spec.key}
-                className={`p-3 rounded-xl sm:rounded-lg border transition-all ${
+                className={`p-3 rounded-xl sm:rounded-lg border transition-all flex flex-col justify-between ${
+                  spec.key === 'feeReceipt' ? 'bg-brand-50/15' : ''
+                } ${
                   hasFile
                     ? 'bg-emerald-50/40 border-emerald-300'
                     : 'bg-white border-slate-200 hover:border-slate-300'
                 }`}
               >
-                <div className="flex items-start justify-between gap-1.5 mb-2">
-                  <div>
-                    <h3 className="text-xs font-bold text-slate-900 leading-tight">
-                      {spec.label}
-                      {spec.required && <span className="text-red-500 font-bold ml-1">*</span>}
-                    </h3>
-                    <p className="text-[10px] text-slate-500 mt-0.5">{spec.desc}</p>
-                  </div>
-                  {hasFile ? (
-                    <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full shrink-0">
-                      Attached
-                    </span>
-                  ) : (
-                    spec.required ? (
-                      <span className="px-1.5 py-0.5 bg-red-50 text-red-700 text-[10px] font-semibold rounded shrink-0">
-                        Required
+                <div>
+                  <div className="flex items-start justify-between gap-1.5 mb-2">
+                    <div>
+                      <h3 className="text-xs font-bold text-slate-900 leading-tight">
+                        {spec.label}
+                        {spec.required && <span className="text-red-500 font-bold ml-1">*</span>}
+                      </h3>
+                      <p className="text-[10px] text-slate-500 mt-0.5">{spec.desc}</p>
+                    </div>
+                    {hasFile ? (
+                      <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full shrink-0">
+                        Attached
                       </span>
                     ) : (
-                      <span className="px-1.5 py-0.5 bg-slate-100 text-slate-500 text-[10px] font-medium rounded shrink-0">
-                        Optional
-                      </span>
-                    )
+                      spec.required ? (
+                        <span className="px-1.5 py-0.5 bg-red-50 text-red-700 text-[10px] font-semibold rounded shrink-0">
+                          Required
+                        </span>
+                      ) : (
+                        <span className="px-1.5 py-0.5 bg-slate-100 text-slate-500 text-[10px] font-medium rounded shrink-0">
+                          Optional
+                        </span>
+                      )
+                    )}
+                  </div>
+
+                  {/* Aadhaar Identity Guidelines to balance card height */}
+                  {spec.key === 'aadharCard' && (
+                    <div className="my-2 p-2 rounded-lg border border-slate-200 bg-slate-50 text-[11px] text-slate-600">
+                      <div className="font-semibold text-slate-800 text-[11px] flex items-center gap-1 mb-0.5">
+                        <svg className="w-3.5 h-3.5 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                        </svg>
+                        Aadhaar Identity Proof Guidelines
+                      </div>
+                      <p className="leading-relaxed">
+                        Upload a clear self-attested front & back copy of your 12-digit Aadhaar Card with legible name and photograph.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Bank Account Details for Fee Payment */}
+                  {spec.key === 'feeReceipt' && (
+                    <div className="my-2 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xs">
+                      <div className="bg-slate-100/90 px-2.5 py-1 text-[11px] font-bold text-slate-800 flex items-center justify-between border-b border-slate-200">
+                        <span className="flex items-center gap-1 text-brand-950">
+                          <svg className="w-3.5 h-3.5 text-brand-800 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                          </svg>
+                          Fee Payment Bank Details (NEFT / RTGS / IMPS)
+                        </span>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs border-collapse">
+                          <tbody className="divide-y divide-slate-100 text-[11px]">
+                            <tr>
+                              <td className="px-2.5 py-1 text-slate-500 font-medium whitespace-nowrap w-24">Bank</td>
+                              <td className="px-2.5 py-1 text-slate-900 font-semibold">Bank of Baroda, Benz Circle Branch</td>
+                            </tr>
+                            <tr>
+                              <td className="px-2.5 py-1 text-slate-500 font-medium whitespace-nowrap">Account Name</td>
+                              <td className="px-2.5 py-1 text-slate-900 font-semibold">Principal, NRI Institute of Technology</td>
+                            </tr>
+                            <tr>
+                              <td className="px-2.5 py-1 text-slate-500 font-medium whitespace-nowrap">Account No.</td>
+                              <td className="px-2.5 py-1">
+                                <div className="inline-flex items-center gap-1.5">
+                                  <span className="font-mono font-bold text-brand-950 text-xs tracking-wider select-all">
+                                    26360100033044
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleCopy('26360100033044', 'acct')}
+                                    className="px-1.5 py-0.5 text-[10px] font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 rounded border border-brand-200 transition"
+                                  >
+                                    {copiedKey === 'acct' ? 'Copied!' : 'Copy'}
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td className="px-2.5 py-1 text-slate-500 font-medium whitespace-nowrap">IFSC</td>
+                              <td className="px-2.5 py-1">
+                                <div className="inline-flex items-center gap-1.5">
+                                  <span className="font-mono font-bold text-brand-950 text-xs tracking-wider select-all">
+                                    BARB0BENVIJ
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleCopy('BARB0BENVIJ', 'ifsc')}
+                                    className="px-1.5 py-0.5 text-[10px] font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 rounded border border-brand-200 transition"
+                                  >
+                                    {copiedKey === 'ifsc' ? 'Copied!' : 'Copy'}
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td className="px-2.5 py-1 text-slate-500 font-medium whitespace-nowrap">Account Type</td>
+                              <td className="px-2.5 py-1 text-slate-900 font-semibold">Savings</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
                   )}
                 </div>
 
                 {hasFile && fileInfo ? (
-                  <div className="mt-1.5 flex items-center justify-between bg-white border border-emerald-200 rounded-lg p-2">
+                  <div className="mt-2 flex items-center justify-between bg-white border border-emerald-200 rounded-lg p-2">
                     <div className="truncate flex-1 min-w-0 mr-2">
                       <p className="text-xs font-medium text-slate-800 truncate" title={fileInfo.fileName}>
                         {fileInfo.fileName}
@@ -158,7 +252,7 @@ export default function Step6Documents({
                     </button>
                   </div>
                 ) : (
-                  <div className="mt-1.5">
+                  <div className="mt-2">
                     <input
                       type="file"
                       ref={(el) => (fileInputRefs.current[spec.key] = el)}

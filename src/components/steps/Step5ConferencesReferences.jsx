@@ -1,4 +1,5 @@
 import React from 'react';
+import { validateYear } from '../../data/initialFormState';
 
 export default function Step5ConferencesReferences({ formData, setFormData }) {
   const conferences = formData.conferencesWorkshops;
@@ -68,7 +69,7 @@ export default function Step5ConferencesReferences({ formData, setFormData }) {
               <span className="w-6 h-6 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-xs font-bold">
                 10
               </span>
-              10. CONFERENCES / WORKSHOPS / FDPs (Organized / Attended - Optional)
+              CONFERENCES / WORKSHOPS / FDPs (Organized / Attended - Optional)
             </h2>
             <p className="text-[11px] text-slate-500">
               Faculty Development Programmes, national/international workshops and symposia
@@ -133,12 +134,23 @@ export default function Step5ConferencesReferences({ formData, setFormData }) {
                     <label className="form-label text-[11px]">Year</label>
                     <input
                       type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       maxLength={4}
                       placeholder="YYYY"
                       value={item.year}
-                      onChange={(e) => handleConfChange(idx, 'year', e.target.value)}
-                      className="form-input text-xs py-1.5 text-center font-mono"
+                      onChange={(e) => handleConfChange(idx, 'year', e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      className={`form-input text-xs py-1.5 text-center font-mono ${
+                        item.year && !validateYear(item.year, { minYear: 1970 }).valid
+                          ? '!border-red-500 !ring-red-200 focus:!border-red-500'
+                          : ''
+                      }`}
                     />
+                    {item.year && !validateYear(item.year, { minYear: 1970 }).valid && (
+                      <span className="text-[10px] text-red-600 block mt-0.5 leading-tight">
+                        {validateYear(item.year, { minYear: 1970 }).error}
+                      </span>
+                    )}
                   </div>
 
                   <div>
@@ -195,12 +207,28 @@ export default function Step5ConferencesReferences({ formData, setFormData }) {
                   <td className="py-1 px-1">
                     <input
                       type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       maxLength={4}
                       placeholder="YYYY"
                       value={item.year}
-                      onChange={(e) => handleConfChange(idx, 'year', e.target.value)}
-                      className="form-input text-xs py-1 text-center"
+                      onChange={(e) => handleConfChange(idx, 'year', e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      className={`form-input text-xs py-1 text-center font-mono ${
+                        item.year && !validateYear(item.year, { minYear: 1970 }).valid
+                          ? '!border-red-500 !ring-red-200 focus:!border-red-500'
+                          : ''
+                      }`}
+                      title={
+                        item.year && !validateYear(item.year, { minYear: 1970 }).valid
+                          ? validateYear(item.year, { minYear: 1970 }).error
+                          : ''
+                      }
                     />
+                    {item.year && !validateYear(item.year, { minYear: 1970 }).valid && (
+                      <span className="text-[9px] text-red-600 block mt-0.5 leading-tight">
+                        {validateYear(item.year, { minYear: 1970 }).error}
+                      </span>
+                    )}
                   </td>
                   <td className="py-1 px-1">
                     <input
@@ -236,7 +264,7 @@ export default function Step5ConferencesReferences({ formData, setFormData }) {
               <span className="w-6 h-6 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-xs font-bold">
                 11
               </span>
-              11. REFERENCES
+              REFERENCES
             </h2>
             <p className="text-[11px] text-slate-500">
               Names and contact details of two academic or professional referees who know your work

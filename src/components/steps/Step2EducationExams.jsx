@@ -1,5 +1,5 @@
 import React from 'react';
-import { EXAMINATION_OPTIONS } from '../../data/initialFormState';
+import { EXAMINATION_OPTIONS, validateYear, validatePercentageOrCGPA } from '../../data/initialFormState';
 
 export default function Step2EducationExams({ formData, setFormData }) {
   const education = formData.educationalQualifications;
@@ -75,7 +75,7 @@ export default function Step2EducationExams({ formData, setFormData }) {
               <span className="w-6 h-6 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-xs font-bold">
                 3
               </span>
-              3. EDUCATIONAL QUALIFICATIONS
+              EDUCATIONAL QUALIFICATIONS
             </h2>
             <p className="text-[11px] text-slate-500">
               Chronological academic history from 10th / SSC to Postgraduate Degree
@@ -154,13 +154,24 @@ export default function Step2EducationExams({ formData, setFormData }) {
                     <label className="form-label form-label-required text-[11px]">Passing Year</label>
                     <input
                       type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       maxLength={4}
                       placeholder="YYYY"
                       value={item.year}
-                      onChange={(e) => handleEduChange(idx, 'year', e.target.value)}
-                      className="form-input text-xs py-1.5 text-center font-mono"
+                      onChange={(e) => handleEduChange(idx, 'year', e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      className={`form-input text-xs py-1.5 text-center font-mono ${
+                        item.year && !validateYear(item.year, { minYear: 1950, isRequired: true }).valid
+                          ? '!border-red-500 !ring-red-200 focus:!border-red-500'
+                          : ''
+                      }`}
                       required
                     />
+                    {item.year && !validateYear(item.year, { minYear: 1950, isRequired: true }).valid && (
+                      <span className="text-[10px] text-red-600 block mt-0.5 leading-tight">
+                        {validateYear(item.year, { minYear: 1950, isRequired: true }).error}
+                      </span>
+                    )}
                   </div>
 
                   <div>
@@ -170,9 +181,18 @@ export default function Step2EducationExams({ formData, setFormData }) {
                       placeholder="e.g. 82.5% / 8.5"
                       value={item.percentage}
                       onChange={(e) => handleEduChange(idx, 'percentage', e.target.value)}
-                      className="form-input text-xs py-1.5 text-center font-medium"
+                      className={`form-input text-xs py-1.5 text-center font-medium ${
+                        item.percentage && !validatePercentageOrCGPA(item.percentage, { isRequired: true }).valid
+                          ? '!border-red-500 !ring-red-200 focus:!border-red-500'
+                          : ''
+                      }`}
                       required
                     />
+                    {item.percentage && !validatePercentageOrCGPA(item.percentage, { isRequired: true }).valid && (
+                      <span className="text-[10px] text-red-600 block mt-0.5 leading-tight">
+                        {validatePercentageOrCGPA(item.percentage, { isRequired: true }).error}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -231,13 +251,29 @@ export default function Step2EducationExams({ formData, setFormData }) {
                   <td className="py-2 px-2">
                     <input
                       type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       maxLength={4}
                       placeholder="YYYY"
                       value={item.year}
-                      onChange={(e) => handleEduChange(idx, 'year', e.target.value)}
-                      className="form-input text-xs py-1.5 text-center"
+                      onChange={(e) => handleEduChange(idx, 'year', e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      className={`form-input text-xs py-1.5 text-center font-mono ${
+                        item.year && !validateYear(item.year, { minYear: 1950, isRequired: true }).valid
+                          ? '!border-red-500 !ring-red-200 focus:!border-red-500'
+                          : ''
+                      }`}
+                      title={
+                        item.year && !validateYear(item.year, { minYear: 1950, isRequired: true }).valid
+                          ? validateYear(item.year, { minYear: 1950, isRequired: true }).error
+                          : ''
+                      }
                       required
                     />
+                    {item.year && !validateYear(item.year, { minYear: 1950, isRequired: true }).valid && (
+                      <span className="text-[9px] text-red-600 block mt-0.5 leading-tight">
+                        {validateYear(item.year, { minYear: 1950, isRequired: true }).error}
+                      </span>
+                    )}
                   </td>
                   <td className="py-2 px-2">
                     <input
@@ -245,9 +281,23 @@ export default function Step2EducationExams({ formData, setFormData }) {
                       placeholder="e.g. 82.5% / 8.5"
                       value={item.percentage}
                       onChange={(e) => handleEduChange(idx, 'percentage', e.target.value)}
-                      className="form-input text-xs py-1.5 text-center font-medium"
+                      className={`form-input text-xs py-1.5 text-center font-medium ${
+                        item.percentage && !validatePercentageOrCGPA(item.percentage, { isRequired: true }).valid
+                          ? '!border-red-500 !ring-red-200 focus:!border-red-500'
+                          : ''
+                      }`}
+                      title={
+                        item.percentage && !validatePercentageOrCGPA(item.percentage, { isRequired: true }).valid
+                          ? validatePercentageOrCGPA(item.percentage, { isRequired: true }).error
+                          : ''
+                      }
                       required
                     />
+                    {item.percentage && !validatePercentageOrCGPA(item.percentage, { isRequired: true }).valid && (
+                      <span className="text-[9px] text-red-600 block mt-0.5 leading-tight">
+                        {validatePercentageOrCGPA(item.percentage, { isRequired: true }).error}
+                      </span>
+                    )}
                   </td>
                   <td className="py-1 px-1 text-center">
                     <button
@@ -275,7 +325,7 @@ export default function Step2EducationExams({ formData, setFormData }) {
               <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-[11px] sm:text-xs font-bold shrink-0">
                 4
               </span>
-              <span>4. QUALIFYING / ELIGIBILITY EXAMINATIONS</span>
+              <span>QUALIFYING / ELIGIBILITY EXAMINATIONS</span>
             </h2>
             <p className="text-[11px] text-slate-500">
               Examples: UGC-NET, UGC-JRF, CSIR-NET/JRF, GATE, SLET/SET, JEST, GPAT, etc.
@@ -350,12 +400,23 @@ export default function Step2EducationExams({ formData, setFormData }) {
                     <label className="form-label text-[11px]">Year</label>
                     <input
                       type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       maxLength={4}
                       placeholder="YYYY"
                       value={item.year}
-                      onChange={(e) => handleExamChange(idx, 'year', e.target.value)}
-                      className="form-input text-xs py-1.5 text-center font-mono"
+                      onChange={(e) => handleExamChange(idx, 'year', e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      className={`form-input text-xs py-1.5 text-center font-mono ${
+                        item.year && !validateYear(item.year, { minYear: 1970 }).valid
+                          ? '!border-red-500 !ring-red-200 focus:!border-red-500'
+                          : ''
+                      }`}
                     />
+                    {item.year && !validateYear(item.year, { minYear: 1970 }).valid && (
+                      <span className="text-[10px] text-red-600 block mt-0.5 leading-tight">
+                        {validateYear(item.year, { minYear: 1970 }).error}
+                      </span>
+                    )}
                   </div>
 
                   <div>
@@ -434,12 +495,28 @@ export default function Step2EducationExams({ formData, setFormData }) {
                   <td className="py-1 px-1">
                     <input
                       type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       maxLength={4}
                       placeholder="YYYY"
                       value={item.year}
-                      onChange={(e) => handleExamChange(idx, 'year', e.target.value)}
-                      className="form-input text-xs py-1 text-center"
+                      onChange={(e) => handleExamChange(idx, 'year', e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      className={`form-input text-xs py-1 text-center font-mono ${
+                        item.year && !validateYear(item.year, { minYear: 1970 }).valid
+                          ? '!border-red-500 !ring-red-200 focus:!border-red-500'
+                          : ''
+                      }`}
+                      title={
+                        item.year && !validateYear(item.year, { minYear: 1970 }).valid
+                          ? validateYear(item.year, { minYear: 1970 }).error
+                          : ''
+                      }
                     />
+                    {item.year && !validateYear(item.year, { minYear: 1970 }).valid && (
+                      <span className="text-[9px] text-red-600 block mt-0.5 leading-tight">
+                        {validateYear(item.year, { minYear: 1970 }).error}
+                      </span>
+                    )}
                   </td>
                   <td className="py-1 px-1">
                     <input

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { dbService } from '../../lib/supabase';
 import { generateApplicationPDF } from '../../lib/pdfGenerator';
 
-export default function ApplicationStatusModal({ isOpen, onClose, onOpenForm }) {
+export default function ApplicationStatusModal({ isOpen, onClose, onOpenForm, onOpenEdit }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [searching, setSearching] = useState(false);
   const [result, setResult] = useState(null);
@@ -238,18 +238,34 @@ export default function ApplicationStatusModal({ isOpen, onClose, onOpenForm }) 
                   {downloadingPdf ? 'Generating PDF...' : 'Download Application PDF'}
                 </button>
 
-                {status === 'draft' && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onClose();
-                      onOpenForm();
-                    }}
-                    className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1"
-                  >
-                    Continue Application →
-                  </button>
-                )}
+                <div className="flex items-center gap-2">
+                  {status !== 'draft' && onOpenEdit && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const email = result?.personal_details?.email || result?.applicant_email || '';
+                        onClose();
+                        onOpenEdit(email);
+                      }}
+                      className="btn-secondary text-xs px-3 py-1.5 flex items-center gap-1.5 border-amber-300 text-amber-900 bg-amber-50 hover:bg-amber-100"
+                    >
+                      <span>Edit Application (OTP)</span>
+                    </button>
+                  )}
+
+                  {status === 'draft' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        onOpenForm();
+                      }}
+                      className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1"
+                    >
+                      Continue Application →
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           )}

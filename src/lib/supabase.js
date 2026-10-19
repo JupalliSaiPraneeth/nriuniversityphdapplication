@@ -16,14 +16,22 @@ export const isSupabaseConfigured = () => {
   );
 };
 
-export const supabase = isSupabaseConfigured()
-  ? createClient(supabaseUrl, supabaseAnonKey, {
+const globalScope = typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : {});
+
+function getOrCreateSupabaseClient() {
+  if (!isSupabaseConfigured()) return null;
+  if (!globalScope.__nriitSupabaseInstance) {
+    globalScope.__nriitSupabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
       },
-    })
-  : null;
+    });
+  }
+  return globalScope.__nriitSupabaseInstance;
+}
+
+export const supabase = getOrCreateSupabaseClient();
 
 // Unique Application Number Generator (Format: NRIIT-PHD-YYYY-XXXX)
 export function generateApplicationNumber() {
@@ -194,9 +202,11 @@ export const dbService = {
     return draftRecord;
   },
 
-  // Final Submit
+  // Final Submit or Update Resubmit
   async submitApplication(formData, fileObjects = {}) {
-    const newAppNumber = generateApplicationNumber();
+    const existingAppNumber = formData.applicationNumber || formData.application_number;
+    const isDraft = !existingAppNumber || String(existingAppNumber).startsWith('DRAFT-');
+    const officialAppNumber = isDraft ? generateApplicationNumber() : existingAppNumber;
     const submissionId = formData.id || crypto.randomUUID();
     const now = new Date().toISOString();
 
@@ -220,14 +230,14 @@ export const dbService = {
 
     const applicationRecord = {
       id: submissionId,
-      application_number: newAppNumber,
+      application_number: officialAppNumber,
       applicant_name: formData.personalDetails?.fullName || '',
       applicant_email: formData.personalDetails?.email || '',
       applicant_phone: formData.personalDetails?.mobileNumber || '',
       programme: formData.personalDetails?.programme || '',
       specialization: formData.personalDetails?.specialization || '',
       admission_category: formData.personalDetails?.admissionCategory || '',
-      status: 'submitted',
+      status: formData.status || 'submitted',
       personal_details: formData.personalDetails || {},
       address_details: formData.addressDetails || {},
       educational_qualifications: formData.educationalQualifications || [],
@@ -244,8 +254,8 @@ export const dbService = {
         submittedAt: now,
       },
       document_metadata: mergedDocMeta,
-      submitted_at: now,
-      created_at: formData.createdAt || now,
+      submitted_at: formData.submittedAt || formData.submitted_at || now,
+      created_at: formData.createdAt || formData.created_at || now,
       updated_at: now,
     };
 
@@ -275,7 +285,12 @@ export const dbService = {
 
     // Local fallback
     const apps = getLocalApps();
-    apps.unshift(applicationRecord);
+    const existingIndex = apps.findIndex((a) => a.id === submissionId || a.application_number === officialAppNumber);
+    if (existingIndex >= 0) {
+      apps[existingIndex] = applicationRecord;
+    } else {
+      apps.unshift(applicationRecord);
+    }
     saveLocalApps(apps);
     return applicationRecord;
   },
@@ -540,5 +555,50 @@ export const dbService = {
     const updated = apps.filter((a) => a.id !== id && a.application_number !== id);
     saveLocalApps(updated);
     return true;
+  },
+
+  // Alias for getApplications
+  async fetchApplications(options = {}) {
+    return this.getApplications(options);
+  },
+
+  // Find candidate application by email
+  async findApplicationByEmail(email) {
+    if (!email || !email.trim()) return null;
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase
+          .from('applications')
+          .select('*')
+          .ilike('applicant_email', cleanEmail)
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (!error && data && data.length > 0) {
+          return data[0];
+        }
+      } catch (err) {
+        console.warn('Error querying Supabase by email:', err);
+      }
+    }
+
+    const apps = getLocalApps();
+    // Prioritize submitted/approved applications
+    const submittedMatch = apps.find((a) => {
+      const aEmail = (a.applicant_email || a.personal_details?.email || a.personalDetails?.email || '').trim().toLowerCase();
+      return aEmail === cleanEmail && (a.status === 'submitted' || a.submitted_at || a.status === 'approved' || a.status === 'under_review');
+    });
+
+    if (submittedMatch) return submittedMatch;
+
+    // Fallback to any application with that email
+    const anyMatch = apps.find((a) => {
+      const aEmail = (a.applicant_email || a.personal_details?.email || a.personalDetails?.email || '').trim().toLowerCase();
+      return aEmail === cleanEmail;
+    });
+
+    return anyMatch || null;
   },
 };

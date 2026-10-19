@@ -2,15 +2,16 @@ import React, { useRef } from 'react';
 import {
   PROGRAMME_OPTIONS,
   ADMISSION_CATEGORIES,
-  MODE_OF_ADMISSION,
   GENDER_OPTIONS,
   CATEGORY_OPTIONS,
+  validateDOB,
 } from '../../data/initialFormState';
 
 export default function Step1PersonalAddress({ formData, setFormData, fileObjects, setFileObjects }) {
   const photoInputRef = useRef(null);
   const p = formData.personalDetails;
   const a = formData.addressDetails;
+  const dobValidation = p.dateOfBirth ? validateDOB(p.dateOfBirth) : null;
 
   const handlePersonalChange = (field, value) => {
     setFormData((prev) => ({
@@ -96,7 +97,7 @@ export default function Step1PersonalAddress({ formData, setFormData, fileObject
             <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-[11px] sm:text-xs font-bold shrink-0">
               1
             </span>
-            <span>1. APPLICATION & PERSONAL DETAILS</span>
+            <span>APPLICATION & PERSONAL DETAILS</span>
           </h2>
           <p className="text-[11px] text-slate-500 mt-0.5">
             Enter candidate details and research subject as per official records
@@ -158,6 +159,105 @@ export default function Step1PersonalAddress({ formData, setFormData, fileObject
 
           {/* Core Personal Fields */}
           <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="sm:col-span-2">
+              <label htmlFor="fullName" className="form-label form-label-required">
+                Candidate's Full Name (as in SSC Certificate)
+              </label>
+              <input
+                id="fullName"
+                type="text"
+                placeholder="Full Name (Capital letters preferred)"
+                value={p.fullName}
+                onChange={(e) => handlePersonalChange('fullName', e.target.value)}
+                className="form-input"
+                required
+              />
+            </div>
+
+            <div>
+              <label htmlFor="guardianName" className="form-label form-label-required">
+                Father's / Mother's / Guardian's Name
+              </label>
+              <input
+                id="guardianName"
+                type="text"
+                placeholder="Guardian's Name"
+                value={p.guardianName}
+                onChange={(e) => handlePersonalChange('guardianName', e.target.value)}
+                className="form-input"
+                required
+              />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between">
+                <label htmlFor="dateOfBirth" className="form-label form-label-required mb-0">
+                  Date of Birth
+                </label>
+                {dobValidation?.valid && (
+                  <span className="text-[11px] text-emerald-600 font-semibold">
+                    Age: {dobValidation.age} yrs
+                  </span>
+                )}
+              </div>
+              <input
+                id="dateOfBirth"
+                type="date"
+                max={new Date().toISOString().split('T')[0]}
+                min="1930-01-01"
+                value={p.dateOfBirth}
+                onChange={(e) => handlePersonalChange('dateOfBirth', e.target.value)}
+                className={`form-input mt-1 ${
+                  dobValidation && !dobValidation.valid ? '!border-red-500 !ring-red-200 focus:!border-red-500' : ''
+                }`}
+                required
+              />
+              {dobValidation && !dobValidation.valid && (
+                <p className="mt-1 text-[11px] text-red-600 font-medium leading-tight">
+                  {dobValidation.error}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="gender" className="form-label form-label-required">
+                Gender
+              </label>
+              <select
+                id="gender"
+                value={p.gender}
+                onChange={(e) => handlePersonalChange('gender', e.target.value)}
+                className="form-select"
+                required
+              >
+                <option value="">-- Select Gender --</option>
+                {GENDER_OPTIONS.map((g) => (
+                  <option key={g} value={g}>
+                    {g}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="category" className="form-label form-label-required">
+                Category
+              </label>
+              <select
+                id="category"
+                value={p.category}
+                onChange={(e) => handlePersonalChange('category', e.target.value)}
+                className="form-select"
+                required
+              >
+                {CATEGORY_OPTIONS.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div>
               <label htmlFor="programme" className="form-label form-label-required">
                 Ph.D. Programme / Subject
@@ -193,7 +293,7 @@ export default function Step1PersonalAddress({ formData, setFormData, fileObject
               />
             </div>
 
-            <div>
+            <div className="sm:col-span-2">
               <label htmlFor="admissionCategory" className="form-label form-label-required">
                 Admission Category
               </label>
@@ -205,108 +305,6 @@ export default function Step1PersonalAddress({ formData, setFormData, fileObject
                 required
               >
                 {ADMISSION_CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="modeOfAdmission" className="form-label form-label-required">
-                Mode of Admission
-              </label>
-              <select
-                id="modeOfAdmission"
-                value={p.modeOfAdmission}
-                onChange={(e) => handlePersonalChange('modeOfAdmission', e.target.value)}
-                className="form-select"
-                required
-              >
-                {MODE_OF_ADMISSION.map((mode) => (
-                  <option key={mode} value={mode}>
-                    {mode}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="sm:col-span-2">
-              <label htmlFor="fullName" className="form-label form-label-required">
-                Candidate's Full Name (as in SSC Certificate)
-              </label>
-              <input
-                id="fullName"
-                type="text"
-                placeholder="Full Name (Capital letters preferred)"
-                value={p.fullName}
-                onChange={(e) => handlePersonalChange('fullName', e.target.value)}
-                className="form-input"
-                required
-              />
-            </div>
-
-            <div>
-              <label htmlFor="guardianName" className="form-label form-label-required">
-                Father's / Mother's / Guardian's Name
-              </label>
-              <input
-                id="guardianName"
-                type="text"
-                placeholder="Guardian's Name"
-                value={p.guardianName}
-                onChange={(e) => handlePersonalChange('guardianName', e.target.value)}
-                className="form-input"
-                required
-              />
-            </div>
-
-            <div>
-              <label htmlFor="dateOfBirth" className="form-label form-label-required">
-                Date of Birth
-              </label>
-              <input
-                id="dateOfBirth"
-                type="date"
-                value={p.dateOfBirth}
-                onChange={(e) => handlePersonalChange('dateOfBirth', e.target.value)}
-                className="form-input"
-                required
-              />
-            </div>
-
-            <div>
-              <label htmlFor="gender" className="form-label form-label-required">
-                Gender
-              </label>
-              <select
-                id="gender"
-                value={p.gender}
-                onChange={(e) => handlePersonalChange('gender', e.target.value)}
-                className="form-select"
-                required
-              >
-                <option value="">-- Select Gender --</option>
-                {GENDER_OPTIONS.map((g) => (
-                  <option key={g} value={g}>
-                    {g}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="category" className="form-label form-label-required">
-                Category
-              </label>
-              <select
-                id="category"
-                value={p.category}
-                onChange={(e) => handlePersonalChange('category', e.target.value)}
-                className="form-select"
-                required
-              >
-                {CATEGORY_OPTIONS.map((cat) => (
                   <option key={cat} value={cat}>
                     {cat}
                   </option>
@@ -369,7 +367,7 @@ export default function Step1PersonalAddress({ formData, setFormData, fileObject
             <span className="w-6 h-6 rounded-full bg-brand-800 text-white inline-flex items-center justify-center text-xs font-bold">
               2
             </span>
-            2. ADDRESS DETAILS
+            ADDRESS DETAILS
           </h2>
           <p className="text-[11px] text-slate-500">
             Provide permanent and present correspondence addresses
@@ -424,7 +422,6 @@ export default function Step1PersonalAddress({ formData, setFormData, fileObject
             <input
               id="district"
               type="text"
-              placeholder="e.g. NTR / Krishna / Guntur"
               value={a.district}
               onChange={(e) => handleAddressChange('district', e.target.value)}
               className="form-input"

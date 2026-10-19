@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getInitialFormData, hasUserFilledAnyField } from '../data/initialFormState';
+import { getInitialFormData, mapRecordToFormData, hasUserFilledAnyField, validateDOB, validateYear, validateFromTo, validatePercentageOrCGPA } from '../data/initialFormState';
 import { dbService } from '../lib/supabase';
 import Step1PersonalAddress from './steps/Step1PersonalAddress';
 import Step2EducationExams from './steps/Step2EducationExams';
@@ -46,27 +46,45 @@ const FORM_STEPS = [
     id: 4,
     milestone: 'Milestone 5',
     stepNumber: '5',
-    title: 'Declaration & Review',
+    title: 'Declaration',
     subtitle: 'Sec 13',
-    desc: 'Review & submit',
+    desc: 'Declaration & submit',
   },
 ];
 
 
-export default function ApplicationForm({ onSubmissionComplete, onBackToPortal }) {
+export default function ApplicationForm({
+  onSubmissionComplete,
+  onBackToPortal,
+  onExitEditMode,
+  initialData = null,
+  isEditMode = false,
+}) {
   const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState(getInitialFormData);
+  const [formData, setFormData] = useState(() => {
+    if (initialData) return mapRecordToFormData(initialData);
+    return getInitialFormData();
+  });
   const [fileObjects, setFileObjects] = useState({});
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [draftToast, setDraftToast] = useState(null);
   const [validationError, setValidationError] = useState('');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showExitConfirmModal, setShowExitConfirmModal] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState('saved');
   const [lastSavedTime, setLastSavedTime] = useState(null);
 
-  // Restore draft from localStorage on initial load and assign draft number
+  // Sync formData whenever initialData changes
   useEffect(() => {
+    if (initialData) {
+      setFormData(mapRecordToFormData(initialData));
+    }
+  }, [initialData]);
+
+  // Restore draft from localStorage on initial load only if NOT in edit mode
+  useEffect(() => {
+    if (initialData || isEditMode) return;
     try {
       const savedDraft = localStorage.getItem('nriit_phd_applicant_draft');
       if (savedDraft) {
@@ -153,12 +171,13 @@ export default function ApplicationForm({ onSubmissionComplete, onBackToPortal }
 
     // STEP 0: Personal & Address (Sec 1 & 2)
     if (currentStep === 0) {
-      if (!p.programme) return 'Please select your Ph.D. Programme / Subject.';
-      if (!p.specialization?.trim()) return 'Please enter your Specialization / Research Area.';
       if (!p.fullName?.trim()) return "Please enter the candidate's full name.";
       if (!p.guardianName?.trim()) return "Please enter father's / mother's / guardian's name.";
-      if (!p.dateOfBirth) return 'Please provide date of birth.';
+      const dobResult = validateDOB(p.dateOfBirth);
+      if (!dobResult.valid) return dobResult.error;
       if (!p.gender) return 'Please select gender.';
+      if (!p.programme) return 'Please select your Ph.D. Programme / Subject.';
+      if (!p.specialization?.trim()) return 'Please enter your Specialization / Research Area.';
       if (!p.email?.trim() || !/^\S+@\S+\.\S+$/.test(p.email)) return 'Please provide a valid email ID.';
       if (!p.mobileNumber?.trim() || p.mobileNumber.replace(/\D/g, '').length < 10)
         return 'Please enter a valid 10-digit mobile number.';
@@ -181,14 +200,92 @@ export default function ApplicationForm({ onSubmissionComplete, onBackToPortal }
         if (!row.institution?.trim()) {
           return `Please provide University / Institution for ${row.qualification}.`;
         }
+        if (!row.year?.trim()) {
+          return `Please provide Passing Year for ${row.qualification}.`;
+        }
+        const yrVal = validateYear(row.year, { isRequired: true, label: `Passing Year for ${row.qualification}` });
+        if (!yrVal.valid) {
+          return yrVal.error;
+        }
         if (!row.percentage?.trim()) {
           return `Please provide % / CGPA for ${row.qualification}.`;
+        }
+        const pctVal = validatePercentageOrCGPA(row.percentage, {
+          isRequired: true,
+          label: `% / CGPA for ${row.qualification}`,
+        });
+        if (!pctVal.valid) {
+          return pctVal.error;
+        }
+      }
+
+      // Check examination year if entered
+      const exams = formData.eligibilityExaminations || [];
+      for (let i = 0; i < exams.length; i++) {
+        const ex = exams[i];
+        if (ex.year && ex.year.trim()) {
+          const exYrVal = validateYear(ex.year, { minYear: 1970, label: `Exam Year for row ${i + 1} (${ex.examination || 'Examination'})` });
+          if (!exYrVal.valid) {
+            return exYrVal.error;
+          }
+        }
+      }
+
+      // Check experience From-To if entered
+      const exp = formData.professionalExperience || [];
+      for (let i = 0; i < exp.length; i++) {
+        const item = exp[i];
+        if (item.fromTo && item.fromTo.trim()) {
+          const ftVal = validateFromTo(item.fromTo);
+          if (!ftVal.valid) {
+            return `Experience row ${i + 1} (${item.institution || 'Experience'}): ${ftVal.error}`;
+          }
         }
       }
     }
 
     // STEP 2: Research & References (Sec 7 to 11)
     if (currentStep === 2) {
+      // Validate publications year if entered
+      const pubs = formData.researchPublications || [];
+      for (let i = 0; i < pubs.length; i++) {
+        const p = pubs[i];
+        if (p.year && p.year.trim()) {
+          const yRes = validateYear(p.year, { minYear: 1970, label: `Publication Year (row ${i + 1})` });
+          if (!yRes.valid) return yRes.error;
+        }
+      }
+
+      // Validate books/patents year if entered
+      const bp = formData.booksPatentsOutputs || [];
+      for (let i = 0; i < bp.length; i++) {
+        const b = bp[i];
+        if (b.year && b.year.trim()) {
+          const yRes = validateYear(b.year, { minYear: 1970, label: `Book/Patent Year (row ${i + 1})` });
+          if (!yRes.valid) return yRes.error;
+        }
+      }
+
+      // Validate memberships/awards year if entered
+      const mems = formData.membershipsAwards || [];
+      for (let i = 0; i < mems.length; i++) {
+        const m = mems[i];
+        if (m.year && m.year.trim()) {
+          const yRes = validateYear(m.year, { minYear: 1970, label: `Award/Membership Year (row ${i + 1})` });
+          if (!yRes.valid) return yRes.error;
+        }
+      }
+
+      // Validate conferences year if entered
+      const confs = formData.conferencesWorkshops || [];
+      for (let i = 0; i < confs.length; i++) {
+        const c = confs[i];
+        if (c.year && c.year.trim()) {
+          const yRes = validateYear(c.year, { minYear: 1970, label: `Conference Year (row ${i + 1})` });
+          if (!yRes.valid) return yRes.error;
+        }
+      }
+
       const refs = formData.references;
       if (!refs[0]?.nameDesignation?.trim() || !refs[0]?.institution?.trim() || !refs[0]?.contactEmail?.trim()) {
         return 'Please provide details for at least Referee 1 in Section 11.';
@@ -205,16 +302,13 @@ export default function ApplicationForm({ onSubmissionComplete, onBackToPortal }
       }
     }
 
-    // STEP 4: Declaration & Review (Sec 13)
+    // STEP 4: Declaration (Sec 13)
     if (currentStep === 4) {
       if (!formData.declaration.accepted) {
         return 'You must agree and check the mandatory declaration before submitting.';
       }
       if (!formData.declaration.place?.trim()) {
         return 'Please enter declaration place.';
-      }
-      if (!formData.declaration.typedSignature?.trim()) {
-        return 'Please provide candidate typed digital signature.';
       }
     }
 
@@ -274,6 +368,20 @@ export default function ApplicationForm({ onSubmissionComplete, onBackToPortal }
     }
   };
 
+  const executeExitEditToNew = () => {
+    localStorage.removeItem('nriit_phd_applicant_draft');
+    setFileObjects({});
+    setValidationError('');
+    setCurrentStep(0);
+    setFormData(getInitialFormData());
+    setDraftToast('Exited edit mode. Ready to fill and submit a new candidate application.');
+    setTimeout(() => setDraftToast(null), 4000);
+    if (onExitEditMode) {
+      onExitEditMode();
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <div className="max-w-5xl 2xl:max-w-6xl mx-auto px-2.5 sm:px-4 md:px-6 py-2 sm:py-3">
       {/* Toast message */}
@@ -299,6 +407,41 @@ export default function ApplicationForm({ onSubmissionComplete, onBackToPortal }
         </div>
       )}
 
+      {/* Edit Mode Active Banner */}
+      {isEditMode && (
+        <div className="mb-2.5 p-3 sm:p-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-2.5 sm:gap-3 shadow-2xs">
+          <div className="space-y-1.5">
+            {/* Header row with inline Edit badge, title, and status pills */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] uppercase font-black tracking-wider text-amber-900 bg-amber-200/90 px-2 py-0.5 rounded">
+                Edit
+              </span>
+              <span className="text-xs font-extrabold text-amber-950">
+                Editing Submitted Application
+              </span>
+              <span className="font-mono text-xs font-extrabold text-brand-900 bg-white/90 px-2 py-0.5 rounded border border-amber-200">
+                {formData.applicationNumber}
+              </span>
+              <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
+                ✓ OTP Verified
+              </span>
+            </div>
+          </div>
+
+          <div className="w-full md:w-auto shrink-0 pt-0.5 md:pt-0">
+            <button
+              type="button"
+              onClick={() => setShowExitConfirmModal(true)}
+              className="w-full md:w-auto px-3 py-1.5 rounded-lg bg-white hover:bg-rose-50 text-rose-700 hover:text-rose-900 border border-rose-300 hover:border-rose-400 text-xs font-bold shadow-2xs transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+              title="Exit edit mode and start a new application for another candidate"
+            >
+              <span className="text-rose-600 font-extrabold text-sm leading-none">✕</span>
+              <span>Exit & Submit New Application</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header Banner */}
       <div className="bg-white rounded-xl sm:rounded-lg border border-slate-200/90 shadow-sm p-3 sm:p-4 mb-2.5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
@@ -316,8 +459,8 @@ export default function ApplicationForm({ onSubmissionComplete, onBackToPortal }
               {autoSaveStatus === 'saving'
                 ? 'Saving draft...'
                 : lastSavedTime
-                ? `Saved as Draft (${lastSavedTime})`
-                : 'Auto-save Active'}
+                  ? `Saved as Draft (${lastSavedTime})`
+                  : 'Auto-save Active'}
             </span>
             <button
               type="button"
@@ -365,19 +508,17 @@ export default function ApplicationForm({ onSubmissionComplete, onBackToPortal }
                         }
                       }}
                       disabled={!isClickable}
-                      className={`group flex items-center justify-center focus:outline-none transition-all ${
-                        !isClickable ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
-                      }`}
+                      className={`group flex items-center justify-center focus:outline-none transition-all ${!isClickable ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+                        }`}
                     >
                       {/* Milestone Node */}
                       <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center font-mono font-bold text-xs sm:text-sm transition-all duration-300 ${
-                          isDone
+                        className={`w-10 h-10 rounded-full flex items-center justify-center font-mono font-bold text-xs sm:text-sm transition-all duration-300 ${isDone
                             ? 'bg-emerald-600 text-white shadow-sm ring-4 ring-emerald-50 hover:bg-emerald-700'
                             : isCurrent
-                            ? 'bg-brand-950 text-white shadow-md ring-4 ring-brand-100 scale-110'
-                            : 'bg-white border-2 border-slate-300 text-slate-400 group-hover:border-slate-400'
-                        }`}
+                              ? 'bg-brand-950 text-white shadow-md ring-4 ring-brand-100 scale-110'
+                              : 'bg-white border-2 border-slate-300 text-slate-400 group-hover:border-slate-400'
+                          }`}
                       >
                         {isDone ? '✓' : step.stepNumber}
                       </div>
@@ -423,18 +564,16 @@ export default function ApplicationForm({ onSubmissionComplete, onBackToPortal }
                         }
                       }}
                       disabled={!isClickable}
-                      className={`flex flex-col items-center focus:outline-none transition-all ${
-                        !isClickable ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
-                      }`}
+                      className={`flex flex-col items-center focus:outline-none transition-all ${!isClickable ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
+                        }`}
                     >
                       <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                          isDone
+                        className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isDone
                             ? 'bg-emerald-600 text-white ring-2 ring-emerald-100 shadow-sm'
                             : isCurrent
-                            ? 'bg-brand-950 text-white ring-4 ring-brand-100 scale-110 shadow-md'
-                            : 'bg-white border-2 border-slate-300 text-slate-400'
-                        }`}
+                              ? 'bg-brand-950 text-white ring-4 ring-brand-100 scale-110 shadow-md'
+                              : 'bg-white border-2 border-slate-300 text-slate-400'
+                          }`}
                       >
                         {isDone ? (
                           <span className="text-xs font-bold">✓</span>
@@ -457,8 +596,8 @@ export default function ApplicationForm({ onSubmissionComplete, onBackToPortal }
         <div className="mb-2.5 p-2.5 bg-red-50 border-l-4 border-red-600 rounded-r text-red-800 text-xs flex items-start gap-1.5">
           <span className="font-bold shrink-0">
             {validationError.toLowerCase().includes('violates') ||
-            validationError.toLowerCase().includes('failed') ||
-            validationError.toLowerCase().includes('error')
+              validationError.toLowerCase().includes('failed') ||
+              validationError.toLowerCase().includes('error')
               ? 'Submission Notice:'
               : 'Missing Required Field:'}
           </span>
@@ -500,7 +639,6 @@ export default function ApplicationForm({ onSubmissionComplete, onBackToPortal }
           <Step7DeclarationReview
             formData={formData}
             setFormData={setFormData}
-            onJumpToStep={(target) => setCurrentStep(target)}
           />
         )}
       </div>
@@ -551,10 +689,16 @@ export default function ApplicationForm({ onSubmissionComplete, onBackToPortal }
               disabled={isSubmitting}
               className="btn-primary bg-emerald-700 hover:bg-emerald-800 text-xs px-3.5 sm:px-5 py-1.5 font-bold shadow-sm"
             >
-              {isSubmitting ? 'Submitting Application...' : (
+              {isSubmitting ? (
+                isEditMode ? 'Updating Application...' : 'Submitting Application...'
+              ) : (
                 <>
-                  <span className="hidden sm:inline">Submit Application Final ✓</span>
-                  <span className="sm:hidden">Final Submit ✓</span>
+                  <span className="hidden sm:inline">
+                    {isEditMode ? 'Save & Update Application ✓' : 'Submit Application Final ✓'}
+                  </span>
+                  <span className="sm:hidden">
+                    {isEditMode ? 'Update ✓' : 'Final Submit ✓'}
+                  </span>
                 </>
               )}
             </button>
@@ -567,13 +711,19 @@ export default function ApplicationForm({ onSubmissionComplete, onBackToPortal }
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-xl border border-slate-200 shadow-xl max-w-md w-full p-5 space-y-3">
             <h3 className="text-base font-bold text-slate-900 text-center">
-              Confirm Final Ph.D. Application Submission
+              {isEditMode ? 'Confirm Application Update' : 'Confirm Final Ph.D. Application Submission'}
             </h3>
             <p className="text-xs text-slate-500 text-center leading-normal">
-              Once submitted, your application will receive a permanent Application Number and cannot be modified by the applicant as per University regulations.
+              {isEditMode
+                ? 'Your revised application details will be saved under your existing official Application Number.'
+                : 'Once submitted, your application will receive a permanent Application Number and cannot be modified without OTP verification.'}
             </p>
 
             <div className="bg-slate-50 p-2.5 rounded text-xs space-y-1 border border-slate-200 text-slate-700">
+              <div className="flex justify-between">
+                <span className="text-slate-400">Application No:</span>
+                <span className="font-semibold font-mono text-brand-900">{formData.applicationNumber || 'Generated upon submission'}</span>
+              </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Candidate:</span>
                 <span className="font-semibold">{formData.personalDetails.fullName}</span>
@@ -601,7 +751,60 @@ export default function ApplicationForm({ onSubmissionComplete, onBackToPortal }
                 onClick={handleExecuteSubmission}
                 className="btn-primary bg-brand-900 hover:bg-brand-950 flex-1 py-1.5 text-xs font-semibold"
               >
-                Yes, Submit Now
+                {isEditMode ? 'Yes, Save Updates' : 'Yes, Submit Now'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Exit Edit Mode Confirmation Modal (Grid Layout) */}
+      {showExitConfirmModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-2xl max-w-md w-full p-5 grid grid-cols-1 gap-3.5">
+            {/* Grid Row 1: Header with Warning Icon */}
+            <div className="grid grid-cols-[auto_1fr] gap-3 items-center pb-2.5 border-b border-slate-100">
+              <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-lg font-bold shrink-0">
+                !
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900">
+                  Ph.D. Application Portal Notice
+                </h3>
+                <p className="text-[11px] text-slate-500 font-medium">
+                  Candidate Edit Session
+                </p>
+              </div>
+            </div>
+
+            {/* Grid Row 2: Prompt Question */}
+            <div className="text-sm font-semibold text-slate-800 leading-snug">
+              Exit edit mode and start a new application for another candidate?
+            </div>
+
+            {/* Grid Row 3: Warning Message Box */}
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-900 font-medium grid grid-cols-[auto_1fr] gap-2 items-center">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-600 shrink-0" />
+              <span>Any unsaved changes on this application will be discarded.</span>
+            </div>
+
+            {/* Grid Row 4: Action Buttons Grid */}
+            <div className="grid grid-cols-2 gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => setShowExitConfirmModal(false)}
+                className="w-full py-2 px-3 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 active:scale-[0.98] rounded-lg border border-slate-200 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowExitConfirmModal(false);
+                  executeExitEditToNew();
+                }}
+                className="w-full py-2 px-3 text-xs font-bold text-white bg-[#EC691F] hover:bg-[#d95a14] active:scale-[0.98] rounded-lg shadow-xs transition cursor-pointer"
+              >
+                OK
               </button>
             </div>
           </div>
